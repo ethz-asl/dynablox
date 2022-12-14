@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+    <arg name="sequence" default="sequence_1" />
+    <arg name="bag_file" default="/home/voliro/data/niederdorf/sequence_1/sequence_1.bag"/>
+    <arg name="config_file" default="$(find drift_simulation)/cfg/drift_moderate.yaml" />
+    <arg name="experiment_name" default="/home/voliro/data/simulated_drift/niederdorf/sequence_1/simulated_drift_moderate.csv" />
+    <arg name="player_rate" default="0.4" />
+    <param name="use_sim_time" value="true" />
+
+
+    <node name="player" pkg="rosbag" type="play" output="log"
+     args="--quiet --rate $(arg player_rate) --clock $(arg bag_file) -d 10" required="true" /> 
+
+    <node name="drift_simulation" pkg="drift_simulation" type="odometry_drift_simulator" output="log" >
+    	<rosparam command="load" file="$(arg config_file)" />
+        <remap from="pointcloud" to="/os1_cloud_node/points" />
+        <param name="odom_frame_id" value="map" />
+        <param name="lidar_frame_id" value="os1_lidar" />
+        <param name="experiment_name" value="$(arg experiment_name)" />
+    </node>
+
+
+</launch>
