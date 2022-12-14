@@ -9,7 +9,7 @@ add_definitions(-std=c++14 -Wall -Wextra)
 cs_add_library(${PROJECT_NAME}
         src/normal_distribution.cpp
         src/odometry_drift_simulator.cpp
-        src/drift_simulation.cpp
+        src/read_simulated_drift.cpp
         )
 
 cs_add_executable(odometry_drift_simulator
@@ -18,7 +18,7 @@ cs_add_executable(odometry_drift_simulator
 target_link_libraries(odometry_drift_simulator ${PROJECT_NAME})
 
 cs_add_executable(drift_reader
-        src/drift_simulation_node.cpp
+        src/read_simulated_drift_node.cpp
         )
 target_link_libraries(drift_reader ${PROJECT_NAME})
 
