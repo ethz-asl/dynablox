@@ -4,13 +4,12 @@
 #include <vector>
 
 #include <pcl_ros/point_cloud.h>
+#include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <voxblox/core/common.h>
 
-#include "ros/ros.h"
-#include "voxblox/core/common.h"
-
-typedef struct PointInfo {
+struct PointInfo {
   bool filtered_out = true;
   bool ready_for_evaluation = false;
 
@@ -20,18 +19,16 @@ typedef struct PointInfo {
 
   double distance_to_sensor = -1.0;
   bool gt_dynamic = false;
+};
 
-} PointInfo;
-
-typedef struct PointInfoCollection {
+struct PointInfoCollection {
   std::uint64_t timestamp;
   std::vector<PointInfo> points;
-} PointInfoCollection;
+};
 
-typedef struct Cluster {
+struct Cluster {
   pcl::PointCloud<pcl::PointXYZ> points;
   std::vector<int> point_indices;
-} Cluster;
-
+};
 
 #endif  // LIDAR_MOTION_DETECTION_COMMON_TYPES_H_

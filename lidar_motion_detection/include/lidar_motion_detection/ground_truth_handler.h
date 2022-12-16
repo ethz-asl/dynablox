@@ -16,19 +16,18 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/point_cloud.h>
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/String.h>
 #include <voxblox/core/common.h>
 #include <voxblox/core/layer.h>
 #include <voxblox/core/voxel.h>
 #include <voxblox_ros/conversions.h>
+#include <voxblox_ros/esdf_server.h>
+#include <voxblox_ros/tsdf_server.h>
 
 #include "lidar_motion_detection/common_types.h"
-
-#include "ros/ros.h"
-#include "sensor_msgs/PointCloud2.h"
-#include "std_msgs/Int32MultiArray.h"
-#include "std_msgs/String.h"
-#include "voxblox_ros/esdf_server.h"
-#include "voxblox_ros/tsdf_server.h"
 
 class GroundTruthHandler {
  public:

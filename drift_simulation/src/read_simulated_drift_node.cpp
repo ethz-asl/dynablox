@@ -2,8 +2,7 @@
 
 #include "drift_simulation/read_simulated_drift.h"
 
-int main(int argc, char **argv) {
-
+int main(int argc, char** argv) {
   // Register with ROS master
   ros::init(argc, argv, "lidar_undistortion");
 

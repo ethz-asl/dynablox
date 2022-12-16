@@ -16,7 +16,7 @@ Evaluator::Evaluator(const ros::NodeHandle& nh_private,
       gt_frame_counter_(1) {
   setupRos();
   t_zero_ = ros::Time::now();
-  
+
   nh_private.param("skip_n_fov_boundary_rows", n_rows_, n_rows_);
 
   bool eval_mode;
@@ -156,7 +156,9 @@ bool Evaluator::checkGTAvailability(const std::uint64_t& tstamp) {
 
 void Evaluator::computeScoresForOneLevel(const std::string& level,
                                          float* precision_score,
-                                         float* recall_score, float* iou_score, int &evaluation_points, int &ground_truth_points) {
+                                         float* recall_score, float* iou_score,
+                                         int& evaluation_points,
+                                         int& ground_truth_points) {
   bool prediction_dynamic;
   int tp = 0, tn = 0, fp = 0, fn = 0;
 
@@ -164,17 +166,16 @@ void Evaluator::computeScoresForOneLevel(const std::string& level,
   nh_private_.getParam("max_ray_length_m", max_raylength);
 
   for (const auto& point_info : point_classifications_ptr_->points) {
+    if ((point_info.distance_to_sensor > 0) && point_info.gt_dynamic) {
+      ground_truth_points += 1;
+    }
 
-  if ((point_info.distance_to_sensor > 0) && point_info.gt_dynamic){
-  	ground_truth_points += 1;
-  }
+    if (point_info.ready_for_evaluation) {
+      if (point_info.gt_dynamic) {
+        evaluation_points += 1;
+      }
 
-  if (point_info.ready_for_evaluation) {	
-  	if (point_info.gt_dynamic){
-  		evaluation_points += 1;
-  	}
-  	
-        prediction_dynamic = point_info.cluster_level_dynamic;
+      prediction_dynamic = point_info.cluster_level_dynamic;
 
       if (prediction_dynamic && point_info.gt_dynamic) {
         tp += 1;
@@ -235,13 +236,13 @@ void Evaluator::evaluateFrame(const pcl::PointCloud<pcl::PointXYZ>& cloud,
   std::string level;
   int evaluation_points = 0;
   int ground_truth_points = 0;
-  
+
   level = "cluster";
-  computeScoresForOneLevel(level, &precision, &recall, &iou, evaluation_points, ground_truth_points);
-  writeScoresToFile(tstamp, level, precision, recall, iou, evaluation_points, ground_truth_points);
-
+  computeScoresForOneLevel(level, &precision, &recall, &iou, evaluation_points,
+                           ground_truth_points);
+  writeScoresToFile(tstamp, level, precision, recall, iou, evaluation_points,
+                    ground_truth_points);
 }
-
 
 void Evaluator::writeScoresToFile(const std::uint64_t& tstamp,
                                   const std::string& level,

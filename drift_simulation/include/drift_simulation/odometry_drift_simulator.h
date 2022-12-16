@@ -1,21 +1,19 @@
-#ifndef UNREAL_AIRSIM_SIMULATOR_PROCESSING_ODOMETRY_DRIFT_SIMULATOR_ODOMETRY_DRIFT_SIMULATOR_H_
-#define UNREAL_AIRSIM_SIMULATOR_PROCESSING_ODOMETRY_DRIFT_SIMULATOR_ODOMETRY_DRIFT_SIMULATOR_H_
+#ifndef DRIFT_SIMULATION_ODOMETRY_DRIFT_SIMULATOR_H_
+#define DRIFT_SIMULATION_ODOMETRY_DRIFT_SIMULATOR_H_
 
 #include <map>
 #include <string>
 
+#include <drift_simulation/normal_distribution.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <kindr/minimal/quat-transformation.h>
 #include <nav_msgs/Odometry.h>
-#include <ros/ros.h>
-#include <tf2_ros/transform_broadcaster.h>
-
-#include "tf2_ros/buffer.h"
-#include "tf2_ros/transform_listener.h"
 #include <pcl_conversions/pcl_conversions.h>
-
-#include "drift_simulation/normal_distribution.h"
+#include <ros/ros.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
 
 namespace unreal_airsim {
 class OdometryDriftSimulator {
@@ -30,8 +28,7 @@ class OdometryDriftSimulator {
     // Whether and how to publish the ground truth pose
     bool publish_ground_truth_pose = false;
     std::string ground_truth_frame_suffix = "_ground_truth";
-    
-    
+
     // Params of the distributions used to generate the pose drift and noise
     float velocity_noise_frequency_hz = 1;
     using NoiseConfigMap = std::map<std::string, NoiseDistribution::Config>;
@@ -51,14 +48,15 @@ class OdometryDriftSimulator {
     friend std::ostream& operator<<(std::ostream& os, const Config& config);
   };
 
-  explicit OdometryDriftSimulator(Config config, ros::NodeHandle nh, const ros::NodeHandle& nh_private);
+  explicit OdometryDriftSimulator(Config config, ros::NodeHandle nh,
+                                  const ros::NodeHandle& nh_private);
   ~OdometryDriftSimulator() = default;
 
   void start() {
     reset();
     started_publishing_ = true;
   }
-  void poseCallback(const sensor_msgs::PointCloud2 &pointcloud_msg);
+  void poseCallback(const sensor_msgs::PointCloud2& pointcloud_msg);
   void reset();
   void tick(const geometry_msgs::TransformStamped& ground_truth_pose_msg);
 
@@ -82,16 +80,16 @@ class OdometryDriftSimulator {
 
  private:
   ros::NodeHandle nh_private_;
-  
+
   std::string experiment_name_;
-  
+
   // Members used to lookup TF transforms
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
- 
-  // ROS subscriber and publisher for the (un)corrected pointclouds 
+
+  // ROS subscriber and publisher for the (un)corrected pointclouds
   ros::Subscriber pointcloud_sub_;
- 
+
   // Settings
   const Config config_;
   bool started_publishing_;
@@ -105,7 +103,7 @@ class OdometryDriftSimulator {
   Transformation current_pose_noise_;
   Transformation current_simulated_pose_;
   geometry_msgs::TransformStamped last_ground_truth_pose_msg_;
-  
+
   // Noise distributions
   struct VelocityNoiseDistributions {
     explicit VelocityNoiseDistributions(
@@ -127,5 +125,4 @@ class OdometryDriftSimulator {
 };
 }  // namespace unreal_airsim
 
-#endif  // UNREAL_AIRSIM_SIMULATOR_PROCESSING_ODOMETRY_DRIFT_SIMULATOR_ODOMETRY_DRIFT_SIMULATOR_H_
-
+#endif  // DRIFT_SIMULATION_ODOMETRY_DRIFT_SIMULATOR_H_

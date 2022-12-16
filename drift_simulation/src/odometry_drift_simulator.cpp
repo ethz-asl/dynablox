@@ -1,60 +1,75 @@
 #include "drift_simulation/odometry_drift_simulator.h"
 
-#include <eigen_conversions/eigen_msg.h>
-#include <minkindr_conversions/kindr_msg.h>
 #include <fstream>
 
+#include <eigen_conversions/eigen_msg.h>
+#include <minkindr_conversions/kindr_msg.h>
+
 namespace unreal_airsim {
-OdometryDriftSimulator::OdometryDriftSimulator(Config config, ros::NodeHandle nh, const ros::NodeHandle& nh_private)
+OdometryDriftSimulator::OdometryDriftSimulator(
+    Config config, ros::NodeHandle nh, const ros::NodeHandle& nh_private)
     : nh_private_(nh_private),
-    config_(config.checkValid()),
+      config_(config.checkValid()),
       started_publishing_(false),
       velocity_noise_sampling_period_(1.f / config.velocity_noise_frequency_hz),
       velocity_noise_(config.velocity_noise),
       pose_noise_(config.pose_noise),
       tf_listener_(tf_buffer_) {
+  pointcloud_sub_ = nh.subscribe("pointcloud", 100,
+                                 &OdometryDriftSimulator::poseCallback, this);
 
-  pointcloud_sub_ = nh.subscribe("pointcloud", 100, &OdometryDriftSimulator::poseCallback, this);    
-      
-  //ROS_ERROR_STREAM(nh_private);
-      
+  // ROS_ERROR_STREAM(nh_private);
+
   nh_private_.param<std::string>("experiment_name", experiment_name_, "");
-      
+
   reset();
   VLOG(1) << "Initialized drifting odometry simulator, with config:\n"
           << config_;
 }
 
-void OdometryDriftSimulator::poseCallback(const sensor_msgs::PointCloud2 &pointcloud_msg) {
+void OdometryDriftSimulator::poseCallback(
+    const sensor_msgs::PointCloud2& pointcloud_msg) {
+  geometry_msgs::TransformStamped ground_truth_pose_msg =
+      tf_buffer_.lookupTransform("os1_lidar", "map",
+                                 pointcloud_msg.header.stamp);
+  this->tick(ground_truth_pose_msg);
 
-	geometry_msgs::TransformStamped ground_truth_pose_msg = tf_buffer_.lookupTransform("os1_lidar", "map", pointcloud_msg.header.stamp);
-	this->tick(ground_truth_pose_msg);
-	
-	geometry_msgs::TransformStamped simulated_pose_msg;
-	simulated_pose_msg = this->convertGroundTruthToDriftedPoseMsg(ground_truth_pose_msg); 
-	
-	
-    	std::fstream fout, fout_truth;
-  
-    	fout.open(experiment_name_, std::ios::out | std::ios::app); // experiment_name_
-    	fout_truth.open("/home/pool/data/true_transpose.csv", std::ios::out | std::ios::app);
-  
-    	fout << simulated_pose_msg.transform.translation.x << ", " << simulated_pose_msg.transform.translation.y << ", " << simulated_pose_msg.transform.translation.z << ", " ;
-    	
-    	fout_truth << ground_truth_pose_msg.transform.translation.x << ", " << ground_truth_pose_msg.transform.translation.y << ", " << ground_truth_pose_msg.transform.translation.z << ", " ;
-    	
-    	fout << simulated_pose_msg.transform.rotation.x << ", " << simulated_pose_msg.transform.rotation.y << ", " << simulated_pose_msg.transform.rotation.z << ", " << simulated_pose_msg.transform.rotation.w;
-    	
-    	fout_truth << ground_truth_pose_msg.transform.rotation.x << ", " << ground_truth_pose_msg.transform.rotation.y << ", " << ground_truth_pose_msg.transform.rotation.z << ", " << ground_truth_pose_msg.transform.rotation.w;
-    	
-    	fout << std::endl;
-    	
-    	fout_truth << std::endl;
-    	
-    	fout.close();
-    	
-    	fout_truth.close();
-	
+  geometry_msgs::TransformStamped simulated_pose_msg;
+  simulated_pose_msg =
+      this->convertGroundTruthToDriftedPoseMsg(ground_truth_pose_msg);
+
+  std::fstream fout, fout_truth;
+
+  fout.open(experiment_name_,
+            std::ios::out | std::ios::app);  // experiment_name_
+  fout_truth.open("/home/pool/data/true_transpose.csv",
+                  std::ios::out | std::ios::app);
+
+  fout << simulated_pose_msg.transform.translation.x << ", "
+       << simulated_pose_msg.transform.translation.y << ", "
+       << simulated_pose_msg.transform.translation.z << ", ";
+
+  fout_truth << ground_truth_pose_msg.transform.translation.x << ", "
+             << ground_truth_pose_msg.transform.translation.y << ", "
+             << ground_truth_pose_msg.transform.translation.z << ", ";
+
+  fout << simulated_pose_msg.transform.rotation.x << ", "
+       << simulated_pose_msg.transform.rotation.y << ", "
+       << simulated_pose_msg.transform.rotation.z << ", "
+       << simulated_pose_msg.transform.rotation.w;
+
+  fout_truth << ground_truth_pose_msg.transform.rotation.x << ", "
+             << ground_truth_pose_msg.transform.rotation.y << ", "
+             << ground_truth_pose_msg.transform.rotation.z << ", "
+             << ground_truth_pose_msg.transform.rotation.w;
+
+  fout << std::endl;
+
+  fout_truth << std::endl;
+
+  fout.close();
+
+  fout_truth.close();
 }
 
 void OdometryDriftSimulator::reset() {
@@ -301,5 +316,3 @@ std::ostream& operator<<(std::ostream& os,
   return os;
 }
 }  // namespace unreal_airsim
-
-

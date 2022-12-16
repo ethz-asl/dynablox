@@ -30,7 +30,8 @@ void MotionVisualizer::initializePointcloudPublishers() {
   initNewPointcloudToVisualize("cluster_level_detections", world_frame_);
   initNewPointcloudToVisualize("object_level_detections", world_frame_);
   initNewPointcloudToVisualize("ground_truth_detections", world_frame_);
-  initNewPointcloudToVisualize("point_cloud_without_dynamic_points", world_frame_);
+  initNewPointcloudToVisualize("point_cloud_without_dynamic_points",
+                               world_frame_);
 
   initNewPointcloudToVisualize("lidar_points");
   initNewPointcloudToVisualize("never_free_voxels", world_frame_);
@@ -46,17 +47,14 @@ void MotionVisualizer::setAllCloudsToVisualize(
 
   setPointcloud("lidar_points", processed_pcl, lidar_point_color_);
   setLidarPointcloudWithoutDynamicPoints(processed_pcl);
-  
 
   setEverFreeLevelDetectionsCloud(processed_pcl);
   setClusterLevelDetectionsCloud();
   setObjectLevelDetectionsCloud();
   setGroundTruthDetectionsCloud(processed_pcl);
-
 }
 
 void MotionVisualizer::publishAll() {
-
   publishPointcloud("EverFree_level_detections");
   publishPointcloud("object_level_detections");
   publishPointcloud("cluster_level_detections");
@@ -129,8 +127,8 @@ void MotionVisualizer::setPointcloud(
     const pcl::PointCloud<pcl::PointXYZ>& pointcloud,
     const voxblox::Color& color) {
   for (const auto& point : pointcloud) {
-  if ((point.z > 0 - 0.2 * 0.5) && (point.z < 0 + 0.2 * 0.5)){
-    addPointToPointcloud(topic_name, point, color);
+    if ((point.z > 0 - 0.2 * 0.5) && (point.z < 0 + 0.2 * 0.5)) {
+      addPointToPointcloud(topic_name, point, color);
     }
   }
 }
@@ -221,11 +219,12 @@ void MotionVisualizer::setNeverFreeVoxelsCloud() {
       observed = (block->getVoxelByLinearIndex(linear_index).weight > 1e-6);
       if (!ever_free && observed) {
         point = block->computeCoordinatesFromLinearIndex(linear_index);
-        if (point.z() < 2){
-        point_pcl.x = point.x();
-        point_pcl.y = point.y();
-        point_pcl.z = point.z();
-        addPointToPointcloud("never_free_voxels", point_pcl, never_free_color_);
+        if (point.z() < 2) {
+          point_pcl.x = point.x();
+          point_pcl.y = point.y();
+          point_pcl.z = point.z();
+          addPointToPointcloud("never_free_voxels", point_pcl,
+                               never_free_color_);
         }
       }
     }
@@ -260,20 +259,20 @@ void MotionVisualizer::setEverFreeSliceCloud() {
       tsdf_distance = block->getVoxelByLinearIndex(linear_index).distance;
 
       point = block->computeCoordinatesFromLinearIndex(linear_index);
- 
-      if ((point.z() > slice_level - voxel_size * 0.5) && (point.z() < slice_level + voxel_size * 0.5)) {
-	point_pcl.x = point.x();
-	point_pcl.y = point.y();
-	point_pcl.z = point.z() - voxel_size;
-	if (ever_free){
-		addPointToPointcloud("ever_free_slice", point_pcl, voxblox::Color::Red());
-	}
+
+      if ((point.z() > slice_level - voxel_size * 0.5) &&
+          (point.z() < slice_level + voxel_size * 0.5)) {
+        point_pcl.x = point.x();
+        point_pcl.y = point.y();
+        point_pcl.z = point.z() - voxel_size;
+        if (ever_free) {
+          addPointToPointcloud("ever_free_slice", point_pcl,
+                               voxblox::Color::Red());
+        }
       }
-          
     }
   }
 }
-
 
 void MotionVisualizer::setGroundTruthDetectionsCloud(
     const pcl::PointCloud<pcl::PointXYZ>& processed_pcl) {
@@ -309,10 +308,10 @@ void MotionVisualizer::setClusterLevelDetectionsCloud() {
     }
 
     for (auto point : cluster.points) {
-    if (point.z > -0.7){
-      addPointToPointcloud("cluster_level_detections", point,
-                           point_and_cluster_candidate_color_);
-                           }
+      if (point.z > -0.7) {
+        addPointToPointcloud("cluster_level_detections", point,
+                             point_and_cluster_candidate_color_);
+      }
     }
   }
 }
@@ -324,27 +323,24 @@ void MotionVisualizer::setObjectLevelDetectionsCloud() {
   int counter = 0;
   double size = current_clusters_ptr_->size();
   for (auto& cluster : *current_clusters_ptr_) {
-    
-      counter += 1;
-      for (auto point : cluster.points) {
-      if (point.z > -0.7){
+    counter += 1;
+    for (auto point : cluster.points) {
+      if (point.z > -0.7) {
         addPointToPointcloud("object_level_detections", point,
-                             voxblox::rainbowColorMap(counter/size));
-                             }
+                             voxblox::rainbowColorMap(counter / size));
       }
+    }
   }
 }
-
 
 void MotionVisualizer::setLidarPointcloudWithoutDynamicPoints(
     const pcl::PointCloud<pcl::PointXYZ>& processed_pcl) {
   int i = 0;
   for (const auto& point_info : point_classifications_ptr_->points) {
     if (!point_info.cluster_level_dynamic) {
-      addPointToPointcloud("point_cloud_without_dynamic_points", processed_pcl.at(i),
-                           lidar_point_color_);
+      addPointToPointcloud("point_cloud_without_dynamic_points",
+                           processed_pcl.at(i), lidar_point_color_);
     }
     i += 1;
   }
 }
-

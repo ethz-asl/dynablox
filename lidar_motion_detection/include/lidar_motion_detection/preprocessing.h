@@ -4,15 +4,14 @@
 #include <string>
 
 #include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/impl/transforms.hpp>
 #include <pcl_ros/point_cloud.h>
+#include <ros/ros.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
 #include "lidar_motion_detection/common_types.h"
-
-#include "pcl_ros/impl/transforms.hpp"
-#include "ros/ros.h"
-#include "tf2_ros/buffer.h"
-#include "tf2_ros/transform_listener.h"
 
 class Preprocessing {
  public:
@@ -27,8 +26,8 @@ class Preprocessing {
 
   void preprocessPointcloud(
       const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-      pcl::PointCloud<pcl::PointXYZ>* processed_pcl, pcl::PointXYZ &sensor_origin);
-
+      pcl::PointCloud<pcl::PointXYZ>* processed_pcl,
+      pcl::PointXYZ& sensor_origin);
 
  private:
   PointInfoCollection* point_classifications_ptr_;

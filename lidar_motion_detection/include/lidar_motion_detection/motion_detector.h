@@ -2,19 +2,21 @@
 #define LIDAR_MOTION_DETECTION_MOTION_DETECTOR_H_
 
 #include <deque>
-#include <string>
-#include <vector>
-
+#include <memory>
 #include <mutex>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/point_cloud.h>
+#include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <voxblox/core/common.h>
 #include <voxblox/core/block_hash.h>
+#include <voxblox/core/common.h>
+#include <voxblox_ros/tsdf_server.h>
 
 #include "lidar_motion_detection/clustering.h"
 #include "lidar_motion_detection/common_types.h"
@@ -25,13 +27,9 @@
 #include "lidar_motion_detection/preprocessing.h"
 #include "lidar_motion_detection/visualization_utils.h"
 
-#include "ros/ros.h"
-#include "voxblox_ros/tsdf_server.h"
-
-
 template <typename IndexT>
 class IndexGetter {
-public:
+ public:
   explicit IndexGetter(std::vector<IndexT> indices)
       : indices_(std::move(indices)), current_index_(0) {}
   bool getNextIndex(IndexT* index) {
@@ -47,14 +45,13 @@ public:
     return true;
   }
 
-private:
+ private:
   std::mutex mutex_;
   std::vector<IndexT> indices_;
   size_t current_index_;
 };
 
-//typedef IndexGetter<int> SubmapIndexGetter;
-
+// typedef IndexGetter<int> SubmapIndexGetter;
 
 class MotionDetector {
  public:
@@ -66,22 +63,37 @@ class MotionDetector {
       const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in);
 
   void preprocessingStep(const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-                         pcl::PointCloud<pcl::PointXYZ>* lidar_points, pcl::PointXYZ &sensor_origin);
+                         pcl::PointCloud<pcl::PointXYZ>* lidar_points,
+                         pcl::PointXYZ& sensor_origin);
 
   void everFreeIntegrationStep(
       const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
-      
-  void setUpVoxel2PointMap(voxblox::AnyIndexHashMapType<int>::type &hash, std::vector<voxblox::HierarchicalIndexIntMap> &blockwise_voxel_map,
-   std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices, const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
-  
-  // helper function of setUpVoxel2PointMap: builds hash map mapping blocks to set of points that fall into block
-  void buildBlock2PointMap(voxblox::Layer<voxblox::TsdfVoxel>* layer_ptr, const pcl::PointCloud<pcl::PointXYZ>& all_points, voxblox::HierarchicalIndexIntMap& block2occvoxel_map);
-  
+
+  void setUpVoxel2PointMap(
+      voxblox::AnyIndexHashMapType<int>::type& hash,
+      std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel_map,
+      std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
+      const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
+
+  // helper function of setUpVoxel2PointMap: builds hash map mapping blocks to
+  // set of points that fall into block
+  void buildBlock2PointMap(
+      voxblox::Layer<voxblox::TsdfVoxel>* layer_ptr,
+      const pcl::PointCloud<pcl::PointXYZ>& all_points,
+      voxblox::HierarchicalIndexIntMap& block2occvoxel_map);
+
   // helper function of setUpVoxel2PointMap: builds the Voxel2PointMap blockwise
-  void BlockwiseBuildVoxel2PointMap(const voxblox::BlockIndex blockindex, voxblox::HierarchicalIndexIntMap& block2occvoxel_map, voxblox::HierarchicalIndexIntMap* voxel_map, const pcl::PointCloud<pcl::PointXYZ>& all_points); 
-  
-  void clusteringStep(voxblox::AnyIndexHashMapType<int>::type* hash, std::vector<voxblox::HierarchicalIndexIntMap>* blockwise_voxel_map, 
-  std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices, const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
+  void BlockwiseBuildVoxel2PointMap(
+      const voxblox::BlockIndex blockindex,
+      voxblox::HierarchicalIndexIntMap& block2occvoxel_map,
+      voxblox::HierarchicalIndexIntMap* voxel_map,
+      const pcl::PointCloud<pcl::PointXYZ>& all_points);
+
+  void clusteringStep(
+      voxblox::AnyIndexHashMapType<int>::type* hash,
+      std::vector<voxblox::HierarchicalIndexIntMap>* blockwise_voxel_map,
+      std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices,
+      const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
 
   void evalStep(const pcl::PointCloud<pcl::PointXYZ>& processed_cloud,
                 const std::uint64_t& tstamp);
@@ -90,13 +102,13 @@ class MotionDetector {
                          const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
 
   void postprocessPointcloud(
-    const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-    pcl::PointCloud<pcl::PointXYZ>* processed_pcl, pcl::PointXYZ &sensor_origin);
+      const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
+      pcl::PointCloud<pcl::PointXYZ>* processed_pcl,
+      pcl::PointXYZ& sensor_origin);
 
  private:
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
-
 
   voxblox::TsdfServer tsdf_server_;
   std::shared_ptr<voxblox::TsdfMap> tsdf_map;
@@ -115,10 +127,10 @@ class MotionDetector {
   bool publish_filtered_lidar_pcl_for_slice_;
   float max_raylength_m_;
   float voxel_size_;
-  
+
   size_t voxels_per_side_;
   size_t voxels_per_block_;
-  
+
   int frame_counter_;
   int skip_frames_;
 
@@ -135,7 +147,7 @@ class MotionDetector {
 
   PointInfoCollection point_classifications_;
   std::vector<Cluster> current_clusters_;
-  
+
   int occ_counter_to_reset_;
   int integrator_threads;
 

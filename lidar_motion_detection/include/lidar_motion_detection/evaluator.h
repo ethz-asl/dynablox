@@ -15,7 +15,6 @@
 #include "lidar_motion_detection/ground_truth_handler.h"
 #include "lidar_motion_detection/preprocessing.h"
 
-
 class Evaluator {
  public:
   Evaluator(const ros::NodeHandle& nh_private, PointInfoCollection* point_clfs,
@@ -32,9 +31,8 @@ class Evaluator {
 
   void computeScoresForOneLevel(const std::string& level,
                                 float* precision_score, float* recall_score,
-                                float* iou_score,
-                                int &evaluation_points, 
-                                int &ground_truth_points);
+                                float* iou_score, int& evaluation_points,
+                                int& ground_truth_points);
 
   static void computePrecision(float* score, const int& tp, const int& fp);
   static void computeRecall(float* score, const int& tp, const int& fn);
@@ -45,7 +43,8 @@ class Evaluator {
                      const std::uint64_t& tstamp);
   void writeScoresToFile(const std::uint64_t& tstamp, const std::string& level,
                          const float& precision_score,
-                         const float& recall_score, const float& iou_score, int evaluation_points, int ground_truth_points);
+                         const float& recall_score, const float& iou_score,
+                         int evaluation_points, int ground_truth_points);
 
   void writeTimingsToFile(const ros::TimerEvent&);
 

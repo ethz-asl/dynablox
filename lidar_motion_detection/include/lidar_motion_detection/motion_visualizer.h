@@ -7,13 +7,12 @@
 #include <vector>
 
 #include <pcl_ros/point_cloud.h>
+#include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
+#include <voxblox_ros/tsdf_server.h>
 
 #include "lidar_motion_detection/common_types.h"
 #include "lidar_motion_detection/visualization_utils.h"
-
-#include "ros/ros.h"
-#include "voxblox_ros/tsdf_server.h"
 
 class MotionVisualizer {
  public:
@@ -45,9 +44,9 @@ class MotionVisualizer {
   void setObjectLevelDetectionsCloud();
   void setGroundTruthDetectionsCloud(
       const pcl::PointCloud<pcl::PointXYZ>& processed_pcl);
-      
+
   void setLidarPointcloudWithoutDynamicPoints(
-    const pcl::PointCloud<pcl::PointXYZ>& processed_pcl);
+      const pcl::PointCloud<pcl::PointXYZ>& processed_pcl);
 
   void setNeverFreeVoxelsCloud();
   void setEverFreeSliceCloud();

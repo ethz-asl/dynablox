@@ -1,40 +1,40 @@
-#ifndef UNREAL_AIRSIM_SIMULATOR_PROCESSING_ODOMETRY_DRIFT_SIMULATOR_NORMAL_DISTRIBUTION_H_
-#define UNREAL_AIRSIM_SIMULATOR_PROCESSING_ODOMETRY_DRIFT_SIMULATOR_NORMAL_DISTRIBUTION_H_
+#ifndef DRIFT_SIMULATION_NORMAL_DISTRIBUTION_H_
+#define DRIFT_SIMULATION_NORMAL_DISTRIBUTION_H_
 
 #include <chrono>
 #include <random>
-#include <ros/ros.h>
 #include <string>
 
 #include <glog/logging.h>
+#include <ros/ros.h>
 
 namespace unreal_airsim {
 class NormalDistribution {
-public:
+ public:
   struct Config {
     // Initialize from ROS params
-    static Config fromRosParams(const ros::NodeHandle &nh);
+    static Config fromRosParams(const ros::NodeHandle& nh);
 
     // Distribution parameters
     double mean = 0.0;
     double stddev = 0.0;
 
     // Validity queries and assertions
-    bool isValid(const std::string &error_msg_prefix = "") const;
-    Config &checkValid() {
+    bool isValid(const std::string& error_msg_prefix = "") const;
+    Config& checkValid() {
       CHECK(isValid());
       return *this;
     }
 
     // Write config values to stream, e.g. for logging
-    friend std::ostream &operator<<(std::ostream &os, const Config &config);
+    friend std::ostream& operator<<(std::ostream& os, const Config& config);
   };
 
   explicit NormalDistribution(double mean = 0.0, double stddev = 1.0)
       : mean_(mean), stddev_(stddev) {
     CHECK_GE(stddev_, 0.0) << "Standard deviation must be non-negative";
   }
-  explicit NormalDistribution(const Config &config)
+  explicit NormalDistribution(const Config& config)
       : NormalDistribution(config.mean, config.stddev) {}
 
   double getMean() const { return mean_; }
@@ -67,12 +67,12 @@ public:
     return normal_distribution_(noise_generator_) * stddev_ + mean_;
   }
 
-private:
+ private:
   const double mean_, stddev_;
 
   // Standard normal distribution
   std::normal_distribution<double> normal_distribution_;
 };
-} // namespace unreal_airsim
+}  // namespace unreal_airsim
 
-#endif // UNREAL_AIRSIM_SIMULATOR_PROCESSING_ODOMETRY_DRIFT_SIMULATOR_NORMAL_DISTRIBUTION_H_
+#endif  // DRIFT_SIMULATION_NORMAL_DISTRIBUTION_H_

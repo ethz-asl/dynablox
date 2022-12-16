@@ -1,6 +1,7 @@
 #include "lidar_motion_detection/preprocessing.h"
 
 #include <vector>
+
 Preprocessing::Preprocessing(const ros::NodeHandle& nh_private,
                              PointInfoCollection* point_clfs,
                              tf::TransformListener* tf_listener)
@@ -20,9 +21,11 @@ void Preprocessing::getConfigFromRosParam(const ros::NodeHandle& nh_private) {
 
 void Preprocessing::preprocessPointcloud(
     const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-    pcl::PointCloud<pcl::PointXYZ>* processed_pcl, pcl::PointXYZ &sensor_origin) {
+    pcl::PointCloud<pcl::PointXYZ>* processed_pcl,
+    pcl::PointXYZ& sensor_origin) {
   processed_pcl->clear();
-  processed_pcl->header.frame_id = "os1-drift"; //pointcloud_msg_in->header.frame_id;   
+  processed_pcl->header.frame_id =
+      "os1-drift";  // pointcloud_msg_in->header.frame_id;
 
   pcl::fromROSMsg(*pointcloud_msg_in, *processed_pcl);
   point_classifications_ptr_->points =
@@ -32,18 +35,15 @@ void Preprocessing::preprocessPointcloud(
   for (const auto& point : *processed_pcl) {
     Eigen::Vector3d coord(point.x, point.y, point.z);
     float norm = coord.norm();
-    	point_classifications_ptr_->points.at(i).distance_to_sensor = coord.norm();
-        if (norm <= evaluation_range_ && norm >= 0.5) { 
-	      point_classifications_ptr_->points.at(i).ready_for_evaluation = true;
-	}     
-	if (norm <= max_raylength_m_ && norm >= 0.5) { 
-		point_classifications_ptr_->points.at(i).filtered_out = false;
-	}
+    point_classifications_ptr_->points.at(i).distance_to_sensor = coord.norm();
+    if (norm <= evaluation_range_ && norm >= 0.5) {
+      point_classifications_ptr_->points.at(i).ready_for_evaluation = true;
+    }
+    if (norm <= max_raylength_m_ && norm >= 0.5) {
+      point_classifications_ptr_->points.at(i).filtered_out = false;
+    }
     i += 1;
   }
-  pcl_ros::transformPointCloud(world_frame_, *processed_pcl, *processed_pcl, *tf_listener_);
-                               
+  pcl_ros::transformPointCloud(world_frame_, *processed_pcl, *processed_pcl,
+                               *tf_listener_);
 }
-
-
-

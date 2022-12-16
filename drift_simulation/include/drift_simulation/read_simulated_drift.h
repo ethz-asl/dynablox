@@ -1,22 +1,23 @@
-#ifndef LIDAR_UNDISTORTION_LIDAR_UNDISTORTER_H_
-#define LIDAR_UNDISTORTION_LIDAR_UNDISTORTER_H_
+#ifndef DRIFT_SIMULATION_READ_SIMULATED_DRIFT_H_
+#define DRIFT_SIMULATION_READ_SIMULATED_DRIFT_H_
 
+#include <string>
+#include <vector>
+
+#include <Eigen/Eigen>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <tf2_ros/transform_listener.h>
-#include <Eigen/Eigen>
-#include <string>
-
 
 class drift_reader {
  public:
   drift_reader(ros::NodeHandle nh, ros::NodeHandle nh_private);
 
-  void poseCallback(const sensor_msgs::PointCloud2 &pointcloud_msg);
+  void poseCallback(const sensor_msgs::PointCloud2& pointcloud_msg);
 
  private:
   std::string drift_simulation_data_;
-  
+
   // TF frame name of the lidar scan frame
   std::string lidar_frame_id_;
 
@@ -37,16 +38,15 @@ class drift_reader {
 
   // Method that waits for a transform to become available, while doing less
   // agressive polling that ROS's standard tf2_ros::Buffer::canTransform(...)
-  bool waitForTransform(const std::string &from_frame_id,
-                        const std::string &to_frame_id,
-                        const ros::Time &frame_timestamp,
-                        const double &sleep_between_retries__s,
-                        const double &timeout__s); 
-                        
+  bool waitForTransform(const std::string& from_frame_id,
+                        const std::string& to_frame_id,
+                        const ros::Time& frame_timestamp,
+                        const double& sleep_between_retries__s,
+                        const double& timeout__s);
+
   int frame_counter = 0;
-  
+
   std::vector<std::string> vector_of_transformations;
 };
 
-
-#endif 
+#endif  // DRIFT_SIMULATION_READ_SIMULATED_DRIFT_H_

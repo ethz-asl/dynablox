@@ -4,15 +4,14 @@
 #include <string>
 
 #include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/impl/transforms.hpp>
 #include <pcl_ros/point_cloud.h>
+#include <ros/ros.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
 #include "lidar_motion_detection/common_types.h"
-
-#include "pcl_ros/impl/transforms.hpp"
-#include "ros/ros.h"
-#include "tf2_ros/buffer.h"
-#include "tf2_ros/transform_listener.h"
 
 class MaxRaylengthIndicator {
  public:

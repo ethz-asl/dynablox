@@ -6,9 +6,8 @@
 #include <vector>
 
 #include <boost/filesystem.hpp>
-
-#include "pcl/filters/crop_box.h"
-#include "pcl_ros/impl/transforms.hpp"
+#include <pcl/filters/crop_box.h>
+#include <pcl_ros/impl/transforms.hpp>
 
 GroundTruthHandler::GroundTruthHandler(const ros::NodeHandle& nh,
                                        const ros::NodeHandle& nh_private)
