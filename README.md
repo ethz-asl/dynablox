@@ -10,7 +10,7 @@
 1. If not already done so, install [ROS](http://wiki.ros.org/action/fullsearch/melodic/Installation/Ubuntu?action=fullsearch&context=180&value=linkto%3A%22melodic%2FInstallation%2FUbuntu%22). We recommend using `Desktop-Full`.
 
 2. If not already done so, setup a catkin workspace:
-  ```
+  ```bash
   mkdir -p ~/catkin_ws/src
   cd ~/catkin_ws
   catkin init
@@ -20,25 +20,25 @@
   ```
 
 3. Install system dependencies:
-  ```
+  ```bash
   sudo apt-get install python-wstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf
   ```
 
 4. Clone the repo using [SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
-  ```
+  ```bash
   cd ~/catkin_ws/src
   git clone git@github.com:ethz-asl/lidar_motion_detection.git
   ```
 
 5. Install ROS dependencies:
-  ```
-  wstool init . ./lidar_motion_detectionlox/ssh.rosinstall # if wstool is not yet initialized
-  wstool merge -t . ./lidar_motion_detectionlox/ssh.rosinstall # if wstool is not yet initialized
+  ```bash
+  wstool init . ./lidar_motion_detection/ssh.rosinstall # if wstool is not yet initialized
+  wstool merge -t . ./lidar_motion_detection/ssh.rosinstall # if wstool is not yet initialized
   wstool update
   ```
 
 6. Build:
-  ```
+  ```bash
   catkin build lidar_motion_detectionlox
   ```
 
