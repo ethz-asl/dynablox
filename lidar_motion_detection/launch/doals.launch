@@ -3,18 +3,19 @@
 <launch>
   <!-- Dataset -->
   <arg name="sequence" default="sequence_1" />  <!-- sequence_1, sequence_2 -->
+  <!-- TODO(schmluk): reafctor this to bag path -->
   <arg name="data_path" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude" />
   <arg name="player_rate" default="0.2" />
   
   <!-- Evaluation -->
-  <arg name="eval_folder" default="/home/voliro/data/" />
+  <arg name="eval_output_path" default="/media/lukas/T7/data" />
   <arg name="experiment_name" default="results_station_seq1_light3" />
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/doals.yaml" />
   
   <!-- Drift Simulation -->
-  <arg name="drift_simulation_data" default="/home/voliro/data/simulated_drift/HB/sequence_1/simulated_drift_light3.csv" />
+  <arg name="drift_simulation_rollout" default="HG/sequence_1/simulated_drift_light3.csv" />
   
   
   
@@ -23,8 +24,7 @@
   <param name="use_sim_time" value="true" />
 
   <!-- Play the bag -->
-  <node name="player" pkg="rosbag" type="play" output="log"
-   args="--quiet --clock  --rate $(arg player_rate) $(arg data_path)/$(arg sequence).bag -d 10" required="true" /> 
+  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg data_path)/$(arg sequence)/bag.bag -d 1" /> 
    
   <!-- Lidar Undistortion -->
   <node name="lidar_undistortion" pkg="lidar_undistortion" type="lidar_undistortion_node">
@@ -34,9 +34,9 @@
   </node>
 
   <!-- Drift Simulation -->
-  <node name="read_simulated_drift" pkg="drift_simulation" type="drift_reader" output="log" >
+  <node name="read_simulated_drift" pkg="drift_simulation" type="drift_reader">
     <remap from="pointcloud" to="/os1_cloud_node/points" />
-    <param name="drift_simulation_data" value="$(arg drift_simulation_data)" />
+    <param name="drift_simulation_data" value="$(find drift_simulation)/config/rollouts/$(arg drift_simulation_rollout)" />
   </node>
 
   <!-- Motion Detection -->
@@ -45,9 +45,9 @@
     <rosparam command="load" file="$(find lidar_motion_detection)/config/$(arg config_file)" />
     <param name="config_file" value="$(arg config_file)" />
     <param name="ground_truth_file" value="$(arg data_path)/$(arg sequence)/indices.csv" />
-    <param name="bag_file" value="$(arg data_path)/$(arg sequence).bag" />
+    <param name="bag_file" value="$(arg data_path)/$(arg sequence)/bag.bag" />
     <param name="sequence_name" value="$(arg sequence)" />
-    <param name="eval_folder" value="$(arg eval_folder)" />
+    <param name="eval_folder" value="$(arg eval_output_path)/" />
     <param name="experiment_name" value="$(arg experiment_name)" />
   </node>
 

@@ -5,7 +5,6 @@
 #include <sstream>
 #include <string>
 
-#include <ouster_ros/os_point.h>
 #include <pcl/common/transforms.h>
 #include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
