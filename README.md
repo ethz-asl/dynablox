@@ -21,7 +21,7 @@
 
 3. Install system dependencies:
   ```bash
-  sudo apt-get install python-wstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf
+  sudo apt-get install python3-wstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf libjsoncpp-dev libspdlog-dev
   ```
 
 4. Clone the repo using [SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
@@ -32,14 +32,16 @@
 
 5. Install ROS dependencies:
   ```bash
-  wstool init . ./lidar_motion_detection/ssh.rosinstall # if wstool is not yet initialized
-  wstool merge -t . ./lidar_motion_detection/ssh.rosinstall # if wstool is not yet initialized
+  # if wstool is not yet initialized:
+  wstool init . ./lidar_motion_detection/ssh.rosinstall 
+  # if wstool is not yet initialized:
+  wstool merge -t . ./lidar_motion_detection/ssh.rosinstall
   wstool update
   ```
 
 6. Build:
   ```bash
-  catkin build lidar_motion_detectionlox
+  catkin build lidar_motion_detection
   ```
 
 # Old

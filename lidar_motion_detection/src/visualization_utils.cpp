@@ -7,7 +7,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
 
-#include "ouster_ros/point.h"
+#include <ouster_ros/os_point.h>
 
 MaxRaylengthIndicator::MaxRaylengthIndicator() {
   radius_ = 0;
@@ -56,7 +56,7 @@ void MaxRaylengthIndicator::setNPoints(int num_points) {
   number_of_points_ = num_points;
 }
 
-void MaxRaylengthIndicator::setFrame(const std::string& frame_id) {
+void MaxRaylengthIndicator::setFrame(const std::string &frame_id) {
   line_strip_.header.frame_id = frame_id;
 }
 

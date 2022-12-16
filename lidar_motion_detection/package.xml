@@ -17,22 +17,21 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>visualization_msgs</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>voxblox_msgs</depend>
   <depend>pcl_ros</depend>
   <depend>pcl_conversions</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
-  <depend>tf2_geometry_msgs</depend>
-
   <depend>ouster_ros</depend>
-
-  <depend>roscpp</depend>
-  <depend>rospy</depend>
-  <depend>std_msgs</depend>
   <depend>voxblox</depend>
-  <depend>voxblox_msgs</depend>
   <depend>voxblox_ros</depend>
   <depend>voxblox_rviz_plugin</depend>
+  <depend>drift_simulation</depend>
 </package>
