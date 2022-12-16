@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <!-- Arguments -->
+  <!-- Dataset to play -->
+  <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/bag.bag"/>
+  <arg name="player_rate" default="0.4" />
+  
+  <!-- Drift simulation -->
+  <arg name="drift_intensity" default="moderate" /> <!-- none, light, moderate, strong, severe -->
+  <arg name="output_drifted_file_name" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/test.csv" />
+   <arg name="output_gt_file_name" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/test_gt.csv" /> <!-- Optional, leave empty if not needed -->
+
+  
+  
+  <!-- Process the data -->
+  <param name="use_sim_time" value="true" />
+
+  <!-- Play the bag -->
+  <node name="player" pkg="rosbag" type="play" output="log"
+   args="--quiet --rate $(arg player_rate) --clock $(arg bag_file) -d 1" required="true" /> 
+   
+  <!-- Drift Simulator -->
+  <node name="drift_simulator" pkg="drift_simulation" type="odometry_drift_simulator" output="screen" args="--alsologtostderr">
+    <remap from="pointcloud" to="/os1_cloud_node/points" />
+    
+  	<rosparam command="load" file="$(find drift_simulation)/config/intensities/$(arg drift_intensity).yaml" />
+    <param name="global_frame_name" value="map" />
+    <param name="sensor_frame_name" value="os1_lidar" />
+    <param name="output_drifted_file_name" value="$(arg output_drifted_file_name)" />
+    <param name="output_gt_file_name" value="$(arg output_gt_file_name)" />
+  </node>
+  
+</launch>

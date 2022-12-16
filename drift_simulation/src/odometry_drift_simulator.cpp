@@ -15,22 +15,37 @@ OdometryDriftSimulator::OdometryDriftSimulator(
       velocity_noise_(config.velocity_noise),
       pose_noise_(config.pose_noise),
       tf_listener_(tf_buffer_) {
-  pointcloud_sub_ = nh.subscribe("pointcloud", 100,
-                                 &OdometryDriftSimulator::poseCallback, this);
+  // Get path to write drift values.
+  nh_private_.param<std::string>("output_drifted_file_name",
+                                 output_drifted_file_name_, "");
+  nh_private_.param<std::string>("output_gt_file_name", output_gt_file_name_,
+                                 "");
+  nh_private_.param<std::string>("global_frame_name", global_frame_name_,
+                                 global_frame_name_);
+  nh_private_.param<std::string>("sensor_frame_name", sensor_frame_name_,
+                                 sensor_frame_name_);
 
-  // ROS_ERROR_STREAM(nh_private);
-
-  nh_private_.param<std::string>("experiment_name", experiment_name_, "");
+  // Ensure params are set.
+  if (output_drifted_file_name_.empty()) {
+    LOG(FATAL) << "Parameter 'output_drifted_file_name' must be set!";
+  }
+  if (output_gt_file_name_.empty()) {
+    LOG(WARNING) << "Parameter 'output_gt_file_name' is not set, not writing "
+                    "the ground truth values.";
+  }
 
   reset();
-  VLOG(1) << "Initialized drifting odometry simulator, with config:\n"
-          << config_;
+
+  pointcloud_sub_ = nh.subscribe("pointcloud", 100,
+                                 &OdometryDriftSimulator::poseCallback, this);
+  LOG(INFO) << "Initialized drifting odometry simulator, with config:\n"
+            << config_;
 }
 
 void OdometryDriftSimulator::poseCallback(
     const sensor_msgs::PointCloud2& pointcloud_msg) {
   geometry_msgs::TransformStamped ground_truth_pose_msg =
-      tf_buffer_.lookupTransform("os1_lidar", "map",
+      tf_buffer_.lookupTransform(sensor_frame_name_, global_frame_name_,
                                  pointcloud_msg.header.stamp);
   this->tick(ground_truth_pose_msg);
 
@@ -40,36 +55,32 @@ void OdometryDriftSimulator::poseCallback(
 
   std::fstream fout, fout_truth;
 
-  fout.open(experiment_name_,
-            std::ios::out | std::ios::app);  // experiment_name_
-  fout_truth.open("/home/pool/data/true_transpose.csv",
-                  std::ios::out | std::ios::app);
-
+  // Write the data.
+  fout.open(output_drifted_file_name_, std::ios::out | std::ios::app);
   fout << simulated_pose_msg.transform.translation.x << ", "
        << simulated_pose_msg.transform.translation.y << ", "
-       << simulated_pose_msg.transform.translation.z << ", ";
-
-  fout_truth << ground_truth_pose_msg.transform.translation.x << ", "
-             << ground_truth_pose_msg.transform.translation.y << ", "
-             << ground_truth_pose_msg.transform.translation.z << ", ";
-
-  fout << simulated_pose_msg.transform.rotation.x << ", "
+       << simulated_pose_msg.transform.translation.z << ", "
+       << simulated_pose_msg.transform.rotation.x << ", "
        << simulated_pose_msg.transform.rotation.y << ", "
        << simulated_pose_msg.transform.rotation.z << ", "
-       << simulated_pose_msg.transform.rotation.w;
-
-  fout_truth << ground_truth_pose_msg.transform.rotation.x << ", "
-             << ground_truth_pose_msg.transform.rotation.y << ", "
-             << ground_truth_pose_msg.transform.rotation.z << ", "
-             << ground_truth_pose_msg.transform.rotation.w;
-
-  fout << std::endl;
-
-  fout_truth << std::endl;
-
+       << simulated_pose_msg.transform.rotation.w << std::endl;
   fout.close();
+  LOG_FIRST_N(INFO, 1) << "Writing drift data to '" << output_drifted_file_name_
+                       << "'.";
 
-  fout_truth.close();
+  if (!output_gt_file_name_.empty()) {
+    fout_truth.open(output_gt_file_name_, std::ios::out | std::ios::app);
+    fout_truth << ground_truth_pose_msg.transform.translation.x << ", "
+               << ground_truth_pose_msg.transform.translation.y << ", "
+               << ground_truth_pose_msg.transform.translation.z << ", "
+               << ground_truth_pose_msg.transform.rotation.x << ", "
+               << ground_truth_pose_msg.transform.rotation.y << ", "
+               << ground_truth_pose_msg.transform.rotation.z << ", "
+               << ground_truth_pose_msg.transform.rotation.w << std::endl;
+    fout_truth.close();
+    LOG_FIRST_N(INFO, 1) << "Writing gt data to '" << output_drifted_file_name_
+                         << "'.";
+  }
 }
 
 void OdometryDriftSimulator::reset() {

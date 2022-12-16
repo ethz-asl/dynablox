@@ -81,7 +81,11 @@ class OdometryDriftSimulator {
  private:
   ros::NodeHandle nh_private_;
 
-  std::string experiment_name_;
+  // Hacked variables to store the drift.
+  std::string output_drifted_file_name_;
+  std::string output_gt_file_name_;
+  std::string global_frame_name_ = "map";
+  std::string sensor_frame_name_ = "os1_lidar";
 
   // Members used to lookup TF transforms
   tf2_ros::Buffer tf_buffer_;
