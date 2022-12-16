@@ -1,14 +1,8 @@
+# Dependencies
 - git:
     local-name: voxblox
     uri: git@github.com:ethz-asl/voxblox.git
     version: 'release/lidar_motion_detection'
-- git:
-    local-name: lidar_undistortion
-    uri: git@github.com:ethz-asl/lidar_undistortion.git
-    version: 'release/lidar_motion_detection'
-- git:
-    local-name: ouster-ros
-    uri: git@github.com:ouster-lidar/ouster-ros.git
 - git:
     local-name: catkin_simple
     uri: git@github.com:catkin/catkin_simple.git
@@ -42,3 +36,12 @@
 - git:
     local-name: catkin_grpc
     uri: git@github.com:CogRob/catkin_grpc.git
+
+# Dependencies to run demo
+- git:
+    local-name: lidar_undistortion
+    uri: git@github.com:ethz-asl/lidar_undistortion.git
+    version: 'release/lidar_motion_detection'
+- git:
+    local-name: ouster-ros
+    uri: git@github.com:ouster-lidar/ouster-ros.git
