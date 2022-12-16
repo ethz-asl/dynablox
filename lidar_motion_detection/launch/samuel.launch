@@ -6,7 +6,7 @@
     
     <arg name="eval_folder" default="/home/voliro/data/" />
     <arg name="experiment_name" default="results_HG_d_floor_1" />
-    <arg name="config_file" default="$(find lidar_motion_detection)/cfg/ros_params_MultiClassDynamicObjectsStairs.yaml" />
+    <arg name="config_file" default="$(find lidar_motion_detection)/config/ros_params_MultiClassDynamicObjectsStairs.yaml" />
     <arg name="player_rate" default="0.4" />
     <param name="use_sim_time" value="true" />
     <node type="rviz" name="rviz_hauptgebaeude" pkg="rviz"
