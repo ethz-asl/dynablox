@@ -15,7 +15,7 @@
   <arg name="config_file" default="motion_detector/doals.yaml" />
   
   <!-- Drift Simulation -->
-  <arg name="drift_simulation_rollout" default="HG/sequence_1/simulated_drift_light3.csv" />
+  <arg name="drift_simulation_rollout" default="doals/HG/sequence_1/light_3.csv" />
   
   
   
