@@ -32,7 +32,6 @@ class MotionVisualizer {
                    PointInfoCollection* point_clfs,
                    std::vector<Cluster>* current_clusters,
                    std::shared_ptr<voxblox::TsdfMap> tsdf_map);
-  MotionVisualizer(const MotionVisualizer& visualizer) {}
 
   void initializePointcloudPublishers();
   void setupColors();

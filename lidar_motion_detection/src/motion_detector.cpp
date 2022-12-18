@@ -10,6 +10,7 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl_ros/impl/transforms.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <voxblox_ros/ros_params.h>
 
 namespace motion_detection {
 
@@ -17,60 +18,56 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
                                const ros::NodeHandle& nh_private)
     : nh_(nh),
       nh_private_(nh_private),
-      tsdf_server_(nh, nh_private),
-      motion_vis_(nh_private, &point_classifications_, &current_clusters_,
-                  tsdf_server_.getTsdfMapPtr()),
-      ever_free_integrator_(nh_private, tsdf_server_.getTsdfMapPtr(),
-                            sensor_origin),
-      gt_handler_(nh, nh_private),
-      evaluator_(nh_private, &point_classifications_, &gt_handler_),
-      frame_counter_(0),
-      min_time_(0.01),
-      max_time_(0.15) {
-  nh_private_.param<int>("ever_free_occ_reset_counter", occ_counter_to_reset_,
-                         30);
-  nh_private_.param<int>("integrator_threads", integrator_threads, 1);
-  setupRos();
-  preprocessing_ =
-      Preprocessing(nh_private_, &point_classifications_, &tf_listener_);
+      config_(
+          config_utilities::getConfigFromRos<MotionDetector::Config>(nh_private)
+              .checkValid()) {
+  LOG(INFO) << "\n" << config_.toString();
 
-  clustering_ = Clustering(nh_private_, tsdf_server_.getTsdfMapPtr(),
-                           &point_classifications_, &current_clusters_);
+  // Setup the voxblox mapper. Overwrite dependent config parts.
+  ros::NodeHandle nh_voxblox(nh, "voxblox");
+  nh_voxblox.setParam("world_frame", config_.global_frame_name);
+  tsdf_server_ = std::make_shared<voxblox::TsdfServer>(nh_voxblox, nh_voxblox);
+  tsdf_layer_.reset(tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr());
 
-  tsdf_map = tsdf_server_.getTsdfMapPtr();
-  voxels_per_side_ = tsdf_map->getTsdfLayerPtr()->voxels_per_side();
+  // Setup processing.
+  motion_vis_ = std::make_shared<MotionVisualizer>(
+      nh_private, &point_classifications_, &current_clusters_,
+      tsdf_server_->getTsdfMapPtr());
+  ever_free_integrator_ = std::make_shared<EverFreeIntegrator>(
+      nh_private, tsdf_server_->getTsdfMapPtr(), sensor_origin);
+  gt_handler_ = std::make_shared<GroundTruthHandler>(nh, nh_private);
+  evaluator_ = std::make_shared<Evaluator>(nh_private, &point_classifications_,
+                                           gt_handler_.get());
+  preprocessing_ = std::make_shared<Preprocessing>(
+      nh_private_, &point_classifications_, &tf_listener_);
+  clustering_ =
+      std::make_shared<Clustering>(nh_private_, tsdf_server_->getTsdfMapPtr(),
+                                   &point_classifications_, &current_clusters_);
+
+  // Cache frequently used constants.
+  voxels_per_side_ = tsdf_layer_->voxels_per_side();
   voxels_per_block_ = voxels_per_side_ * voxels_per_side_ * voxels_per_side_;
+
+  // Advertise and subscribe to topics,
+  setupRos();
 }
 
 void MotionDetector::Config::checkParams() const {
-  // checkParamCond(!global_frame_name.empty(),
-  //  "'global_frame_name' may not be empty.");
+  checkParamCond(!global_frame_name.empty(),
+                 "'global_frame_name' may not be empty.");
+  checkParamGT(num_threads, 1, "num_threads");
 }
 
 void MotionDetector::Config::setupParamsAndPrinting() {
-  // setupParam("verbosity", &verbosity);
+  setupParam("global_frame_name", &global_frame_name);
+  setupParam("sensor_frame_name", &sensor_frame_name);
+  setupParam("evaluate", &evaluate);
+  setupParam("visualize", &visualize);
+  setupParam("num_threads", &num_threads);
+  setupParam("occ_counter_to_reset", &occ_counter_to_reset);
 }
 
 void MotionDetector::setupRos() {
-  nh_private_.getParam("world_frame", world_frame_);
-  nh_private_.getParam("sensor_frame", sensor_frame_);
-
-  nh_private_.param<bool>("publish_filtered_lidar_pcl_for_slice",
-                          publish_filtered_lidar_pcl_for_slice_, false);
-
-  nh_private_.param<bool>("eval_mode", eval_mode_, false);
-
-  nh_private_.param<bool>("write_gt_bag", write_gt_bag_, false);
-
-  nh_private_.param<int>("skip_frames", skip_frames_, 0);
-
-  nh_private_.param<float>("tsdf_voxel_size", voxel_size_, 0.2);
-
-  nh_private_.param<bool>("publish_clouds_for_visualizations",
-                          publish_clouds_for_visualizations_, false);
-
-  nh_private_.getParam("max_ray_length_m", max_raylength_m_);
-
   lidar_pcl_sub_ =
       nh_.subscribe("pointcloud_intercepted", 1,
                     &MotionDetector::incomingPointcloudCallback, this);
@@ -82,28 +79,18 @@ void MotionDetector::setupRos() {
 
 void MotionDetector::incomingPointcloudCallback(
     const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in) {
-  //
-  if (pointcloud_msg_in->header.stamp - last_msg_time_ < min_time_) {
-    return;
-  }
-  if (pointcloud_msg_in->header.stamp - last_msg_time_ > max_time_ &&
-      frame_counter_ != 0) {
-    ROS_ERROR_STREAM(
-        "Pointcloud exceeds maximum time difference to last input");
-  }
-  last_msg_time_ = pointcloud_msg_in->header.stamp;
-
-  frame_counter_ += 1;
-  if (frame_counter_ <= skip_frames_) {
-    return;
+  frame_counter_++;
+  // If different sensor frame is required, update the message.
+  if (!config_.sensor_frame_name.empty()) {
+    pointcloud_msg_in->header.frame_id = config_.sensor_frame_name;
   }
 
+  // Lookup transform. (TODO(schmluk): Why? We just wait for it...)
   if (!tf_listener_.waitForTransform(
-          pointcloud_msg_in->header.frame_id, world_frame_,
+          pointcloud_msg_in->header.frame_id, config_.global_frame_name,
           pointcloud_msg_in->header.stamp, ros::Duration(1.0))) {
-    ROS_WARN(
-        "Could not get correction transform within allotted time, Skipping "
-        "pointcloud.");
+    LOG(WARNING) << "Could not get sensor transform within 1s time, Skipping "
+                    "pointcloud.";
     return;
   }
 
@@ -139,7 +126,7 @@ void MotionDetector::incomingPointcloudCallback(
   everFreeIntegrationStep(processed_cloud);
   update_ever_free.Stop();
 
-  if (eval_mode_) {
+  if (config_.evaluate) {
     voxblox::timing::Timer eval_timer("motion_detection/evaluation");
     ROS_INFO_STREAM(pointcloud_msg_in->header.stamp.toNSec());
     std::uint64_t tstamp = pointcloud_msg_in->header.stamp.toNSec();
@@ -147,7 +134,7 @@ void MotionDetector::incomingPointcloudCallback(
     eval_timer.Stop();
   }
 
-  if (publish_clouds_for_visualizations_) {
+  if (config_.visualize) {
     voxblox::timing::Timer vis_timer("motion_detection/visualizations");
     visualizationStep(pointcloud_msg_in, processed_cloud);
     vis_timer.Stop();
@@ -164,7 +151,7 @@ void MotionDetector::incomingPointcloudCallback(
 
   voxblox::timing::Timer tsdf_integration_timer(
       "motion_detection/tsdf_integration");
-  tsdf_server_.insertPointcloud(pointcloud_msg_in);
+  tsdf_server_->insertPointcloud(pointcloud_msg_in);
   tsdf_integration_timer.Stop();
 
   detection_timer.Stop();
@@ -173,7 +160,7 @@ void MotionDetector::incomingPointcloudCallback(
 pcl::PointCloud<pcl::PointXYZ> MotionDetector::preprocessPointcloud(
     const sensor_msgs::PointCloud2::Ptr& pointcloud_msg,
     pcl::PointXYZ& sensor_origin) {
-  return preprocessing_.processPointcloud(pointcloud_msg, sensor_origin);
+  return preprocessing_->processPointcloud(pointcloud_msg, sensor_origin);
 }
 
 void MotionDetector::postprocessPointcloud(
@@ -194,8 +181,8 @@ void MotionDetector::postprocessPointcloud(
     }
     i += 1;
   }
-  pcl_ros::transformPointCloud(world_frame_, *processed_pcl, *processed_pcl,
-                               tf_listener_);
+  pcl_ros::transformPointCloud(config_.global_frame_name, *processed_pcl,
+                               *processed_pcl, tf_listener_);
 }
 
 void MotionDetector::everFreeIntegrationStep(
@@ -208,8 +195,7 @@ void MotionDetector::everFreeIntegrationStep(
 
   // Recovers the tsdf-updated blocks
   voxblox::BlockIndexList updated_blocks;
-  tsdf_map->getTsdfLayerPtr()->getAllUpdatedBlocks(voxblox::Update::kEsdf,
-                                                   &updated_blocks);
+  tsdf_layer_->getAllUpdatedBlocks(voxblox::Update::kEsdf, &updated_blocks);
 
   if (updated_blocks.empty()) {
     ROS_INFO("no updated blocks");
@@ -220,18 +206,19 @@ void MotionDetector::everFreeIntegrationStep(
       "motion_detection/RemoveEverFree");
 
   // Updates Occupancy counter and calls RemoveEverFree if warranted
+  const float voxel_size = tsdf_layer_->voxel_size();
   for (auto& block_index : updated_blocks) {
-    tsdf_block = tsdf_map->getTsdfLayerPtr()->getBlockPtrByIndex(block_index);
+    tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
     for (size_t linear_index = 0; linear_index < voxels_per_block_;
          ++linear_index) {
       tsdf_voxel = &tsdf_block->getVoxelByLinearIndex(linear_index);
       voxel_idx = tsdf_block->computeVoxelIndexFromLinearIndex(linear_index);
 
       // Updating the Occupancy Counter
-      if (tsdf_voxel->distance < 3 * voxel_size_ / 2 ||
+      if (tsdf_voxel->distance < 3 * voxel_size / 2 ||
           tsdf_voxel->curr_occupied == frame_counter_) {
-        ever_free_integrator_.updateOccupancyCounter(tsdf_voxel,
-                                                     frame_counter_);
+        ever_free_integrator_->updateOccupancyCounter(tsdf_voxel,
+                                                      frame_counter_);
         tsdf_voxel->last_static = frame_counter_;
       }
 
@@ -240,9 +227,9 @@ void MotionDetector::everFreeIntegrationStep(
       }
 
       // Call to Remove EverFree if warranted
-      if (tsdf_voxel->occ_counter == occ_counter_to_reset_) {
-        ever_free_integrator_.RemoveEverFree(block_index, voxel_idx,
-                                             frame_counter_);
+      if (tsdf_voxel->occ_counter == config_.occ_counter_to_reset) {
+        ever_free_integrator_->RemoveEverFree(block_index, voxel_idx,
+                                              frame_counter_);
       }
     }
   }
@@ -261,11 +248,11 @@ void MotionDetector::everFreeIntegrationStep(
   IndexGetter<voxblox::BlockIndex> index_getter(indices);
   std::vector<std::future<void>> threads;
 
-  for (int i = 0; i < integrator_threads; ++i) {
+  for (int i = 0; i < config_.num_threads; ++i) {
     threads.emplace_back(std::async(std::launch::async, [&]() {
       voxblox::BlockIndex index;
       while (index_getter.getNextIndex(&index)) {
-        ever_free_integrator_.MakeEverFree(index, frame_counter_);
+        ever_free_integrator_->MakeEverFree(index, frame_counter_);
       }
     }));
   }
@@ -308,12 +295,12 @@ void MotionDetector::BlockwiseBuildVoxel2PointMap(
       block2points_map[blockindex];
   voxblox::Point coord;
 
-  if (!tsdf_map->getTsdfLayerPtr()->hasBlock(blockindex)) {
+  if (!tsdf_layer_->hasBlock(blockindex)) {
     return;
   }
 
   voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
-      tsdf_map->getTsdfLayerPtr()->getBlockPtrByIndex(blockindex);
+      tsdf_layer_->getBlockPtrByIndex(blockindex);
 
   for (int k = 0; k < pointsInBlock.size(); k++) {
     int i = pointsInBlock[k];
@@ -350,14 +337,12 @@ void MotionDetector::setUpVoxel2PointMap(
     const pcl::PointCloud<pcl::PointXYZ>& all_points) {
   voxblox::HierarchicalIndexIntMap block2points_map;
 
-  auto layer_ptr = tsdf_map->getTsdfLayerPtr();
-
   // ROS_ERROR_STREAM("a");
 
   // Identifies for any LiDAR point the block it falls in and constructs the
   // hash-map block2points_map mapping each block to the LiDAR points that fall
   // into the block
-  buildBlock2PointMap(layer_ptr, all_points, block2points_map);
+  buildBlock2PointMap(tsdf_layer_.get(), all_points, block2points_map);
 
   // ROS_ERROR_STREAM("b");
 
@@ -383,7 +368,7 @@ void MotionDetector::setUpVoxel2PointMap(
 
   // ROS_ERROR_STREAM("f");
 
-  for (int k = 0; k < integrator_threads; ++k) {
+  for (int i = 0; i < config_.num_threads; ++i) {
     threads.emplace_back(std::async(std::launch::async, [&]() {
       voxblox::BlockIndex index;
       while (index_getter.getNextIndex(&index)) {
@@ -407,7 +392,7 @@ void MotionDetector::setUpVoxel2PointMap(
   for (auto it : block2points_map) {
     for (const auto& [voxel_index, pointsInVoxel] :
          (blockwise_voxel2point_map)[block2index_hash[it.first]]) {
-      tsdf_block = tsdf_map->getTsdfLayerPtr()->getBlockPtrByIndex(it.first);
+      tsdf_block = tsdf_layer_->getBlockPtrByIndex(it.first);
 
       if (tsdf_block == nullptr) {
         continue;
@@ -448,28 +433,29 @@ void MotionDetector::clusteringStep(
   std::vector<pcl::PointIndices> cluster_ind;
 
   std::vector<std::vector<voxblox::VoxelKey>> voxel_cluster_ind;
-  clustering_.VoxelClustering(occupied_ever_free_voxel_indices, frame_counter_,
-                              &voxel_cluster_ind);
-  clustering_.InducePointClusters(block2index_hash, blockwise_voxel2point_map,
-                                  all_points, &voxel_cluster_ind, &cluster_ind);
+  clustering_->VoxelClustering(occupied_ever_free_voxel_indices, frame_counter_,
+                               &voxel_cluster_ind);
+  clustering_->InducePointClusters(block2index_hash, blockwise_voxel2point_map,
+                                   all_points, &voxel_cluster_ind,
+                                   &cluster_ind);
 
-  clustering_.applyClusterLevelFilters();
-  clustering_.setClusterLevelDynamicFlagOfallPoints();
+  clustering_->applyClusterLevelFilters();
+  clustering_->setClusterLevelDynamicFlagOfallPoints();
 }
 
 void MotionDetector::evalStep(
     const pcl::PointCloud<pcl::PointXYZ>& processed_cloud,
     const std::uint64_t& tstamp) {
-  if (evaluator_.checkGTAvailability(tstamp)) {
-    evaluator_.evaluateFrame(processed_cloud, tstamp);
+  if (evaluator_->checkGTAvailability(tstamp)) {
+    evaluator_->evaluateFrame(processed_cloud, tstamp);
   }
 }
 
 void MotionDetector::visualizationStep(
     const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
     const pcl::PointCloud<pcl::PointXYZ>& lidar_points) {
-  motion_vis_.setAllCloudsToVisualize(lidar_points);
-  motion_vis_.publishAll();
+  motion_vis_->setAllCloudsToVisualize(lidar_points);
+  motion_vis_->publishAll();
 }
 
 }  // namespace motion_detection

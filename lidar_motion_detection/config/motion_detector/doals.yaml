@@ -1,12 +1,8 @@
 # ----------- Motion detector parameters --------
 # general
-eval_mode: true
-publish_clouds_for_visualizations: true
+evaluate: true
+visualize: true
 evaluation_range: 20
-
-# Legacy (Not used by Aurelio)
-skip_frames: 0
-skip_n_fov_boundary_rows: 0
 
 
 # EverFree Level
@@ -21,39 +17,40 @@ max_cluster_size: 20000
 
 
 # Voxblox parameters
-tsdf_voxel_size: 0.2
-tsdf_voxels_per_side: 16
-voxel_carving_enabled: true
-color_mode: lambert
-truncation_distance: 0.45
-use_tf_transforms: true
+voxblox:
+  tsdf_voxel_size: 0.2
+  tsdf_voxels_per_side: 16
+  voxel_carving_enabled: true
+  color_mode: lambert
+  truncation_distance: 0.45
+  use_tf_transforms: true
 
-esdf_min_distance_m: 0.2
-esdf_max_distance_m: 0.4
-tsdf_max_distance_m: 0.45
-esdf_default_distance_m: 0.4
-tsdf_default_distance_m: 0.45
-update_esdf_every_n_sec: 0.0
-update_mesh_every_n_sec: 0.0
-min_time_between_msgs_sec: 0.01
+#  esdf_min_distance_m: 0.2
+#  esdf_max_distance_m: 0.4
+  tsdf_max_distance_m: 0.45
+#  esdf_default_distance_m: 0.4
+  tsdf_default_distance_m: 0.45
+#  update_esdf_every_n_sec: 0.0
+  update_mesh_every_n_sec: 0.0
+  min_time_between_msgs_sec: 0.01
 
-max_ray_length_m: 20.0
-min_ray_length_m: 0.4
+  max_ray_length_m: 20.0
+  min_ray_length_m: 0.4
 
-sensor_horizontal_resolution: 2048
-sensor_vertical_resolution: 64
-sensor_vertical_field_of_view_degrees: 33.22222
+  sensor_horizontal_resolution: 2048
+  sensor_vertical_resolution: 64
+  sensor_vertical_field_of_view_degrees: 33.22222
 
-allow_clear: true
-verbose: false
-publish_tsdf_map: false
-publish_pointlouds: false
-output_mesh_as_pointcloud: false
-publish_tsdf_info: false
-publish_slices: true
-slice_level: 0
-publish_pointclouds_on_update: false
-max_weight: 1000
-method: projective
-use_const_weight: true
-integrator_threads: 8
+  allow_clear: true
+  verbose: false
+  publish_tsdf_map: false
+  publish_pointlouds: false
+  output_mesh_as_pointcloud: false
+  publish_tsdf_info: false
+  publish_slices: true
+  slice_level: 0
+  publish_pointclouds_on_update: false
+  max_weight: 1000
+  method: projective
+  use_const_weight: true
+  integrator_threads: 8

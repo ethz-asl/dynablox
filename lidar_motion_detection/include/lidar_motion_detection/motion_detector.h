@@ -4,6 +4,7 @@
 #include <deque>
 #include <memory>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -19,11 +20,11 @@
 
 #include "lidar_motion_detection/3rd_party/config_utilities.hpp"
 #include "lidar_motion_detection/clustering.h"
+#include "lidar_motion_detection/common/index_getter.h"
 #include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/evaluator.h"
 #include "lidar_motion_detection/ever_free_integrator.h"
 #include "lidar_motion_detection/ground_truth_handler.h"
-#include "lidar_motion_detection/common/index_getter.h"
 #include "lidar_motion_detection/motion_visualizer.h"
 #include "lidar_motion_detection/preprocessing.h"
 #include "lidar_motion_detection/visualization_utils.h"
@@ -32,11 +33,23 @@ namespace motion_detection {
 
 class MotionDetector {
  public:
-  MotionDetector(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
-
-   // Config.
+  // Config.
   struct Config : public config_utilities::Config<Config> {
-    
+    // If true evaluate the performance against GT.
+    bool evaluate = false;
+
+    // Enable helper and debug visualizations.
+    bool visualize = true;
+
+    // Frame names.
+    std::string global_frame_name = "map";
+    std::string sensor_frame_name = "";  // Takes msg header if empty.
+
+    // Number of threads to use.
+    int num_threads = std::thread::hardware_concurrency();
+
+    // TODO(schmluk): Find description and better name.
+    int occ_counter_to_reset = 30;
 
     Config() { setConfigName("MotionDetector"); }
 
@@ -44,6 +57,9 @@ class MotionDetector {
     void setupParamsAndPrinting() override;
     void checkParams() const override;
   };
+
+  // Constructor.
+  MotionDetector(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
 
   // Setup.
   void setupRos();
@@ -98,50 +114,35 @@ class MotionDetector {
       pcl::PointXYZ& sensor_origin);
 
  private:
+  const Config config_;
+
+  // ROS.
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
-
-  voxblox::TsdfServer tsdf_server_;
-  std::shared_ptr<voxblox::TsdfMap> tsdf_map;
-
-  Preprocessing preprocessing_;
-  MotionVisualizer motion_vis_;
-  EverFreeIntegrator ever_free_integrator_;
-  Clustering clustering_;
-  GroundTruthHandler gt_handler_;
-  Evaluator evaluator_;
-
   ros::Subscriber lidar_pcl_sub_;
+  ros::Publisher pointcloud_without_detections_pub_;
 
-  bool eval_mode_;
-  bool write_gt_bag_;
-  bool publish_filtered_lidar_pcl_for_slice_;
-  float max_raylength_m_;
-  float voxel_size_;
+  // Voxblox map.
+  std::shared_ptr<voxblox::TsdfServer> tsdf_server_;
+  std::shared_ptr<voxblox::Layer<voxblox::TsdfVoxel>> tsdf_layer_;
 
+  // Processing.
+  std::shared_ptr<Preprocessing> preprocessing_;
+  std::shared_ptr<MotionVisualizer> motion_vis_;
+  std::shared_ptr<EverFreeIntegrator> ever_free_integrator_;
+  std::shared_ptr<Clustering> clustering_;
+  std::shared_ptr<GroundTruthHandler> gt_handler_;
+  std::shared_ptr<Evaluator> evaluator_;
+
+  // Cached data.
   size_t voxels_per_side_;
   size_t voxels_per_block_;
 
-  int frame_counter_;
-  int skip_frames_;
-
+  // Variables.
+  int frame_counter_ = 0;
   tf::TransformListener tf_listener_;
-  std::string world_frame_;
-  std::string sensor_frame_;
-  ros::Publisher pointcloud_without_detections_pub_;
-
-  bool publish_clouds_for_visualizations_;
-
-  ros::Time last_msg_time_;
-  ros::Duration min_time_;
-  ros::Duration max_time_;
-
   PointInfoCollection point_classifications_;
   std::vector<Cluster> current_clusters_;
-
-  int occ_counter_to_reset_;
-  int integrator_threads;
-
   pcl::PointXYZ sensor_origin;
 };
 
