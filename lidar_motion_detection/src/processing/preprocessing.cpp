@@ -9,7 +9,7 @@ namespace motion_detection {
 void Preprocessing::Config::checkParams() const {
   checkParamGT(min_range, 0.f, "min_range");
   checkParamCond(max_range > min_range,
-                 "'max_range' must be larger than 'min_range'");
+                 "'max_range' must be larger than 'min_range'.");
 }
 
 void Preprocessing::Config::setupParamsAndPrinting() {

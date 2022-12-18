@@ -31,8 +31,6 @@
 
 namespace motion_detection {
 
-    
-
 class MotionDetector {
  public:
   // Config.
@@ -73,50 +71,75 @@ class MotionDetector {
   void pointcloudCallback(const sensor_msgs::PointCloud2::Ptr& msg);
 
   // Motion detection pipeline.
-  void everFreeIntegrationStep(
-      const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
+  void everFreeIntegrationStep(const Cloud& lidar_points);
 
   // Methods.
   bool lookupTransform(const std::string& target_frame,
                        const std::string& source_frame, double timestamp,
                        tf::StampedTransform& result) const;
 
+  /**
+   * @brief Create a mapping of each voxel index to the points it contains. Each
+   * point will be checked whether it falls into an ever-free voxel and updates
+   * voxel occupancy, since we go through voxels anyways already.
+   *
+   * @param cloud Complete point cloud to look up positions.
+   * @param hash
+   * @param blockwise_voxel_map .
+   * @param occupied_ever_free_voxel_indices
+   * point ids.
+   * @param cloud_info Cloud info to store ever-free flags of checked points.
+   */
   void setUpVoxel2PointMap(
-      voxblox::AnyIndexHashMapType<int>::type& hash,
+      const Cloud& cloud, voxblox::AnyIndexHashMapType<int>::type& hash,
       std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel_map,
       std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
-      const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
+      CloudInfo& cloud_info);
 
-  // helper function of setUpVoxel2PointMap: builds hash map mapping blocks to
-  // set of points that fall into block
-  void buildBlock2PointMap(
-      voxblox::Layer<voxblox::TsdfVoxel>* layer_ptr,
-      const pcl::PointCloud<pcl::PointXYZ>& all_points,
-      voxblox::HierarchicalIndexIntMap& block2occvoxel_map);
+  /**
+   * @brief Create a mapping of each voxel index to the points it contains. Each
+   * point will be checked whether it falls into an ever-free voxel and updates
+   * voxel occupancy, since we go through voxels anyways already. This function
+   * operates on a single block for data parallelism.
+   *
+   * @param cloud Complete point cloud to look up positions.
+   * @param blockindex Block index to check in the tsdf map.
+   * @param block2points_map Mapping of all block to contained points.
+   * @param voxel2points_map Resulting mapping of each voxel index to contained
+   * point ids.
+   * @param occupied_ever_free_voxel_indices
+   * @param cloud_info Cloud info to store ever-free flags of checked points.
+   */
+  void blockwiseBuildVoxel2PointMap(
+      const Cloud& cloud, const voxblox::BlockIndex& blockindex,
+      const voxblox::HierarchicalIndexIntMap& block2points_map,
+      voxblox::HierarchicalIndexIntMap& voxel2points_map,
+      std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
+      CloudInfo& cloud_info) const;
 
-  // helper function of setUpVoxel2PointMap: builds the Voxel2PointMap blockwise
-  void BlockwiseBuildVoxel2PointMap(
-      const voxblox::BlockIndex blockindex,
-      voxblox::HierarchicalIndexIntMap& block2occvoxel_map,
-      voxblox::HierarchicalIndexIntMap* voxel_map,
-      const pcl::PointCloud<pcl::PointXYZ>& all_points);
+  /**
+   * @brief Create a mapping of each block to ids of points that fall into it.
+   *
+   * @param cloud Points to process.
+   * @return Mapping of block to point ids in cloud.
+   */
+  voxblox::HierarchicalIndexIntMap buildBlock2PointsMap(
+      const Cloud& cloud) const;
 
   void clusteringStep(
       voxblox::AnyIndexHashMapType<int>::type* hash,
       std::vector<voxblox::HierarchicalIndexIntMap>* blockwise_voxel_map,
       std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices,
-      const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
+      const Cloud& lidar_points);
 
-  void evalStep(const pcl::PointCloud<pcl::PointXYZ>& processed_cloud,
-                const std::uint64_t& tstamp);
+  void evalStep(const Cloud& processed_cloud, const std::uint64_t& tstamp);
 
   void visualizationStep(const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-                         const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
+                         const Cloud& lidar_points);
 
   void postprocessPointcloud(
       const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-      pcl::PointCloud<pcl::PointXYZ>* processed_pcl,
-      pcl::PointXYZ& sensor_origin);
+      Cloud* processed_pcl, pcl::PointXYZ& sensor_origin);
 
  private:
   const Config config_;

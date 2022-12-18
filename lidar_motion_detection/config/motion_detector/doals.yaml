@@ -4,7 +4,9 @@ evaluate: true
 visualize: true
 
 preprocessing:
-  evaluation_range: 20
+  min_range: 0.5  # m
+  max_range: 20  # m
+  evaluation_range: 20  # m
 
 
 # EverFree Level

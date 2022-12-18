@@ -17,8 +17,8 @@ struct PointInfo {
   // Include this point when computing performance metrics.
   bool ready_for_evaluation = false;
 
-  //
-  bool EverFree_level_dynamic = false;
+  // Set to true if the point falls into a voxel labeled ever-free.
+  bool ever_free_level_dynamic = false;
 
   //
   bool cluster_level_dynamic = false;
@@ -40,7 +40,7 @@ struct CloudInfo {
 };
 
 struct Cluster {
-  pcl::PointCloud<pcl::PointXYZ> points;
+  Cloud points;
   std::vector<int> point_indices;
 };
 

@@ -293,7 +293,7 @@ void MotionVisualizer::setEverFreeLevelDetectionsCloud(
     const pcl::PointCloud<pcl::PointXYZ>& processed_pcl) {
   int i = 0;
   for (const auto& point_info : point_classifications_ptr_->points) {
-    if (point_info.EverFree_level_dynamic) {
+    if (point_info.ever_free_level_dynamic) {
       addPointToPointcloud("EverFree_level_detections", processed_pcl.at(i),
                            point_and_cluster_candidate_color_);
     }
