@@ -5,19 +5,18 @@
   <arg name="sequence" default="sequence_1" />  <!-- sequence_1, sequence_2 -->
   <!-- TODO(schmluk): reafctor this to bag path -->
   <arg name="data_path" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude" />
-  <arg name="player_rate" default="0.2" />
-  
-  <!-- Evaluation -->
-  <arg name="eval_output_path" default="/media/lukas/T7/data" />
-  <arg name="experiment_name" default="results_station_seq1_light3" />
-  
-  <!-- Motion Detector -->
-  <arg name="config_file" default="motion_detector/doals.yaml" />
+  <arg name="player_rate" default="2" />
   
   <!-- Drift Simulation -->
   <arg name="drift_simulation_rollout" default="doals/HG/sequence_1/light_3.csv" />
   
+  <!-- Evaluation -->
+  <arg name="eval_output_path" default="/media/lukas/T7/data" />
+  <arg name="experiment_name" default="results_station_seq1_light3" />
+  <arg name="visualize" default="true" />
   
+  <!-- Motion Detector -->
+  <arg name="config_file" default="motion_detector/doals.yaml" />
   
   
   <!-- Run Nodes -->
@@ -34,15 +33,20 @@
   </node>
 
   <!-- Drift Simulation -->
-  <node name="read_simulated_drift" pkg="drift_simulation" type="drift_reader">
+  <node name="drift_reader" pkg="drift_simulation" type="drift_reader" output="screen" args="--alsologtostderr">
     <remap from="pointcloud" to="/os1_cloud_node/points" />
-    <param name="drift_simulation_data" value="$(find drift_simulation)/config/rollouts/$(arg drift_simulation_rollout)" />
+    <param name="drift_data_file_name" value="$(find drift_simulation)/config/rollouts/$(arg drift_simulation_rollout)" />
   </node>
 
   <!-- Motion Detection -->
   <node name="lidar_motion_detection" pkg="lidar_motion_detection" type="motion_detector" output="screen" args="-alsologtostderr">
     <remap from="pointcloud_intercepted" to="/lidar_undistortion/pointcloud_corrected"/>
     <rosparam command="load" file="$(find lidar_motion_detection)/config/$(arg config_file)" />
+    
+    <!-- drift -->
+    <param name="world_frame" value="map" />    
+    <param name="sensor_frame" value="os1_drifted" /> <!-- os1_lidar -->
+
     <param name="config_file" value="$(arg config_file)" />
     <param name="ground_truth_file" value="$(arg data_path)/$(arg sequence)/indices.csv" />
     <param name="bag_file" value="$(arg data_path)/$(arg sequence)/bag.bag" />
@@ -50,5 +54,8 @@
     <param name="eval_folder" value="$(arg eval_output_path)/" />
     <param name="experiment_name" value="$(arg experiment_name)" />
   </node>
+  
+  <!-- Visualize -->
+  <include file="$(find lidar_motion_detection)/launch/visualizer.launch" if="$(arg visualize)"/> 
 
 </launch>

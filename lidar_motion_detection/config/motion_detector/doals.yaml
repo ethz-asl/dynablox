@@ -26,8 +26,6 @@ tsdf_voxels_per_side: 16
 voxel_carving_enabled: true
 color_mode: lambert
 truncation_distance: 0.45
-world_frame: map
-sensor_frame: os1_drift  # os1_lidar
 use_tf_transforms: true
 
 esdf_min_distance_m: 0.2
