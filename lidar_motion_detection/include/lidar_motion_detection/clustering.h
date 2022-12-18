@@ -21,7 +21,9 @@
 #include <voxblox/utils/timing.h>
 #include <voxblox_ros/tsdf_server.h>
 
-#include "lidar_motion_detection/common_types.h"
+#include "lidar_motion_detection/common/types.h"
+
+namespace motion_detection {
 
 class Clustering {
  public:
@@ -69,5 +71,7 @@ class Clustering {
 
   std::shared_ptr<voxblox::TsdfMap> tsdf_map_;
 };
+
+}  // namespace motion_detection
 
 #endif  // LIDAR_MOTION_DETECTION_CLUSTERING_H_

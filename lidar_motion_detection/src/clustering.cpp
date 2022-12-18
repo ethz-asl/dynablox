@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <vector>
 
+namespace motion_detection {
+
+
 Clustering::Clustering(const ros::NodeHandle& nh_private,
                        std::shared_ptr<voxblox::TsdfMap> tsdf_map,
                        PointInfoCollection* point_clfs,
@@ -143,3 +146,4 @@ void Clustering::setClusterLevelDynamicFlagOfallPoints() {
     }
   }
 }
+} // namespace motion_detection

@@ -9,6 +9,8 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <voxblox/core/common.h>
 
+namespace motion_detection {
+
 struct PointInfo {
   bool filtered_out = true;
   bool ready_for_evaluation = false;
@@ -30,5 +32,7 @@ struct Cluster {
   pcl::PointCloud<pcl::PointXYZ> points;
   std::vector<int> point_indices;
 };
+
+}  // namespace motion_detection
 
 #endif  // LIDAR_MOTION_DETECTION_COMMON_TYPES_H_

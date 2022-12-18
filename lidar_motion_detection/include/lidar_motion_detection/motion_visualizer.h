@@ -11,8 +11,10 @@
 #include <visualization_msgs/Marker.h>
 #include <voxblox_ros/tsdf_server.h>
 
-#include "lidar_motion_detection/common_types.h"
+#include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/visualization_utils.h"
+
+namespace motion_detection {
 
 class MotionVisualizer {
  public:
@@ -109,5 +111,7 @@ class MotionVisualizer {
   voxblox::Color lidar_point_color_;
   voxblox::Color sensor_origin_color_;
 };
+
+}  // namespace motion_detection
 
 #endif  // LIDAR_MOTION_DETECTION_MOTION_VISUALIZER_H_

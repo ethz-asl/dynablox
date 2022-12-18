@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh;
   ros::NodeHandle nh_private("~");
 
-  MotionDetector motionDetector(nh, nh_private);
+  motion_detection::MotionDetector motion_detector(nh, nh_private);
 
   ros::spin();
 

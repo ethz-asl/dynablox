@@ -3,7 +3,6 @@
 
 #include <deque>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -18,53 +17,45 @@
 #include <voxblox/core/common.h>
 #include <voxblox_ros/tsdf_server.h>
 
+#include "lidar_motion_detection/3rd_party/config_utilities.hpp"
 #include "lidar_motion_detection/clustering.h"
-#include "lidar_motion_detection/common_types.h"
+#include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/evaluator.h"
 #include "lidar_motion_detection/ever_free_integrator.h"
 #include "lidar_motion_detection/ground_truth_handler.h"
+#include "lidar_motion_detection/common/index_getter.h"
 #include "lidar_motion_detection/motion_visualizer.h"
 #include "lidar_motion_detection/preprocessing.h"
 #include "lidar_motion_detection/visualization_utils.h"
 
-template <typename IndexT>
-class IndexGetter {
- public:
-  explicit IndexGetter(std::vector<IndexT> indices)
-      : indices_(std::move(indices)), current_index_(0) {}
-  bool getNextIndex(IndexT* index) {
-    CHECK_NOTNULL(index);
-    mutex_.lock();
-    if (current_index_ >= indices_.size()) {
-      mutex_.unlock();
-      return false;
-    }
-    *index = indices_[current_index_];
-    current_index_++;
-    mutex_.unlock();
-    return true;
-  }
-
- private:
-  std::mutex mutex_;
-  std::vector<IndexT> indices_;
-  size_t current_index_;
-};
-
-// typedef IndexGetter<int> SubmapIndexGetter;
+namespace motion_detection {
 
 class MotionDetector {
  public:
   MotionDetector(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
 
+   // Config.
+  struct Config : public config_utilities::Config<Config> {
+    
+
+    Config() { setConfigName("MotionDetector"); }
+
+   protected:
+    void setupParamsAndPrinting() override;
+    void checkParams() const override;
+  };
+
+  // Setup.
   void setupRos();
 
+  // Callbacks.
   void incomingPointcloudCallback(
       const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in);
 
-  void preprocessingStep(const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-                         pcl::PointCloud<pcl::PointXYZ>* lidar_points,
-                         pcl::PointXYZ& sensor_origin);
+  // Motion detection pipeline.
+  pcl::PointCloud<pcl::PointXYZ> preprocessPointcloud(
+      const sensor_msgs::PointCloud2::Ptr& pointcloud_msg,
+      pcl::PointXYZ& sensor_origin);
 
   void everFreeIntegrationStep(
       const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
@@ -153,5 +144,7 @@ class MotionDetector {
 
   pcl::PointXYZ sensor_origin;
 };
+
+}  // namespace motion_detection
 
 #endif  // LIDAR_MOTION_DETECTION_MOTION_DETECTOR_H_

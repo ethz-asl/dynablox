@@ -11,7 +11,10 @@
 #include <tf2_ros/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
-#include "lidar_motion_detection/common_types.h"
+#include "lidar_motion_detection/common/types.h"
+
+namespace motion_detection {
+
 
 class MaxRaylengthIndicator {
  public:
@@ -32,5 +35,5 @@ class MaxRaylengthIndicator {
   visualization_msgs::Marker line_strip_;
   double PI = 3.14159265358979732384626433832795;
 };
-
+} // namespace motion_detection
 #endif  // LIDAR_MOTION_DETECTION_VISUALIZATION_UTILS_H_

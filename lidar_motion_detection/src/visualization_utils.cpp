@@ -7,6 +7,9 @@
 #include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+namespace motion_detection {
+
+
 MaxRaylengthIndicator::MaxRaylengthIndicator() {
   radius_ = 0;
   number_of_points_ = 0;
@@ -67,3 +70,5 @@ void MaxRaylengthIndicator::setColor(float r, float g, float b) {
 visualization_msgs::Marker MaxRaylengthIndicator::getMarkerMsg() {
   return line_strip_;
 }
+
+} // namespace motion_detection

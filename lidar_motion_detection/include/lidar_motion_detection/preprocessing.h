@@ -11,7 +11,9 @@
 #include <tf2_ros/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
-#include "lidar_motion_detection/common_types.h"
+#include "lidar_motion_detection/common/types.h"
+
+namespace motion_detection {
 
 class Preprocessing {
  public:
@@ -21,13 +23,11 @@ class Preprocessing {
                 PointInfoCollection* point_clfs,
                 tf::TransformListener* tf_listener);
 
-  Preprocessing(const Preprocessing& pp) {}
   void getConfigFromRosParam(const ros::NodeHandle& nh_private);
 
-  void preprocessPointcloud(
+  pcl::PointCloud<pcl::PointXYZ> processPointcloud(
       const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-      pcl::PointCloud<pcl::PointXYZ>* processed_pcl,
-      pcl::PointXYZ& sensor_origin);
+      const pcl::PointXYZ& sensor_origin);
 
  private:
   PointInfoCollection* point_classifications_ptr_;
@@ -41,5 +41,5 @@ class Preprocessing {
   double vertical_fov_rad_;
   std::string world_frame_;
 };
-
+}  // namespace motion_detection
 #endif  // LIDAR_MOTION_DETECTION_PREPROCESSING_H_

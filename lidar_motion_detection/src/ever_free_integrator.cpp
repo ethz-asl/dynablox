@@ -2,6 +2,8 @@
 
 #include <memory>
 
+namespace motion_detection {
+
 EverFreeIntegrator::EverFreeIntegrator(
     const ros::NodeHandle& nh_private,
     std::shared_ptr<voxblox::TsdfMap> tsdf_map, pcl::PointXYZ sensor_origin)
@@ -135,3 +137,5 @@ void EverFreeIntegrator::updateOccupancyCounter(voxblox::TsdfVoxel* voxel,
     voxel->occ_counter = 0;
   }
 }
+
+}  // namespace motion_detection

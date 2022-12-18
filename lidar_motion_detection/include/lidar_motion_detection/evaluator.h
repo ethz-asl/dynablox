@@ -11,9 +11,11 @@
 #include <pcl/search/flann_search.h>
 #include <pcl/segmentation/extract_clusters.h>
 
-#include "lidar_motion_detection/common_types.h"
+#include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/ground_truth_handler.h"
 #include "lidar_motion_detection/preprocessing.h"
+
+namespace motion_detection {
 
 class Evaluator {
  public:
@@ -71,5 +73,7 @@ class Evaluator {
   std::string world_frame_;
   std::string sensor_frame_;
 };
+
+}  // namespace motion_detection
 
 #endif  // LIDAR_MOTION_DETECTION_EVALUATOR_H_

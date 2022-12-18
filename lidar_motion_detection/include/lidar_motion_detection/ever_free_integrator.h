@@ -7,6 +7,9 @@
 #include <voxblox/core/common.h>
 #include <voxblox_ros/tsdf_server.h>
 
+namespace motion_detection {
+
+
 class EverFreeIntegrator {
  public:
   EverFreeIntegrator() = default;
@@ -41,5 +44,7 @@ class EverFreeIntegrator {
   int occ_counter_to_reset_;
   int occ_temporal_buffer_;
 };
+
+} // namespace motion_detection
 
 #endif  // LIDAR_MOTION_DETECTION_EVER_FREE_INTEGRATOR_H_

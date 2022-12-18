@@ -4,7 +4,7 @@ project(lidar_motion_detection)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 catkin_package()
-add_definitions(-std=c++14 -Wall -Wextra)
+add_definitions(-std=c++17 -Wall -Wextra)
 
 cs_add_library(${PROJECT_NAME}
         src/preprocessing.cpp

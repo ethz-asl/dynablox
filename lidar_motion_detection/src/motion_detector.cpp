@@ -11,6 +11,8 @@
 #include <pcl_ros/impl/transforms.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
+namespace motion_detection {
+
 MotionDetector::MotionDetector(const ros::NodeHandle& nh,
                                const ros::NodeHandle& nh_private)
     : nh_(nh),
@@ -38,6 +40,15 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
   tsdf_map = tsdf_server_.getTsdfMapPtr();
   voxels_per_side_ = tsdf_map->getTsdfLayerPtr()->voxels_per_side();
   voxels_per_block_ = voxels_per_side_ * voxels_per_side_ * voxels_per_side_;
+}
+
+void MotionDetector::Config::checkParams() const {
+  // checkParamCond(!global_frame_name.empty(),
+  //  "'global_frame_name' may not be empty.");
+}
+
+void MotionDetector::Config::setupParamsAndPrinting() {
+  // setupParam("verbosity", &verbosity);
 }
 
 void MotionDetector::setupRos() {
@@ -71,6 +82,7 @@ void MotionDetector::setupRos() {
 
 void MotionDetector::incomingPointcloudCallback(
     const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in) {
+  //
   if (pointcloud_msg_in->header.stamp - last_msg_time_ < min_time_) {
     return;
   }
@@ -108,10 +120,9 @@ void MotionDetector::incomingPointcloudCallback(
 
   voxblox::timing::Timer detection_timer("overall_detection_timer");
 
-  pcl::PointCloud<pcl::PointXYZ> processed_cloud;
-
   voxblox::timing::Timer preprocessing_timer("motion_detection/preprocessing");
-  preprocessingStep(pointcloud_msg_in, &processed_cloud, sensor_origin);
+  pcl::PointCloud<pcl::PointXYZ> processed_cloud =
+      preprocessPointcloud(pointcloud_msg_in, sensor_origin);
   preprocessing_timer.Stop();
 
   voxblox::timing::Timer setup_timer("motion_detection/setup");
@@ -159,6 +170,12 @@ void MotionDetector::incomingPointcloudCallback(
   detection_timer.Stop();
 }
 
+pcl::PointCloud<pcl::PointXYZ> MotionDetector::preprocessPointcloud(
+    const sensor_msgs::PointCloud2::Ptr& pointcloud_msg,
+    pcl::PointXYZ& sensor_origin) {
+  return preprocessing_.processPointcloud(pointcloud_msg, sensor_origin);
+}
+
 void MotionDetector::postprocessPointcloud(
     const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
     pcl::PointCloud<pcl::PointXYZ>* processed_pcl,
@@ -179,14 +196,6 @@ void MotionDetector::postprocessPointcloud(
   }
   pcl_ros::transformPointCloud(world_frame_, *processed_pcl, *processed_pcl,
                                tf_listener_);
-}
-
-void MotionDetector::preprocessingStep(
-    const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-    pcl::PointCloud<pcl::PointXYZ>* lidar_points,
-    pcl::PointXYZ& sensor_origin) {
-  preprocessing_.preprocessPointcloud(pointcloud_msg_in, lidar_points,
-                                      sensor_origin);
 }
 
 void MotionDetector::everFreeIntegrationStep(
@@ -462,3 +471,5 @@ void MotionDetector::visualizationStep(
   motion_vis_.setAllCloudsToVisualize(lidar_points);
   motion_vis_.publishAll();
 }
+
+}  // namespace motion_detection

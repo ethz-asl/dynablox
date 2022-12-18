@@ -5,6 +5,9 @@
 #include <utility>
 #include <vector>
 
+namespace motion_detection {
+
+
 MotionVisualizer::MotionVisualizer(const ros::NodeHandle& nh_private,
                                    PointInfoCollection* point_clfs,
                                    std::vector<Cluster>* current_clusters,
@@ -344,3 +347,5 @@ void MotionVisualizer::setLidarPointcloudWithoutDynamicPoints(
     i += 1;
   }
 }
+
+} // namespace motion_detection

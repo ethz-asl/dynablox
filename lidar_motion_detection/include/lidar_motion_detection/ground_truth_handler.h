@@ -27,7 +27,10 @@
 #include <voxblox_ros/esdf_server.h>
 #include <voxblox_ros/tsdf_server.h>
 
-#include "lidar_motion_detection/common_types.h"
+#include "lidar_motion_detection/common/types.h"
+
+namespace motion_detection {
+
 
 class GroundTruthHandler {
  public:
@@ -56,5 +59,7 @@ class GroundTruthHandler {
   std::string ground_truth_file_path_;
   timestamp_vector_map ground_truth_lookup_;
 };
+
+} // namespace motion_detection
 
 #endif  // LIDAR_MOTION_DETECTION_GROUND_TRUTH_HANDLER_H_

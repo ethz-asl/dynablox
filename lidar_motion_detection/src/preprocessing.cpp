@@ -2,6 +2,8 @@
 
 #include <vector>
 
+namespace motion_detection {
+
 Preprocessing::Preprocessing(const ros::NodeHandle& nh_private,
                              PointInfoCollection* point_clfs,
                              tf::TransformListener* tf_listener)
@@ -19,20 +21,19 @@ void Preprocessing::getConfigFromRosParam(const ros::NodeHandle& nh_private) {
   nh_private.param("evaluation_range", evaluation_range_, evaluation_range_);
 }
 
-void Preprocessing::preprocessPointcloud(
+pcl::PointCloud<pcl::PointXYZ> Preprocessing::processPointcloud(
     const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-    pcl::PointCloud<pcl::PointXYZ>* processed_pcl,
-    pcl::PointXYZ& sensor_origin) {
-  processed_pcl->clear();
-  processed_pcl->header.frame_id =
+    const pcl::PointXYZ& sensor_origin) {
+  pcl::PointCloud<pcl::PointXYZ> processed_pcl;
+  processed_pcl.header.frame_id =
       "os1-drift";  // pointcloud_msg_in->header.frame_id;
 
-  pcl::fromROSMsg(*pointcloud_msg_in, *processed_pcl);
+  pcl::fromROSMsg(*pointcloud_msg_in, processed_pcl);
   point_classifications_ptr_->points =
-      std::vector<PointInfo>(static_cast<int>(processed_pcl->size()));
+      std::vector<PointInfo>(static_cast<int>(processed_pcl.size()));
 
   int i = 0;
-  for (const auto& point : *processed_pcl) {
+  for (const auto& point : processed_pcl) {
     Eigen::Vector3d coord(point.x, point.y, point.z);
     float norm = coord.norm();
     point_classifications_ptr_->points.at(i).distance_to_sensor = coord.norm();
@@ -44,6 +45,10 @@ void Preprocessing::preprocessPointcloud(
     }
     i += 1;
   }
-  pcl_ros::transformPointCloud(world_frame_, *processed_pcl, *processed_pcl,
+  pcl_ros::transformPointCloud(world_frame_, processed_pcl, processed_pcl,
                                *tf_listener_);
+
+  return processed_pcl;
 }
+
+}  // namespace motion_detection

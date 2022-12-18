@@ -9,6 +9,9 @@
 #include <pcl/filters/crop_box.h>
 #include <pcl_ros/impl/transforms.hpp>
 
+namespace motion_detection {
+
+
 GroundTruthHandler::GroundTruthHandler(const ros::NodeHandle& nh,
                                        const ros::NodeHandle& nh_private)
     : nh_(nh), nh_private_(nh_private) {
@@ -59,3 +62,4 @@ bool GroundTruthHandler::getIndicesFromTimestamp(const std::uint64_t& tstamp,
   *gt_indices = ground_truth_lookup_.at(tstamp);
   return true;
 }
+} // namespace motion_detection
