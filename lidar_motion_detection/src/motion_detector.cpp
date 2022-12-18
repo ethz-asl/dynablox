@@ -54,10 +54,16 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
   tsdf_server_ = std::make_shared<voxblox::TsdfServer>(nh_voxblox, nh_voxblox);
   tsdf_layer_.reset(tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr());
 
-  // Setup processing.
+  // Setup all processing parts.
   preprocessing_ = std::make_shared<Preprocessing>(
       config_utilities::getConfigFromRos<Preprocessing::Config>(
           ros::NodeHandle(nh_private_, "preprocessing")));
+
+  clustering_ = std::make_shared<Clustering>(
+      config_utilities::getConfigFromRos<Clustering::Config>(
+          ros::NodeHandle(nh_private_, "clustering")),
+      tsdf_layer_);
+
   motion_vis_ = std::make_shared<MotionVisualizer>(
       nh_private, &point_classifications_, &current_clusters_,
       tsdf_server_->getTsdfMapPtr());
@@ -66,10 +72,6 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
   gt_handler_ = std::make_shared<GroundTruthHandler>(nh, nh_private);
   evaluator_ = std::make_shared<Evaluator>(nh_private, &point_classifications_,
                                            gt_handler_.get());
-
-  clustering_ =
-      std::make_shared<Clustering>(nh_private_, tsdf_server_->getTsdfMapPtr(),
-                                   &point_classifications_, &current_clusters_);
 
   // Cache frequently used constants.
   voxels_per_side_ = tsdf_layer_->voxels_per_side();
@@ -115,31 +117,35 @@ void MotionDetector::pointcloudCallback(
   preprocessing_->processPointcloud(msg, T_M_S, cloud, cloud_info);
   preprocessing_timer.Stop();
 
-  point_classifications_ = cloud_info;
-
   // Voxel-Point-map setup.
-  // NOTE(schmluk): This function also does all the voxel processing since we already go over that. Maybe better to rename.
-  // Defintion of the voxel2point-map: For parallelization we store
-  // voxel2point-map as the vector blockwise_voxel2point_map, where each entry
-  // of the vector corresponds to an updated block and each entry is a hash map
-  // mapping voxelindices to the set of points falling into the voxel. The hash
-  // map block2index_hash maps any updated blockindex to its corresponding index
-  // in blockwise_voxel_map. The vector occupied_ever_free_voxel_indices stores
-  // all currently occupied voxels.
+  // NOTE(schmluk): This function also does all voxel processing since we
+  // already go over that. Maybe better to rename. Double check how this is
+  // done. voxel2point-map as the vector blockwise_voxel2point_map, where each
+  // entry of the vector corresponds to an updated block and each entry is a
+  // hash map mapping voxelindices to the set of points falling into the voxel.
+  // The hash map block2index_hash maps any updated blockindex to its
+  // corresponding index in blockwise_voxel_map. The vector
+  // occupied_ever_free_voxel_indices stores all currently occupied voxels.
   voxblox::AnyIndexHashMapType<int>::type block2index_hash;
   std::vector<voxblox::HierarchicalIndexIntMap> blockwise_voxel2point_map;
   std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices;
 
-  Timer setup_timer("motion_detection/setup");
+  Timer setup_timer("motion_detection/indexing_setup");
   setUpVoxel2PointMap(cloud, block2index_hash, blockwise_voxel2point_map,
                       occupied_ever_free_voxel_indices, cloud_info);
   setup_timer.Stop();
 
   // Clustering.
   Timer clustering_timer("motion_detection/clustering");
-  clusteringStep(&block2index_hash, &blockwise_voxel2point_map,
-                 occupied_ever_free_voxel_indices, cloud);
+  Clusters clusters = clustering_->performClustering(
+      block2index_hash, blockwise_voxel2point_map,
+      occupied_ever_free_voxel_indices, cloud, cloud_info, clusters,
+      frame_counter_);
   clustering_timer.Stop();
+
+  // For downward compatibility.
+  point_classifications_ = cloud_info;
+  current_clusters_ = clusters;
 
   Timer update_ever_free("motion_detection/update_ever_free");
   everFreeIntegrationStep(cloud);
@@ -378,16 +384,16 @@ void MotionDetector::setUpVoxel2PointMap(
       buildBlock2PointsMap(cloud);
 
   // Assigns all updated blocks an index in the vector voxel2point-map.
-  std::vector<voxblox::BlockIndex> indices(block2points_map.size());
+  std::vector<voxblox::BlockIndex> block_indices(block2points_map.size());
   int i = 0;
   for (auto block_points_pair : block2points_map) {
-    indices[i] = block_points_pair.first;
+    block_indices[i] = block_points_pair.first;
     block2index_hash[block_points_pair.first] = i;
     i++;
   }
 
   // Builds the voxel2point-map in parallel blockwise.
-  IndexGetter<voxblox::BlockIndex> index_getter(indices);
+  IndexGetter<voxblox::BlockIndex> index_getter(block_indices);
   std::vector<std::future<void>> threads;
   blockwise_voxel2point_map.resize(i);
   std::mutex occupied_voxels_mutex;
@@ -413,23 +419,6 @@ void MotionDetector::setUpVoxel2PointMap(
   for (auto& thread : threads) {
     thread.get();
   }
-}
-
-void MotionDetector::clusteringStep(
-    voxblox::AnyIndexHashMapType<int>::type* block2index_hash,
-    std::vector<voxblox::HierarchicalIndexIntMap>* blockwise_voxel2point_map,
-    std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices,
-    const Cloud& cloud) {
-  std::vector<pcl::PointIndices> cluster_ind;
-
-  std::vector<std::vector<voxblox::VoxelKey>> voxel_cluster_ind;
-  clustering_->VoxelClustering(occupied_ever_free_voxel_indices, frame_counter_,
-                               &voxel_cluster_ind);
-  clustering_->InducePointClusters(block2index_hash, blockwise_voxel2point_map,
-                                   cloud, &voxel_cluster_ind, &cluster_ind);
-
-  clustering_->applyClusterLevelFilters();
-  clustering_->setClusterLevelDynamicFlagOfallPoints();
 }
 
 void MotionDetector::evalStep(const Cloud& cloud, const std::uint64_t& tstamp) {

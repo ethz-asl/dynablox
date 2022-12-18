@@ -19,13 +19,13 @@
 #include <voxblox_ros/tsdf_server.h>
 
 #include "lidar_motion_detection/3rd_party/config_utilities.hpp"
-#include "lidar_motion_detection/clustering.h"
 #include "lidar_motion_detection/common/index_getter.h"
 #include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/evaluator.h"
 #include "lidar_motion_detection/ever_free_integrator.h"
 #include "lidar_motion_detection/ground_truth_handler.h"
 #include "lidar_motion_detection/motion_visualizer.h"
+#include "lidar_motion_detection/processing/clustering.h"
 #include "lidar_motion_detection/processing/preprocessing.h"
 #include "lidar_motion_detection/visualization_utils.h"
 
@@ -84,14 +84,15 @@ class MotionDetector {
    * voxel occupancy, since we go through voxels anyways already.
    *
    * @param cloud Complete point cloud to look up positions.
-   * @param hash
+   * @param block2index_hash
    * @param blockwise_voxel_map .
    * @param occupied_ever_free_voxel_indices
    * point ids.
    * @param cloud_info Cloud info to store ever-free flags of checked points.
    */
   void setUpVoxel2PointMap(
-      const Cloud& cloud, voxblox::AnyIndexHashMapType<int>::type& hash,
+      const Cloud& cloud,
+      voxblox::AnyIndexHashMapType<int>::type& block2index_hash,
       std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel_map,
       std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
       CloudInfo& cloud_info);
@@ -125,12 +126,6 @@ class MotionDetector {
    */
   voxblox::HierarchicalIndexIntMap buildBlock2PointsMap(
       const Cloud& cloud) const;
-
-  void clusteringStep(
-      voxblox::AnyIndexHashMapType<int>::type* hash,
-      std::vector<voxblox::HierarchicalIndexIntMap>* blockwise_voxel_map,
-      std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices,
-      const Cloud& lidar_points);
 
   void evalStep(const Cloud& processed_cloud, const std::uint64_t& tstamp);
 

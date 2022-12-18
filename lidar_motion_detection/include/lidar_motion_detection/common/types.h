@@ -44,6 +44,8 @@ struct Cluster {
   std::vector<int> point_indices;
 };
 
+using Clusters = std::vector<Cluster>;
+
 }  // namespace motion_detection
 
 #endif  // LIDAR_MOTION_DETECTION_COMMON_TYPES_H_

@@ -8,16 +8,14 @@ add_definitions(-std=c++17 -Wall -Wextra)
 
 cs_add_library(${PROJECT_NAME}
         src/processing/preprocessing.cpp
+        src/processing/clustering.cpp
         src/motion_detector.cpp
         src/ground_truth_handler.cpp
         src/visualization_utils.cpp
         src/motion_visualizer.cpp
         src/ever_free_integrator.cpp
         src/evaluator.cpp
-        src/clustering.cpp
         )
-
-message(STATUS ${catkin_LIBRARIES})
 
 cs_add_executable(motion_detector
         src/motion_detector_node.cpp

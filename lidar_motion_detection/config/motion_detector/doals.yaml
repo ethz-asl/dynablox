@@ -3,21 +3,20 @@
 evaluate: true
 visualize: true
 
+# Preprocessing
 preprocessing:
   min_range: 0.5  # m
   max_range: 20  # m
   evaluation_range: 20  # m
 
+# Clustering
+clustering:
+  min_cluster_size: 20
+  max_cluster_size: 20000
 
 # EverFree Level
 ever_free_occ_reset_counter: 120
 ever_free_occ_initial_buffer: 5
-
-# clustering
-
-min_cluster_size: 20
-max_cluster_size: 20000
-
 
 
 # Voxblox parameters
