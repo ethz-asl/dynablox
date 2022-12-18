@@ -4,12 +4,12 @@ project(drift_simulation)
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 catkin_package()
-add_definitions(-std=c++14 -Wall -Wextra)
+add_definitions(-std=c++17 -Wall -Wextra)
 
 cs_add_library(${PROJECT_NAME}
         src/normal_distribution.cpp
         src/odometry_drift_simulator.cpp
-        src/read_simulated_drift.cpp
+        src/drift_reader.cpp
         )
 
 cs_add_executable(odometry_drift_simulator
@@ -18,7 +18,7 @@ cs_add_executable(odometry_drift_simulator
 target_link_libraries(odometry_drift_simulator ${PROJECT_NAME})
 
 cs_add_executable(drift_reader
-        src/read_simulated_drift_node.cpp
+        src/drift_reader_node.cpp
         )
 target_link_libraries(drift_reader ${PROJECT_NAME})
 
