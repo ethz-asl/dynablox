@@ -14,6 +14,21 @@
 
 namespace motion_detection {
 
+void MotionDetector::Config::checkParams() const {
+  checkParamCond(!global_frame_name.empty(),
+                 "'global_frame_name' may not be empty.");
+  checkParamGT(num_threads, 1, "num_threads");
+}
+
+void MotionDetector::Config::setupParamsAndPrinting() {
+  setupParam("global_frame_name", &global_frame_name);
+  setupParam("sensor_frame_name", &sensor_frame_name);
+  setupParam("evaluate", &evaluate);
+  setupParam("visualize", &visualize);
+  setupParam("num_threads", &num_threads);
+  setupParam("occ_counter_to_reset", &occ_counter_to_reset);
+}
+
 MotionDetector::MotionDetector(const ros::NodeHandle& nh,
                                const ros::NodeHandle& nh_private)
     : nh_(nh),
@@ -24,7 +39,7 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
   LOG(INFO) << "\n" << config_.toString();
 
   // Setup the voxblox mapper. Overwrite dependent config parts.
-  ros::NodeHandle nh_voxblox(nh, "voxblox");
+  ros::NodeHandle nh_voxblox(nh_private, "voxblox");
   nh_voxblox.setParam("world_frame", config_.global_frame_name);
   tsdf_server_ = std::make_shared<voxblox::TsdfServer>(nh_voxblox, nh_voxblox);
   tsdf_layer_.reset(tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr());
@@ -50,21 +65,6 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
 
   // Advertise and subscribe to topics,
   setupRos();
-}
-
-void MotionDetector::Config::checkParams() const {
-  checkParamCond(!global_frame_name.empty(),
-                 "'global_frame_name' may not be empty.");
-  checkParamGT(num_threads, 1, "num_threads");
-}
-
-void MotionDetector::Config::setupParamsAndPrinting() {
-  setupParam("global_frame_name", &global_frame_name);
-  setupParam("sensor_frame_name", &sensor_frame_name);
-  setupParam("evaluate", &evaluate);
-  setupParam("visualize", &visualize);
-  setupParam("num_threads", &num_threads);
-  setupParam("occ_counter_to_reset", &occ_counter_to_reset);
 }
 
 void MotionDetector::setupRos() {

@@ -25,7 +25,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: static lidar_points
+    SyncSource: objects
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -126,12 +126,12 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: voxblox_rviz_plugin/VoxbloxMesh
-      Enabled: false
+      Enabled: true
       Name: VoxbloxMesh
       Queue Size: 10
-      Topic: /lidar_motion_detection/mesh
+      Topic: /lidar_motion_detection/voxblox/mesh
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -411,9 +411,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9297980666160583
+      Pitch: 0.9697974324226379
       Target Frame: map
-      Yaw: 3.9467527866363525
+      Yaw: 4.0267534255981445
     Saved: ~
 Window Geometry:
   Displays:
