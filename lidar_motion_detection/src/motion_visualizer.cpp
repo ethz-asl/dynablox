@@ -9,7 +9,7 @@ namespace motion_detection {
 
 
 MotionVisualizer::MotionVisualizer(const ros::NodeHandle& nh_private,
-                                   PointInfoCollection* point_clfs,
+                                   CloudInfo* point_clfs,
                                    std::vector<Cluster>* current_clusters,
                                    std::shared_ptr<voxblox::TsdfMap> tsdf_map)
     : tsdf_map_(move(tsdf_map)),

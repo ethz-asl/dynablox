@@ -29,7 +29,7 @@ class MotionVisualizer {
   } visTypeMarker;
 
   MotionVisualizer(const ros::NodeHandle& nh_private,
-                   PointInfoCollection* point_clfs,
+                   CloudInfo* point_clfs,
                    std::vector<Cluster>* current_clusters,
                    std::shared_ptr<voxblox::TsdfMap> tsdf_map);
 
@@ -93,7 +93,7 @@ class MotionVisualizer {
  private:
   ros::NodeHandle nh_visualizer_;
 
-  PointInfoCollection* point_classifications_ptr_;
+  CloudInfo* point_classifications_ptr_;
   std::vector<Cluster>* current_clusters_ptr_;
 
   std::string world_frame_;

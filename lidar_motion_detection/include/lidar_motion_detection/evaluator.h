@@ -13,13 +13,13 @@
 
 #include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/ground_truth_handler.h"
-#include "lidar_motion_detection/preprocessing.h"
+#include "lidar_motion_detection/processing/preprocessing.h"
 
 namespace motion_detection {
 
 class Evaluator {
  public:
-  Evaluator(const ros::NodeHandle& nh_private, PointInfoCollection* point_clfs,
+  Evaluator(const ros::NodeHandle& nh_private, CloudInfo* point_clfs,
             GroundTruthHandler* gt_handler);
   Evaluator(const Evaluator& evaluator);
 
@@ -53,7 +53,7 @@ class Evaluator {
  private:
   ros::NodeHandle nh_private_;
 
-  PointInfoCollection* point_classifications_ptr_;
+  CloudInfo* point_classifications_ptr_;
 
   GroundTruthHandler* gt_handler_ptr_;
 

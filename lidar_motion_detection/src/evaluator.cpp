@@ -7,7 +7,7 @@
 namespace motion_detection {
 
 Evaluator::Evaluator(const ros::NodeHandle& nh_private,
-                     PointInfoCollection* point_clfs,
+                     CloudInfo* point_clfs,
                      GroundTruthHandler* gt_handler)
     : nh_private_(nh_private),
       point_classifications_ptr_(point_clfs),

@@ -7,7 +7,7 @@ catkin_package()
 add_definitions(-std=c++17 -Wall -Wextra)
 
 cs_add_library(${PROJECT_NAME}
-        src/preprocessing.cpp
+        src/processing/preprocessing.cpp
         src/motion_detector.cpp
         src/ground_truth_handler.cpp
         src/visualization_utils.cpp

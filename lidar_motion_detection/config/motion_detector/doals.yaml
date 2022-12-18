@@ -2,7 +2,9 @@
 # general
 evaluate: true
 visualize: true
-evaluation_range: 20
+
+preprocessing:
+  evaluation_range: 20
 
 
 # EverFree Level

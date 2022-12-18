@@ -4,26 +4,37 @@
 #include <vector>
 
 #include <pcl_ros/point_cloud.h>
-#include <ros/ros.h>
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <voxblox/core/common.h>
 
 namespace motion_detection {
 
+using Cloud = pcl::PointCloud<pcl::PointXYZ>;
+
+// Additional information stored for every point in the cloud.
 struct PointInfo {
-  bool filtered_out = true;
+  //
+  bool filtered_out = false;
+
+  // Include this point when computing performance metrics.
   bool ready_for_evaluation = false;
 
+  //
   bool EverFree_level_dynamic = false;
+
+  //
   bool cluster_level_dynamic = false;
+
+  //
   bool object_level_dynamic = false;
 
+  // Distance of the point to the sensor.
   double distance_to_sensor = -1.0;
+
+  //
   bool gt_dynamic = false;
 };
 
-struct PointInfoCollection {
+// Additional information for a point cloud.
+struct CloudInfo {
   std::uint64_t timestamp;
   std::vector<PointInfo> points;
 };

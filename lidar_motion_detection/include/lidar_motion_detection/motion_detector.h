@@ -26,10 +26,12 @@
 #include "lidar_motion_detection/ever_free_integrator.h"
 #include "lidar_motion_detection/ground_truth_handler.h"
 #include "lidar_motion_detection/motion_visualizer.h"
-#include "lidar_motion_detection/preprocessing.h"
+#include "lidar_motion_detection/processing/preprocessing.h"
 #include "lidar_motion_detection/visualization_utils.h"
 
 namespace motion_detection {
+
+    
 
 class MotionDetector {
  public:
@@ -51,6 +53,9 @@ class MotionDetector {
     // TODO(schmluk): Find description and better name.
     int occ_counter_to_reset = 30;
 
+    // Maximum time to wait for a tf transform [s].
+    float transform_timeout = 1.f;
+
     Config() { setConfigName("MotionDetector"); }
 
    protected:
@@ -65,16 +70,16 @@ class MotionDetector {
   void setupRos();
 
   // Callbacks.
-  void incomingPointcloudCallback(
-      const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in);
+  void pointcloudCallback(const sensor_msgs::PointCloud2::Ptr& msg);
 
   // Motion detection pipeline.
-  pcl::PointCloud<pcl::PointXYZ> preprocessPointcloud(
-      const sensor_msgs::PointCloud2::Ptr& pointcloud_msg,
-      pcl::PointXYZ& sensor_origin);
-
   void everFreeIntegrationStep(
       const pcl::PointCloud<pcl::PointXYZ>& lidar_points);
+
+  // Methods.
+  bool lookupTransform(const std::string& target_frame,
+                       const std::string& source_frame, double timestamp,
+                       tf::StampedTransform& result) const;
 
   void setUpVoxel2PointMap(
       voxblox::AnyIndexHashMapType<int>::type& hash,
@@ -141,7 +146,7 @@ class MotionDetector {
   // Variables.
   int frame_counter_ = 0;
   tf::TransformListener tf_listener_;
-  PointInfoCollection point_classifications_;
+  CloudInfo point_classifications_;
   std::vector<Cluster> current_clusters_;
   pcl::PointXYZ sensor_origin;
 };

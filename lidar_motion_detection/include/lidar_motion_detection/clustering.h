@@ -31,7 +31,7 @@ class Clustering {
 
   Clustering(const ros::NodeHandle& nh_private,
              std::shared_ptr<voxblox::TsdfMap> tsdf_map,
-             PointInfoCollection* point_clfs,
+             CloudInfo* point_clfs,
              std::vector<Cluster>* current_clusters);
 
   Clustering(const Clustering& other_clustering) {}
@@ -64,7 +64,7 @@ class Clustering {
 
   size_t voxels_per_side_;
 
-  PointInfoCollection* point_classifications_ptr_;
+  CloudInfo* point_classifications_ptr_;
   std::vector<Cluster>* current_clusters_ptr_;
 
   std::vector<Cluster> cluster_candidates_;

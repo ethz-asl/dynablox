@@ -8,7 +8,7 @@ namespace motion_detection {
 
 Clustering::Clustering(const ros::NodeHandle& nh_private,
                        std::shared_ptr<voxblox::TsdfMap> tsdf_map,
-                       PointInfoCollection* point_clfs,
+                       CloudInfo* point_clfs,
                        std::vector<Cluster>* current_clusters)
     : point_classifications_ptr_(point_clfs),
       current_clusters_ptr_(current_clusters),
