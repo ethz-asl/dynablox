@@ -1,8 +1,8 @@
 /**
-AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
+AUTHOR:       Lukas Schmid <schmluk@ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.2.2
+VERSION:      1.2.3
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Raises a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010202
+#define CONFIG_UTILITIES_VERSION 010203
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -148,7 +148,7 @@ class RequiredArguments {
     // Write old arguments.
     *argc = old_args.size() + added_args.size();
     argv_aux_ = std::vector<std::unique_ptr<char>>(*argc);
-    for (int i = 0; i < old_args.size(); ++i) {
+    for (size_t i = 0; i < old_args.size(); ++i) {
       argv_aux_[i].reset(new char[std::strlen((*argv)[i]) + 1]);
       strcpy(argv_aux_[i].get(), (*argv)[i]);
     }
@@ -430,7 +430,7 @@ struct VariableConfigInternal : public VariableConfigVerificator {
   std::string type_ = "Not Setup";
   std::unique_ptr<ConfigInternal> config_ = nullptr;
 
-  virtual void createConfig(const ParamMap& params, bool optional){};
+  virtual void createConfig(const ParamMap& params, bool optional) = 0;
 };
 }  // namespace internal
 
@@ -462,7 +462,7 @@ class ConfigChecker {
     }
     if (print_warnings) {
       std::string sev = "Warning: ";
-      int length = print_width_ - sev.length();
+      const size_t length = print_width_ - sev.length();
       std::string warning =
           "\n" + internal::printCenter(name_, print_width_, '=');
       for (std::string w : warnings_) {
@@ -1011,8 +1011,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
       return;
     }
     if (!meta_data_->use_printing_to_get_values) {
-    meta_data_->messages->emplace_back(
-        std::string(meta_data_->indent, ' ').append(text));
+      meta_data_->messages->emplace_back(
+          std::string(meta_data_->indent, ' ').append(text));
     }
   }
 
@@ -1091,7 +1091,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
 
     // First line could be shorter.
-    int length = GlobalSettings::instance().print_width - header.length();
+    size_t length = GlobalSettings::instance().print_width - header.length();
     if (f.length() > length) {
       meta_data_->messages->emplace_back(header + f.substr(0, length));
       f = f.substr(length);
