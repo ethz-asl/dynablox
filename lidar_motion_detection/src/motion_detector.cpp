@@ -139,8 +139,7 @@ void MotionDetector::pointcloudCallback(
   Timer clustering_timer("motion_detection/clustering");
   Clusters clusters = clustering_->performClustering(
       block2index_hash, blockwise_voxel2point_map,
-      occupied_ever_free_voxel_indices, cloud, cloud_info, clusters,
-      frame_counter_);
+      occupied_ever_free_voxel_indices, cloud, cloud_info, frame_counter_);
   clustering_timer.Stop();
 
   // For downward compatibility.

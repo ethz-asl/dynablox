@@ -40,33 +40,85 @@ class Clustering {
   Clustering(const Config& config,
              voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer);
 
+  // Types.
+  using ClusterIndices = std::vector<voxblox::VoxelKey>;
+
+  /**
+   * @brief Execute all clustering steps to identify the final clusters. Also
+   * modifies the infos?
+   *
+   * @param block2index_hash
+   * @param blockwise_voxel2point_map
+   * @param occupied_ever_free_voxel_indices
+   * @param cloud
+   * @param cloud_info
+   * @param frame_counter
+   * @return Clusters
+   */
   Clusters performClustering(
       voxblox::AnyIndexHashMapType<int>::type& block2index_hash,
       std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel2point_map,
-      std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
-      const Cloud& cloud, CloudInfo& cloud_info, Clusters& current_clusters,
-      int frame_counter);
+      ClusterIndices& occupied_ever_free_voxel_indices, const Cloud& cloud,
+      CloudInfo& cloud_info, int frame_counter) const;
 
-  // Clusters EverFree, currently occupied voxels and extends to neighbourhood
-  void VoxelClustering(
-      std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices,
-      int frame_counter,
-      std::vector<std::vector<voxblox::VoxelKey>>* voxel_cluster_ind);
+  /**
+   * @brief Cluster all currently occupied voxels that are next to an ever-free
+   * voxel.
+   *
+   * @param occupied_ever_free_voxel_indices Occupied ever-free voxel indices to
+   * seed the clusters.
+   * @param frame_counter Frame number to verify added voxels contain points
+   * this scan.
+   * @return Vector of all found clusters.
+   */
+  std::vector<ClusterIndices> voxelClustering(
+      const ClusterIndices& occupied_ever_free_voxel_indices,
+      int frame_counter) const;
 
-  // Takes Voxel-level clustering and induces point-level clustering
-  Clusters InducePointClusters(
-      voxblox::AnyIndexHashMapType<int>::type& hash,
-      std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel_map,
-      const Cloud& all_points,
-      std::vector<std::vector<voxblox::VoxelKey>>* voxel_cluster_ind,
-      std::vector<pcl::PointIndices>* cluster_ind);
+  /**
+   * @brief Grow a single cluster from a seed voxel key. All voxels that are not
+   * yet processed are added to the cluster and labeled as processed and
+   * dynamic. Only ever-free voxels can further grow the cluster.
+   *
+   * @param seed Voxel key to start clustering from.
+   * @param frame_counter Frame number to verify added voxels contain points
+   * this scan.
+   * @return Voxel keys of all voxels of the cluster.
+   */
+  ClusterIndices growCluster(const voxblox::VoxelKey& seed,
+                             int frame_counter) const;
 
-  Clusters applyClusterLevelFilters(const Clusters& candidates);
+  /**
+   * @brief Use the voxel level clustering to assign all points to clusters.
+   *
+   * @param block2points_map Mapping of blocks to points in the cloud.
+   * @param blockwise_voxel_map Mapping of blocks to voxels containing points.
+   * @param cloud The complete scan point cloud.
+   * @param voxel_cluster_ind Voxel indices per cluster.
+   * @return All clusters.
+   */
+  Clusters inducePointClusters(
+      const voxblox::AnyIndexHashMapType<int>::type& block2points_map,
+      const std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel_map,
+      const Cloud& cloud,
+      const std::vector<ClusterIndices>& voxel_cluster_ind) const;
 
-  // Sets dynamic flag on point level (includes points belonging to extension of
-  // high confidence detection clusters)
+  /**
+   * @brief Removes all clusters that don't meet the filtering criteria.
+   *
+   * @param candidates list of clusters that will be filtered.
+   */
+  void applyClusterLevelFilters(Clusters& candidates) const;
+
+  /**
+   * @brief Sets dynamic flag on point level (includes points belonging to
+   * extension of high confidence detection clusters)
+   *
+   * @param clusters Clusters whose points will be labeled.
+   * @param cloud_info Cloud info where the label is placed.
+   */
   void setClusterLevelDynamicFlagOfallPoints(const Clusters& clusters,
-                                             CloudInfo& cloud_info);
+                                             CloudInfo& cloud_info) const;
 
  private:
   const Config config_;
