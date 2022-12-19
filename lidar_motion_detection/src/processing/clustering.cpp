@@ -4,23 +4,26 @@
 #include <stack>
 #include <vector>
 
-#include <voxblox/utils/neighbor_tools.h>
-
 namespace motion_detection {
 
 void Clustering::Config::checkParams() const {
   checkParamCond(max_cluster_size > min_cluster_size,
                  "'max_cluster_size' must be larger than 'min_cluster_size'.");
+  checkParamCond(neighbor_connectivity == 6 || neighbor_connectivity == 18 ||
+                     neighbor_connectivity == 26,
+                 "'neighbor_connectivity' must be 6, 18, or 26.");
 }
 
 void Clustering::Config::setupParamsAndPrinting() {
   setupParam("min_cluster_size", &min_cluster_size);
   setupParam("max_cluster_size", &max_cluster_size);
+  setupParam("neighbor_connectivity", &neighbor_connectivity);
 }
 
 Clustering::Clustering(const Config& config,
                        voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
-    : config_(config.checkValid()) {
+    : config_(config.checkValid()),
+      neighborhood_search_(config_.neighbor_connectivity) {
   LOG(INFO) << "\n" << config_.toString();
   tsdf_layer_ = std::move(tsdf_layer);
 }
@@ -89,11 +92,10 @@ Clustering::ClusterIndices Clustering::growCluster(
     tsdf_voxel.clustering_processed = true;
     cluster.push_back(voxel_key);
 
-    // Extend cluster to neighbor voxels. Using 6-connectivity here.
-    voxblox::AlignedVector<voxblox::VoxelKey> neighbors;
-    voxblox::Neighborhood<voxblox::Connectivity::kSix>::
-        getFromBlockAndVoxelIndex(voxel_key.first, voxel_key.second,
-                                  voxels_per_side, &neighbors);
+    // Extend cluster to neighbor voxels.
+    voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
+        neighborhood_search_.search(voxel_key.first, voxel_key.second,
+                                    voxels_per_side);
 
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {
       voxblox::Block<voxblox::TsdfVoxel>::Ptr neighbor_block =

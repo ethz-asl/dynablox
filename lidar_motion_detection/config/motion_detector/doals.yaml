@@ -13,6 +13,7 @@ preprocessing:
 clustering:
   min_cluster_size: 20
   max_cluster_size: 20000
+  neighbor_connectivity: 6
 
 # EverFree Level
 ever_free_occ_reset_counter: 120

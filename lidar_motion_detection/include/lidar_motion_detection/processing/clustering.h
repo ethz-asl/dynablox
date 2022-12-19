@@ -18,6 +18,7 @@
 
 #include "lidar_motion_detection/3rd_party/config_utilities.hpp"
 #include "lidar_motion_detection/common/types.h"
+#include "lidar_motion_detection/common/neighborhood_search.h"
 
 namespace motion_detection {
 
@@ -28,6 +29,9 @@ class Clustering {
     // Filter out smaller or larger clusters than specified.
     int min_cluster_size = 20;
     int max_cluster_size = 20000;
+
+    // Connectivity used when clustering voxels. (6, 18, 26)
+    int neighbor_connectivity = 6;
 
     Config() { setConfigName("Clustering"); }
 
@@ -123,6 +127,7 @@ class Clustering {
  private:
   const Config config_;
   voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer_;
+  NeighborhoodSearch neighborhood_search_;
 };
 
 }  // namespace motion_detection
