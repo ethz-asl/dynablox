@@ -21,11 +21,11 @@
 #include "lidar_motion_detection/3rd_party/config_utilities.hpp"
 #include "lidar_motion_detection/common/index_getter.h"
 #include "lidar_motion_detection/common/types.h"
-#include "lidar_motion_detection/evaluator.h"
-#include "lidar_motion_detection/ever_free_integrator.h"
-#include "lidar_motion_detection/ground_truth_handler.h"
+#include "lidar_motion_detection/evaluation/evaluator.h"
+#include "lidar_motion_detection/evaluation/ground_truth_handler.h"
 #include "lidar_motion_detection/motion_visualizer.h"
 #include "lidar_motion_detection/processing/clustering.h"
+#include "lidar_motion_detection/processing/ever_free_integrator.h"
 #include "lidar_motion_detection/processing/preprocessing.h"
 #include "lidar_motion_detection/visualization_utils.h"
 
@@ -43,13 +43,11 @@ class MotionDetector {
 
     // Frame names.
     std::string global_frame_name = "map";
-    std::string sensor_frame_name = "";  // Takes msg header if empty.
+    std::string sensor_frame_name =
+        "";  // Takes msg header if empty, overrides msg header if set.
 
     // Number of threads to use.
     int num_threads = std::thread::hardware_concurrency();
-
-    // TODO(schmluk): Find description and better name.
-    int occ_counter_to_reset = 30;
 
     // Maximum time to wait for a tf transform [s].
     float transform_timeout = 1.f;
@@ -65,15 +63,13 @@ class MotionDetector {
   MotionDetector(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
 
   // Setup.
+  void setupMembers();
   void setupRos();
 
   // Callbacks.
   void pointcloudCallback(const sensor_msgs::PointCloud2::Ptr& msg);
 
   // Motion detection pipeline.
-  void everFreeIntegrationStep(const Cloud& lidar_points);
-
-  // Methods.
   bool lookupTransform(const std::string& target_frame,
                        const std::string& source_frame, double timestamp,
                        tf::StampedTransform& result) const;
@@ -127,8 +123,6 @@ class MotionDetector {
   voxblox::HierarchicalIndexIntMap buildBlock2PointsMap(
       const Cloud& cloud) const;
 
-  void evalStep(const Cloud& processed_cloud, const std::uint64_t& tstamp);
-
   void visualizationStep(const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
                          const Cloud& lidar_points);
 
@@ -154,7 +148,6 @@ class MotionDetector {
   std::shared_ptr<MotionVisualizer> motion_vis_;
   std::shared_ptr<EverFreeIntegrator> ever_free_integrator_;
   std::shared_ptr<Clustering> clustering_;
-  std::shared_ptr<GroundTruthHandler> gt_handler_;
   std::shared_ptr<Evaluator> evaluator_;
 
   // Cached data.
@@ -164,6 +157,8 @@ class MotionDetector {
   // Variables.
   int frame_counter_ = 0;
   tf::TransformListener tf_listener_;
+
+  // Old
   CloudInfo point_classifications_;
   std::vector<Cluster> current_clusters_;
   pcl::PointXYZ sensor_origin;

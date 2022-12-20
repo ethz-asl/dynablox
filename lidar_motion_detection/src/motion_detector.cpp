@@ -35,7 +35,6 @@ void MotionDetector::Config::setupParamsAndPrinting() {
   setupParam("evaluate", &evaluate);
   setupParam("visualize", &visualize);
   setupParam("num_threads", &num_threads);
-  setupParam("occ_counter_to_reset", &occ_counter_to_reset);
   setupParam("transform_timeout", &transform_timeout, "s");
 }
 
@@ -48,30 +47,7 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
       nh_private_(nh_private) {
   LOG(INFO) << "\n" << config_.toString();
 
-  // Setup the voxblox mapper. Overwrite dependent config parts.
-  ros::NodeHandle nh_voxblox(nh_private, "voxblox");
-  nh_voxblox.setParam("world_frame", config_.global_frame_name);
-  tsdf_server_ = std::make_shared<voxblox::TsdfServer>(nh_voxblox, nh_voxblox);
-  tsdf_layer_.reset(tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr());
-
-  // Setup all processing parts.
-  preprocessing_ = std::make_shared<Preprocessing>(
-      config_utilities::getConfigFromRos<Preprocessing::Config>(
-          ros::NodeHandle(nh_private_, "preprocessing")));
-
-  clustering_ = std::make_shared<Clustering>(
-      config_utilities::getConfigFromRos<Clustering::Config>(
-          ros::NodeHandle(nh_private_, "clustering")),
-      tsdf_layer_);
-
-  motion_vis_ = std::make_shared<MotionVisualizer>(
-      nh_private, &point_classifications_, &current_clusters_,
-      tsdf_server_->getTsdfMapPtr());
-  ever_free_integrator_ = std::make_shared<EverFreeIntegrator>(
-      nh_private, tsdf_server_->getTsdfMapPtr(), sensor_origin);
-  gt_handler_ = std::make_shared<GroundTruthHandler>(nh, nh_private);
-  evaluator_ = std::make_shared<Evaluator>(nh_private, &point_classifications_,
-                                           gt_handler_.get());
+  setupMembers();
 
   // Cache frequently used constants.
   voxels_per_side_ = tsdf_layer_->voxels_per_side();
@@ -79,6 +55,44 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
 
   // Advertise and subscribe to topics.
   setupRos();
+}
+
+void MotionDetector::setupMembers() {
+  // Voxblox. Overwrite dependent config parts. Note that this TSDF layer is
+  // shared with all other processing components and is mutable for processing.
+  ros::NodeHandle nh_voxblox(nh_private_, "voxblox");
+  nh_voxblox.setParam("world_frame", config_.global_frame_name);
+  tsdf_server_ = std::make_shared<voxblox::TsdfServer>(nh_voxblox, nh_voxblox);
+  tsdf_layer_.reset(tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr());
+
+  // Preprocessing.
+  preprocessing_ = std::make_shared<Preprocessing>(
+      config_utilities::getConfigFromRos<Preprocessing::Config>(
+          ros::NodeHandle(nh_private_, "preprocessing")));
+
+  // Clustering.
+  clustering_ = std::make_shared<Clustering>(
+      config_utilities::getConfigFromRos<Clustering::Config>(
+          ros::NodeHandle(nh_private_, "clustering")),
+      tsdf_layer_);
+
+  // Ever-Free Integrator.
+  ros::NodeHandle nh_ever_free(nh_private_, "ever_free_integrator");
+  nh_ever_free.setParam("num_threads", config_.num_threads);
+  ever_free_integrator_ = std::make_shared<EverFreeIntegrator>(
+      config_utilities::getConfigFromRos<EverFreeIntegrator::Config>(
+          nh_ever_free),
+      tsdf_layer_);
+
+  // Evaluation.
+  evaluator_ = std::make_shared<Evaluator>(
+      config_utilities::getConfigFromRos<Evaluator::Config>(
+          ros::NodeHandle(nh_private_, "evaluation")));
+
+  // Visualization.
+  motion_vis_ = std::make_shared<MotionVisualizer>(
+      nh_private_, &point_classifications_, &current_clusters_,
+      tsdf_server_->getTsdfMapPtr());
 }
 
 void MotionDetector::setupRos() {
@@ -92,7 +106,6 @@ void MotionDetector::setupRos() {
 
 void MotionDetector::pointcloudCallback(
     const sensor_msgs::PointCloud2::Ptr& msg) {
-  frame_counter_++;
   Timer detection_timer("motion_detection");
 
   // Lookup cloud transform T_M_S of sensor (S) to map (M).
@@ -112,6 +125,7 @@ void MotionDetector::pointcloudCallback(
 
   // Preprocessing.
   Timer preprocessing_timer("motion_detection/preprocessing");
+  frame_counter_++;
   CloudInfo cloud_info;
   Cloud cloud;
   preprocessing_->processPointcloud(msg, T_M_S, cloud, cloud_info);
@@ -142,21 +156,19 @@ void MotionDetector::pointcloudCallback(
       occupied_ever_free_voxel_indices, cloud, cloud_info, frame_counter_);
   clustering_timer.Stop();
 
-  // For downward compatibility.
-  point_classifications_ = cloud_info;
-  current_clusters_ = clusters;
-
-  Timer update_ever_free("motion_detection/update_ever_free");
-  everFreeIntegrationStep(cloud);
-  update_ever_free.Stop();
+  Timer update_ever_free_timer("motion_detection/update_ever_free");
+  ever_free_integrator_->updateEverFreeVoxels(frame_counter_);
+  update_ever_free_timer.Stop();
 
   if (config_.evaluate) {
     Timer eval_timer("motion_detection/evaluation");
-    ROS_INFO_STREAM(msg->header.stamp.toNSec());
-    std::uint64_t tstamp = msg->header.stamp.toNSec();
-    evalStep(cloud, tstamp);
+    evaluator_->evaluateFrame(cloud_info);
     eval_timer.Stop();
   }
+
+  // For downward compatibility.
+  point_classifications_ = cloud_info;
+  current_clusters_ = clusters;
 
   if (config_.visualize) {
     Timer vis_timer("motion_detection/visualizations");
@@ -174,11 +186,11 @@ void MotionDetector::pointcloudCallback(
   // postprocessPointcloud(msg, &cloud, sensor_origin);
 
   // Integrate the pointcloud into the voxblox TSDF map.
-  Timer tsdf_integration_timer("motion_detection/tsdf_integration");
+  Timer tsdf_timer("motion_detection/tsdf_integration");
   voxblox::Transformation T_G_C;
   tf::transformTFToKindr(T_M_S, &T_G_C);
   tsdf_server_->processPointCloudMessageAndInsert(msg, T_G_C, false);
-  tsdf_integration_timer.Stop();
+  tsdf_timer.Stop();
 
   detection_timer.Stop();
 }
@@ -231,81 +243,6 @@ void MotionDetector::postprocessPointcloud(
                                *processed_pcl, tf_listener_);
 }
 
-void MotionDetector::everFreeIntegrationStep(const Cloud& lidar_points) {
-  std::string ever_free_method;
-  voxblox::TsdfVoxel* tsdf_voxel;
-  voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block;
-  voxblox::GlobalIndex global_voxel_index;
-  voxblox::VoxelIndex voxel_idx;
-
-  // Recovers the tsdf-updated blocks
-  voxblox::BlockIndexList updated_blocks;
-  tsdf_layer_->getAllUpdatedBlocks(voxblox::Update::kEsdf, &updated_blocks);
-
-  if (updated_blocks.empty()) {
-    ROS_INFO("no updated blocks");
-    return;
-  }
-
-  Timer RemoveEverFree_timer("motion_detection/RemoveEverFree");
-
-  // Updates Occupancy counter and calls RemoveEverFree if warranted
-  const float voxel_size = tsdf_layer_->voxel_size();
-  for (auto& block_index : updated_blocks) {
-    tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
-    for (size_t linear_index = 0; linear_index < voxels_per_block_;
-         ++linear_index) {
-      tsdf_voxel = &tsdf_block->getVoxelByLinearIndex(linear_index);
-      voxel_idx = tsdf_block->computeVoxelIndexFromLinearIndex(linear_index);
-
-      // Updating the Occupancy Counter
-      if (tsdf_voxel->distance < 3 * voxel_size / 2 ||
-          tsdf_voxel->curr_occupied == frame_counter_) {
-        ever_free_integrator_->updateOccupancyCounter(tsdf_voxel,
-                                                      frame_counter_);
-        tsdf_voxel->last_static = frame_counter_;
-      }
-
-      if (tsdf_voxel->curr_occupied < frame_counter_ - 2) {
-        tsdf_voxel->moving = false;
-      }
-
-      // Call to Remove EverFree if warranted
-      if (tsdf_voxel->occ_counter == config_.occ_counter_to_reset) {
-        ever_free_integrator_->RemoveEverFree(block_index, voxel_idx,
-                                              frame_counter_);
-      }
-    }
-  }
-
-  RemoveEverFree_timer.Stop();
-
-  // Labels tsdf-updated voxels as EverFree that satisfy the criteria. Performed
-  // blockwise in parallel.
-  std::vector<voxblox::BlockIndex> indices;
-  indices.resize(updated_blocks.size());
-
-  for (size_t i = 0; i < indices.size(); ++i) {
-    indices[i] = updated_blocks[i];
-  }
-
-  IndexGetter<voxblox::BlockIndex> index_getter(indices);
-  std::vector<std::future<void>> threads;
-
-  for (int i = 0; i < config_.num_threads; ++i) {
-    threads.emplace_back(std::async(std::launch::async, [&]() {
-      voxblox::BlockIndex index;
-      while (index_getter.getNextIndex(&index)) {
-        ever_free_integrator_->MakeEverFree(index, frame_counter_);
-      }
-    }));
-  }
-
-  for (auto& thread : threads) {
-    thread.get();
-  }
-}
-
 voxblox::HierarchicalIndexIntMap MotionDetector::buildBlock2PointsMap(
     const Cloud& cloud) const {
   voxblox::HierarchicalIndexIntMap result;
@@ -354,7 +291,7 @@ void MotionDetector::blockwiseBuildVoxel2PointMap(
   for (const auto& voxel_points_pair : voxel2points_map) {
     voxblox::TsdfVoxel& tsdf_voxel =
         tsdf_block->getVoxelByVoxelIndex(voxel_points_pair.first);
-    tsdf_voxel.curr_occupied = frame_counter_;
+    tsdf_voxel.last_lidar_occupied = frame_counter_;
 
     // This voxel attribute is used in the voxel clustering method: it
     // signalizes that a currently occupied voxel has not yet been clustered
@@ -417,12 +354,6 @@ void MotionDetector::setUpVoxel2PointMap(
 
   for (auto& thread : threads) {
     thread.get();
-  }
-}
-
-void MotionDetector::evalStep(const Cloud& cloud, const std::uint64_t& tstamp) {
-  if (evaluator_->checkGTAvailability(tstamp)) {
-    evaluator_->evaluateFrame(cloud, tstamp);
   }
 }
 
