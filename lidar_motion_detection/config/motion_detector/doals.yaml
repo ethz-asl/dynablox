@@ -1,24 +1,37 @@
 # ----------- Motion detector parameters --------
-# general
-evaluate: true
-visualize: true
+# General.
+#evaluate: true # Set by launch file
+#visualize: true
+# num_threads: 8  # uses hardware concurrency if left empty.
 
-# Preprocessing
+# Preprocessing.
 preprocessing:
   min_range: 0.5  # m
   max_range: 20  # m
   evaluation_range: 20  # m
 
-# Clustering
+# Clustering.
 clustering:
   min_cluster_size: 20
   max_cluster_size: 20000
   neighbor_connectivity: 6
 
-# EverFree Level
-ever_free_occ_reset_counter: 120
-ever_free_occ_initial_buffer: 5
-
+# Ever-Free Integration.
+ever_free_integrator:
+  counter_to_reset: 120
+  temporal_buffer: 2   # To compensate sparsity.
+  burn_in_period: 5
+  tsdf_occupancy_threshold: 0.3 # 1.5 voxel sizes.
+  neighbor_connectivity: 18
+  
+# Evaluation.
+evaluation:
+  min_range: 0.5  # m
+  max_range: 20  # m
+  evaluate_point_level: true
+  evaluate_cluster_level: true
+  evaluate_object_level: true
+  
 
 # Voxblox parameters
 voxblox:

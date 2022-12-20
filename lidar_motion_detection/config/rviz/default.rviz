@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Input Data1
         - /Visualization1
+        - /Visualization1/Slice1
+        - /Detection1
       Splitter Ratio: 0.5009980201721191
     Tree Height: 631
   - Class: rviz/Selection
@@ -25,7 +27,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: objects
+    SyncSource: Sensor Origin
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -72,34 +74,6 @@ Visualization Manager:
       Class: rviz/PointCloud2
       Color: 255; 255; 255
       Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: EverFree detection
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /lidar_motion_detection/EverFree_level_detections
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
       Decay Time: 0.20000000298023224
       Enabled: false
       Invert Rainbow: false
@@ -117,161 +91,6 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /lidar_motion_detection/max_raylength_circle
-      Name: max_raylength
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Class: voxblox_rviz_plugin/VoxbloxMesh
-      Enabled: true
-      Name: VoxbloxMesh
-      Queue Size: 10
-      Topic: /lidar_motion_detection/voxblox/mesh
-      Unreliable: false
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: never_free_voxels
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.20000000298023224
-      Style: Boxes
-      Topic: /lidar_motion_detection/never_free_voxels
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: clusters
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 4
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /lidar_motion_detection/cluster_level_detections
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: ground_truth_detections
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 4
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /lidar_motion_detection/ground_truth_detections
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: objects
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /lidar_motion_detection/object_level_detections
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: EverFreeSlice
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.20000000298023224
-      Style: Boxes
-      Topic: /lidar_motion_detection/ever_free_slice
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
     - Class: rviz/Group
       Displays:
         - Alpha: 1
@@ -290,7 +109,7 @@ Visualization Manager:
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Min Color: 0; 0; 0
-          Name: sensor_origin
+          Name: Sensor Origin
           Position Transformer: XYZ
           Queue Size: 10
           Selectable: true
@@ -333,6 +152,66 @@ Visualization Manager:
       Name: Input Data
     - Class: rviz/Group
       Displays:
+        - Class: rviz/Group
+          Displays:
+            - Alpha: 1
+              Autocompute Intensity Bounds: true
+              Autocompute Value Bounds:
+                Max Value: 10
+                Min Value: -10
+                Value: true
+              Axis: Z
+              Channel Name: intensity
+              Class: rviz/PointCloud2
+              Color: 255; 255; 255
+              Color Transformer: RGB8
+              Decay Time: 0
+              Enabled: true
+              Invert Rainbow: false
+              Max Color: 0; 0; 0
+              Min Color: 0; 0; 0
+              Name: Lidar Points
+              Position Transformer: XYZ
+              Queue Size: 10
+              Selectable: true
+              Size (Pixels): 1
+              Size (m): 0.009999999776482582
+              Style: Points
+              Topic: /lidar_motion_detection/lidar_points
+              Unreliable: false
+              Use Fixed Frame: true
+              Use rainbow: false
+              Value: true
+            - Alpha: 1
+              Autocompute Intensity Bounds: true
+              Autocompute Value Bounds:
+                Max Value: 10
+                Min Value: -10
+                Value: true
+              Axis: Z
+              Channel Name: intensity
+              Class: rviz/PointCloud2
+              Color: 255; 255; 255
+              Color Transformer: FlatColor
+              Decay Time: 0
+              Enabled: true
+              Invert Rainbow: false
+              Max Color: 255; 255; 255
+              Min Color: 0; 0; 0
+              Name: Ever Free
+              Position Transformer: XYZ
+              Queue Size: 10
+              Selectable: true
+              Size (Pixels): 3
+              Size (m): 0.20000000298023224
+              Style: Boxes
+              Topic: /lidar_motion_detection/ever_free_slice
+              Unreliable: false
+              Use Fixed Frame: true
+              Use rainbow: true
+              Value: true
+          Enabled: true
+          Name: Slice
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -347,24 +226,151 @@ Visualization Manager:
           Decay Time: 0
           Enabled: false
           Invert Rainbow: false
-          Max Color: 0; 0; 0
+          Max Color: 255; 255; 255
           Min Color: 0; 0; 0
-          Name: lidar_points_slice
+          Name: Never Free Voxels
           Position Transformer: XYZ
           Queue Size: 10
           Selectable: true
-          Size (Pixels): 1
-          Size (m): 0.009999999776482582
-          Style: Points
-          Topic: /lidar_motion_detection/lidar_points
+          Size (Pixels): 3
+          Size (m): 0.20000000298023224
+          Style: Boxes
+          Topic: /lidar_motion_detection/never_free_voxels
           Unreliable: false
           Use Fixed Frame: true
-          Use rainbow: false
+          Use rainbow: true
+          Value: false
+        - Class: voxblox_rviz_plugin/VoxbloxMesh
+          Enabled: true
+          Name: Voxblox Mesh
+          Queue Size: 10
+          Topic: /lidar_motion_detection/voxblox/mesh
+          Unreliable: false
+          Value: true
+        - Class: rviz/Marker
+          Enabled: false
+          Marker Topic: /lidar_motion_detection/max_raylength_circle
+          Name: Max Ray Length
+          Namespaces:
+            {}
+          Queue Size: 100
           Value: false
       Enabled: true
       Name: Visualization
     - Class: rviz/Group
-      Displays: ~
+      Displays:
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: Ground Truth
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 4
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /lidar_motion_detection/ground_truth_detections
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: Point Level
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /lidar_motion_detection/EverFree_level_detections
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: Cluster Level
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 4
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /lidar_motion_detection/cluster_level_detections
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: Object Level
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /lidar_motion_detection/object_level_detections
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
       Enabled: true
       Name: Detection
   Enabled: true
@@ -411,9 +417,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9697974324226379
+      Pitch: 1.1247963905334473
       Target Frame: map
-      Yaw: 4.0267534255981445
+      Yaw: 3.881775140762329
     Saved: ~
 Window Geometry:
   Displays:

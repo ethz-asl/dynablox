@@ -3,27 +3,27 @@
 <launch>
   <!-- Dataset -->
   <arg name="sequence" default="sequence_1" />  <!-- sequence_1, sequence_2 -->
-  <!-- TODO(schmluk): refactor this to bag path -->
-  <arg name="data_path" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude" />
+  <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/bag.bag" />
   <arg name="player_rate" default="0.2" />
   
   <!-- Drift Simulation -->
   <arg name="drift_simulation_rollout" default="doals/HG/sequence_1/light_3.csv" />
   
   <!-- Evaluation -->
-  <arg name="eval_output_path" default="/media/lukas/T7/data" />
-  <arg name="experiment_name" default="results_station_seq1_light3" />
-  <arg name="visualize" default="true" />
+  <arg name="evaluate" default="true" />
+  <arg name="eval_output_path" default="/media/lukas/T7/data/doals" />
+  <arg name="ground_truth_file" default="media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/indices.csv" />
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/doals.yaml" />
+  <arg name="visualize" default="true" />
   
   
   <!-- Run Nodes -->
   <param name="use_sim_time" value="true" />
 
   <!-- Play the bag -->
-  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg data_path)/$(arg sequence)/bag.bag -d 1" /> 
+  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg bag_file) -d 1" /> 
    
   <!-- Lidar Undistortion -->
   <node name="lidar_undistortion" pkg="lidar_undistortion" type="lidar_undistortion_node">
@@ -47,12 +47,14 @@
     <param name="global_frame_name" value="map" />    
     <param name="sensor_frame_name" value="os1_drifted" /> <!-- os1_lidar -->
 
+    <!-- config -->
     <param name="config_file" value="$(arg config_file)" />
-    <param name="ground_truth_file" value="$(arg data_path)/$(arg sequence)/indices.csv" />
-    <param name="bag_file" value="$(arg data_path)/$(arg sequence)/bag.bag" />
-    <param name="sequence_name" value="$(arg sequence)" />
-    <param name="eval_folder" value="$(arg eval_output_path)/" />
-    <param name="experiment_name" value="$(arg experiment_name)" />
+    
+    <!-- evaluation -->
+    <param name="evaluation/ground_truth/file_path" value="$(arg ground_truth_file)" />
+    <param name="evaluation/output_directory" value="$(arg eval_output_path)" />
+    <param name="evaluate" value="$(arg evaluate)" />    
+    <param name="visualize" value="$(arg visualize)" />
   </node>
   
   <!-- Visualize -->
