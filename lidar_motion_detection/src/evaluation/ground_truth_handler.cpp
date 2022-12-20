@@ -13,7 +13,7 @@
 namespace motion_detection {
 
 void GroundTruthHandler::Config::checkParams() const {
-  checkParamCond(!std::filesystem::exists(file_path),
+  checkParamCond(std::filesystem::exists(file_path),
                  "Target file '" + file_path + "' does not exist.");
 }
 
@@ -34,25 +34,29 @@ void GroundTruthHandler::createLookupFromCSV() {
 
   // Read data.
   std::string line;
+  size_t counter = 0;
   while (getline(readfile, line)) {
     if (line.empty()) {
       continue;
     }
-    bool first_line = true;
+    bool first_row = true;
     std::uint64_t timestamp;
     std::istringstream iss(line);
     std::string linestream;
     std::vector<int> row;
     while (std::getline(iss, linestream, ',')) {
-      if (first_line) {
+      if (first_row) {
         timestamp = static_cast<uint64_t>(std::stoul(linestream));
-        first_line = false;
+        first_row = false;
       } else {
         row.push_back(std::stoi(linestream));
       }
     }
     ground_truth_lookup_[timestamp] = row;
+    counter++;
   }
+  LOG(INFO) << "Read " << counter << " entries from '" << config_.file_path
+            << "'.";
 }
 
 bool GroundTruthHandler::labelCloudInfoIfAvailable(

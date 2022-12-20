@@ -41,10 +41,16 @@ class MotionDetector {
     // Enable helper and debug visualizations.
     bool visualize = true;
 
+    // Print additional information when running.
+    bool verbose = true;
+
     // Frame names.
     std::string global_frame_name = "map";
     std::string sensor_frame_name =
         "";  // Takes msg header if empty, overrides msg header if set.
+
+    // Subscriber queue size.
+    int queue_size = 1;
 
     // Number of threads to use.
     int num_threads = std::thread::hardware_concurrency();

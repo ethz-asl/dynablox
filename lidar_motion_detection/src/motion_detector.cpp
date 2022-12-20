@@ -27,13 +27,16 @@ void MotionDetector::Config::checkParams() const {
                  "'global_frame_name' may not be empty.");
   checkParamGE(num_threads, 1, "num_threads");
   checkParamGT(transform_timeout, 0.f, "transform_timeout");
+  checkParamGT(queue_size, 0, "queue_size");
 }
 
 void MotionDetector::Config::setupParamsAndPrinting() {
   setupParam("global_frame_name", &global_frame_name);
   setupParam("sensor_frame_name", &sensor_frame_name);
+  setupParam("queue_size", &queue_size);
   setupParam("evaluate", &evaluate);
   setupParam("visualize", &visualize);
+  setupParam("verbose", &verbose);
   setupParam("num_threads", &num_threads);
   setupParam("transform_timeout", &transform_timeout, "s");
 }
@@ -96,8 +99,8 @@ void MotionDetector::setupMembers() {
 }
 
 void MotionDetector::setupRos() {
-  lidar_pcl_sub_ =
-      nh_.subscribe("pointcloud", 1, &MotionDetector::pointcloudCallback, this);
+  lidar_pcl_sub_ = nh_.subscribe("pointcloud", config_.queue_size,
+                                 &MotionDetector::pointcloudCallback, this);
 
   pointcloud_without_detections_pub_ =
       nh_private_.advertise<sensor_msgs::PointCloud2>(
@@ -156,10 +159,12 @@ void MotionDetector::pointcloudCallback(
       occupied_ever_free_voxel_indices, cloud, cloud_info, frame_counter_);
   clustering_timer.Stop();
 
+  // Integrate ever-free information.
   Timer update_ever_free_timer("motion_detection/update_ever_free");
   ever_free_integrator_->updateEverFreeVoxels(frame_counter_);
   update_ever_free_timer.Stop();
 
+  // Evaluation if requested.
   if (config_.evaluate) {
     Timer eval_timer("motion_detection/evaluation");
     evaluator_->evaluateFrame(cloud_info);
@@ -170,6 +175,7 @@ void MotionDetector::pointcloudCallback(
   point_classifications_ = cloud_info;
   current_clusters_ = clusters;
 
+  // Visualization if requested.
   if (config_.visualize) {
     Timer vis_timer("motion_detection/visualizations");
     visualizationStep(msg, cloud);

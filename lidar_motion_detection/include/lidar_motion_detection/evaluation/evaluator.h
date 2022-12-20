@@ -34,10 +34,6 @@ class Evaluator {
     // Config for the ground truth handler.
     GroundTruthHandler::Config ground_truth_config;
 
-    // Old
-    //         int radial_resolution = 20;
-    //     int n_rows = 0;
-
     Config() { setConfigName("Evaluator"); }
 
    protected:

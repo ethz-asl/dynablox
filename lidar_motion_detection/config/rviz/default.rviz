@@ -63,34 +63,6 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: false
       Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0.20000000298023224
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: ground_truth
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /lidar_motion_detection/ground_truth
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
     - Class: rviz/Group
       Displays:
         - Alpha: 1
@@ -117,6 +89,34 @@ Visualization Manager:
           Size (m): 0.5
           Style: Spheres
           Topic: /lidar_motion_detection/sensor_origin
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 0; 0; 0
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: Lidar Output Points
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 1
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /lidar_undistortion/pointcloud_corrected
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
@@ -210,7 +210,7 @@ Visualization Manager:
               Use Fixed Frame: true
               Use rainbow: true
               Value: true
-          Enabled: true
+          Enabled: false
           Name: Slice
         - Alpha: 1
           Autocompute Intensity Bounds: true
@@ -417,9 +417,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1247963905334473
+      Pitch: 0.9647971391677856
       Target Frame: map
-      Yaw: 3.881775140762329
+      Yaw: 3.9067766666412354
     Saved: ~
 Window Geometry:
   Displays:

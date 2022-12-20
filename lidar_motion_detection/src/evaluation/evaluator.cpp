@@ -49,7 +49,7 @@ void Evaluator::setupFiles() {
     auto tm = *std::localtime(&t);
     std::stringstream timestamp;
     timestamp << std::put_time(&tm, "%Y_%m_%d-%H_%M_%S");
-    output_directory_ += "/" + timestamp.str();
+    output_directory_ = output_directory_ + "/" + timestamp.str();
   }
   std::filesystem::create_directories(output_directory_);
   LOG(INFO) << "Writing evaluation to '" << output_directory_ << ".";
@@ -97,7 +97,7 @@ void Evaluator::writeTimingsToFile() const {
 
 void Evaluator::writeScoresToFile(CloudInfo& cloud_info) const {
   std::ofstream writefile;
-  writefile.open(output_directory_ + "/" + timings_file_name_, std::ios::app);
+  writefile.open(output_directory_ + "/" + scores_file_name_, std::ios::app);
 
   // Time stamp and preprocessing.
   writefile << cloud_info.timestamp;
@@ -135,13 +135,13 @@ void Evaluator::evaluateCloudAtLevel(const CloudInfo& cloud_info,
     check_level = [](const PointInfo& point) {
       return point.ever_free_level_dynamic;
     };
-  } else if (level == "point") {
+  } else if (level == "cluster") {
     check_level = [](const PointInfo& point) {
-      return point.ever_free_level_dynamic;
+      return point.cluster_level_dynamic;
     };
-  } else if (level == "point") {
+  } else if (level == "object") {
     check_level = [](const PointInfo& point) {
-      return point.ever_free_level_dynamic;
+      return point.object_level_dynamic;
     };
   } else {
     LOG(ERROR) << "Unknown evaluation level '" << level << "'!";
@@ -172,7 +172,7 @@ void Evaluator::evaluateCloudAtLevel(const CloudInfo& cloud_info,
   // Write metrics to file.
   output_file << "," << computeIntersectionOverUnion(tp, fp, fn) << ","
               << computePrecision(tp, fp) << "," << computeRecall(tp, fn) << ","
-              << tp << "," << tn << "," << fp << "fn";
+              << tp << "," << tn << "," << fp << "," << fn;
 }
 
 float Evaluator::computePrecision(const uint tp, const uint fp) {
