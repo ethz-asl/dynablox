@@ -1,5 +1,5 @@
-#ifndef LIDAR_MOTION_DETECTION_CLUSTERING_H_
-#define LIDAR_MOTION_DETECTION_CLUSTERING_H_
+#ifndef LIDAR_MOTION_DETECTION_PROCESSING_CLUSTERING_H_
+#define LIDAR_MOTION_DETECTION_PROCESSING_CLUSTERING_H_
 
 #include <memory>
 #include <vector>
@@ -17,8 +17,8 @@
 #include <voxblox/utils/timing.h>
 
 #include "lidar_motion_detection/3rd_party/config_utilities.hpp"
-#include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/common/neighborhood_search.h"
+#include "lidar_motion_detection/common/types.h"
 
 namespace motion_detection {
 
@@ -126,10 +126,10 @@ class Clustering {
 
  private:
   const Config config_;
-  voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer_;
-  NeighborhoodSearch neighborhood_search_;
+  const voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer_;
+  const NeighborhoodSearch neighborhood_search_;
 };
 
 }  // namespace motion_detection
 
-#endif  // LIDAR_MOTION_DETECTION_CLUSTERING_H_
+#endif  // LIDAR_MOTION_DETECTION_PROCESSING_CLUSTERING_H_

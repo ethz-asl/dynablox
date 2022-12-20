@@ -7,7 +7,6 @@
 
 namespace motion_detection {
 
-
 MotionVisualizer::MotionVisualizer(const ros::NodeHandle& nh_private,
                                    CloudInfo* point_clfs,
                                    std::vector<Cluster>* current_clusters,
@@ -281,7 +280,7 @@ void MotionVisualizer::setGroundTruthDetectionsCloud(
     const pcl::PointCloud<pcl::PointXYZ>& processed_pcl) {
   int i = 0;
   for (const auto& point_info : point_classifications_ptr_->points) {
-    if (point_info.gt_dynamic) {
+    if (point_info.ground_truth_dynamic) {
       addPointToPointcloud("ground_truth_detections", processed_pcl.at(i),
                            never_free_color_);
     }
@@ -348,4 +347,4 @@ void MotionVisualizer::setLidarPointcloudWithoutDynamicPoints(
   }
 }
 
-} // namespace motion_detection
+}  // namespace motion_detection

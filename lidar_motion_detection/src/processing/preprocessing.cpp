@@ -15,7 +15,6 @@ void Preprocessing::Config::checkParams() const {
 void Preprocessing::Config::setupParamsAndPrinting() {
   setupParam("min_range", &min_range, "m");
   setupParam("max_range", &max_range, "m");
-  setupParam("evaluation_range", &evaluation_range, "m");
 }
 
 Preprocessing::Preprocessing(const Config& config)
@@ -31,6 +30,7 @@ bool Preprocessing::processPointcloud(const sensor_msgs::PointCloud2::Ptr& msg,
   pcl::fromROSMsg(*msg, cloud);
 
   // Populate the cloud information with data for all points.
+  cloud_info.timestamp = msg->header.stamp.toNSec();
   cloud_info.points = std::vector<PointInfo>(cloud.size());
   size_t i = 0;
   for (const auto& point : cloud) {
@@ -39,8 +39,6 @@ bool Preprocessing::processPointcloud(const sensor_msgs::PointCloud2::Ptr& msg,
     PointInfo& info = cloud_info.points.at(i);
     info.distance_to_sensor = norm;
     info.filtered_out = norm > config_.max_range || norm < config_.min_range;
-    info.ready_for_evaluation =
-        norm <= config_.evaluation_range && norm >= config_.min_range;
     i++;
   }
 

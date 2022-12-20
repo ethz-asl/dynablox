@@ -23,9 +23,9 @@ void Clustering::Config::setupParamsAndPrinting() {
 Clustering::Clustering(const Config& config,
                        voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
     : config_(config.checkValid()),
+    tsdf_layer_(std::move(tsdf_layer)),
       neighborhood_search_(config_.neighbor_connectivity) {
   LOG(INFO) << "\n" << config_.toString();
-  tsdf_layer_ = std::move(tsdf_layer);
 }
 
 Clusters Clustering::performClustering(
@@ -88,7 +88,7 @@ Clustering::ClusterIndices Clustering::growCluster(
     }
 
     // Add voxel to cluster.
-    tsdf_voxel.moving = true;
+    tsdf_voxel.dynamic = true;
     tsdf_voxel.clustering_processed = true;
     cluster.push_back(voxel_key);
 
@@ -109,9 +109,9 @@ Clustering::ClusterIndices Clustering::growCluster(
       // If neighbor is valid add it to the cluster, and potentially keep
       // growing if it is ever-free.
       if (!neighbor_voxel.clustering_processed &&
-          neighbor_voxel.curr_occupied == frame_counter) {
+          neighbor_voxel.last_lidar_occupied == frame_counter) {
         cluster.push_back(neighbor_key);
-        neighbor_voxel.moving = true;
+        neighbor_voxel.dynamic = true;
         if (neighbor_voxel.ever_free) {
           stack.push(neighbor_key);
         }

@@ -20,17 +20,17 @@ struct PointInfo {
   // Set to true if the point falls into a voxel labeled ever-free.
   bool ever_free_level_dynamic = false;
 
-  //
+  // Set to true if the point belongs to a cluster labeled dynamic.
   bool cluster_level_dynamic = false;
 
-  //
+  // Set to true if the point belongs to a tracked object.
   bool object_level_dynamic = false;
 
   // Distance of the point to the sensor.
   double distance_to_sensor = -1.0;
 
-  //
-  bool gt_dynamic = false;
+  // Ground truth label if available.
+  bool ground_truth_dynamic = false;
 };
 
 // Additional information for a point cloud.

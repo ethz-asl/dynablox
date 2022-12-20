@@ -21,9 +21,6 @@ class Preprocessing {
     // Minimum range for all points [m].
     float min_range = 0.5;
 
-    // Distance until where points are considered for evaluation [m].
-    float evaluation_range = 1000.f;
-
     Config() { setConfigName("Preprocessing"); }
 
    protected:
