@@ -26,8 +26,7 @@ void MotionDetector::Config::checkParams() const {
   checkParamCond(!global_frame_name.empty(),
                  "'global_frame_name' may not be empty.");
   checkParamGE(num_threads, 1, "num_threads");
-  checkParamGT(transform_timeout, 0.f, "transform_timeout");
-  checkParamGT(queue_size, 0, "queue_size");
+  checkParamGE(queue_size, 0, "queue_size");
 }
 
 void MotionDetector::Config::setupParamsAndPrinting() {
@@ -38,7 +37,6 @@ void MotionDetector::Config::setupParamsAndPrinting() {
   setupParam("visualize", &visualize);
   setupParam("verbose", &verbose);
   setupParam("num_threads", &num_threads);
-  setupParam("transform_timeout", &transform_timeout, "s");
 }
 
 MotionDetector::MotionDetector(const ros::NodeHandle& nh,
@@ -109,6 +107,7 @@ void MotionDetector::setupRos() {
 
 void MotionDetector::pointcloudCallback(
     const sensor_msgs::PointCloud2::Ptr& msg) {
+  Timer frame_timer("frame");
   Timer detection_timer("motion_detection");
 
   // Lookup cloud transform T_M_S of sensor (S) to map (M).
@@ -120,7 +119,7 @@ void MotionDetector::pointcloudCallback(
 
   tf::StampedTransform T_M_S;
   if (!lookupTransform(config_.global_frame_name, sensor_frame_name,
-                       msg->header.stamp.toSec(), T_M_S)) {
+                       msg->header.stamp.toNSec(), T_M_S)) {
     // Getting transform failed, need to skip.
     return;
   }
@@ -164,31 +163,16 @@ void MotionDetector::pointcloudCallback(
   ever_free_integrator_->updateEverFreeVoxels(frame_counter_);
   update_ever_free_timer.Stop();
 
-  // Evaluation if requested.
-  if (config_.evaluate) {
-    Timer eval_timer("motion_detection/evaluation");
-    evaluator_->evaluateFrame(cloud_info);
-    eval_timer.Stop();
+  // TODO(schmluk): What is this for?
+  for (auto& point : cloud_info.points) {
+    if (point.cluster_level_dynamic) {
+      point.filtered_out = true;
+    }
   }
 
   // For downward compatibility.
   point_classifications_ = cloud_info;
   current_clusters_ = clusters;
-
-  // Visualization if requested.
-  if (config_.visualize) {
-    Timer vis_timer("motion_detection/visualizations");
-    visualizationStep(msg, cloud);
-    vis_timer.Stop();
-  }
-
-  int i = 0;
-  for (const auto& point : cloud) {
-    if (point_classifications_.points.at(i).cluster_level_dynamic) {
-      point_classifications_.points.at(i).filtered_out = true;
-    }
-    i += 1;
-  }
   // postprocessPointcloud(msg, &cloud, sensor_origin);
 
   // Integrate the pointcloud into the voxblox TSDF map.
@@ -199,30 +183,37 @@ void MotionDetector::pointcloudCallback(
   tsdf_timer.Stop();
 
   detection_timer.Stop();
+
+  // Evaluation if requested.
+  if (config_.evaluate) {
+    Timer eval_timer("evaluation");
+    evaluator_->evaluateFrame(cloud_info);
+    eval_timer.Stop();
+  }
+
+  // Visualization if requested.
+  if (config_.visualize) {
+    Timer vis_timer("visualizations");
+    visualizationStep(msg, cloud);
+    vis_timer.Stop();
+  }
 }
 
 bool MotionDetector::lookupTransform(const std::string& target_frame,
                                      const std::string& source_frame,
-                                     double timestamp,
+                                     uint64_t timestamp,
                                      tf::StampedTransform& result) const {
-  ros::Time timestamp_ros(timestamp);
+  ros::Time timestamp_ros;
+  timestamp_ros.fromNSec(timestamp);
 
-  // Wait for the transform to arrive if required.
-  if (!tf_listener_.waitForTransform(
-          target_frame, source_frame, timestamp_ros,
-          ros::Duration(config_.transform_timeout))) {
-    LOG(WARNING) << "Could not get sensor transform within "
-                 << config_.transform_timeout << "s time, Skipping pointcloud.";
-    return false;
-  }
-
-  // Lookup the transform.
+  // Note(schmluk): We could also wait for transforms here but this is easier
+  // and faster atm.
   try {
     tf_listener_.lookupTransform(target_frame, source_frame, timestamp_ros,
                                  result);
-  } catch (const tf::TransformException& e) {
-    LOG(WARNING) << "Could not get sensor transform, skipping pointcloud. "
-                 << e.what();
+  } catch (tf::TransformException& ex) {
+    LOG(WARNING) << "Could not get sensor transform, skipping pointcloud: "
+                 << ex.what();
     return false;
   }
   return true;

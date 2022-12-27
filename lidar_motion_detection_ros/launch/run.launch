@@ -7,7 +7,7 @@
   <arg name="player_rate" default="0.3" />
   
   <!-- Drift Simulation -->
-  <arg name="drift_simulation_rollout" default="doals/HG/sequence_1/light_3.csv" />
+  <arg name="drift_simulation_rollout" default="doals/HG/sequence_1/light_3.csv" /> <!-- Leave empty to ignore drift-->
   
   <!-- Evaluation -->
   <arg name="evaluate" default="true" />
@@ -34,18 +34,14 @@
 
   <!-- Drift Simulation -->
   <node name="drift_reader" pkg="drift_simulation" type="drift_reader" output="screen" args="--alsologtostderr">
-    <remap from="pointcloud" to="/os1_cloud_node/points" />
+    <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected" />
     <param name="drift_data_file_name" value="$(find drift_simulation)/config/rollouts/$(arg drift_simulation_rollout)" />
   </node>
 
   <!-- Motion Detection -->
   <node name="motion_detector" pkg="lidar_motion_detection_ros" type="motion_detector" output="screen" args="--alsologtostderr">
-    <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected"/>
+    <remap from="pointcloud" to="/pointcloud_drifted"/>
     <rosparam command="load" file="$(find lidar_motion_detection_ros)/config/$(arg config_file)" />
-    
-    <!-- drift -->
-    <param name="global_frame_name" value="map" />    
-    <param name="sensor_frame_name" value="os1_drifted" /> <!-- os1_lidar -->
 
     <!-- config -->
     <param name="config_file" value="$(arg config_file)" />

@@ -13,9 +13,8 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <tf/transform_broadcaster.h>
 
-DriftReader::DriftReader(const ros::NodeHandle& nh,
-                         const ros::NodeHandle& nh_private)
-    : nh_(nh), nh_private_(nh_private) {
+DriftReader::DriftReader(ros::NodeHandle nh, ros::NodeHandle nh_private)
+    : nh_(std::move(nh)), nh_private_(std::move(nh_private)) {
   // Params.
   nh_private.param<std::string>("drift_data_file_name", drift_data_file_name_,
                                 "");
@@ -48,11 +47,14 @@ DriftReader::DriftReader(const ros::NodeHandle& nh,
 
     // Subscribe to the undistorted pointcloud topic
     pointcloud_sub_ =
-        nh_.subscribe("pointcloud", 100, &DriftReader::poseCallback, this);
+        nh_.subscribe("pointcloud", 100, &DriftReader::cloudCallback, this);
+    pointcloud_pub_ =
+        nh_.advertise<sensor_msgs::PointCloud2>("pointcloud_drifted", 10);
   }
 }
 
-void DriftReader::poseCallback(const sensor_msgs::PointCloud2& pointcloud_msg) {
+void DriftReader::cloudCallback(
+    const sensor_msgs::PointCloud2::Ptr& pointcloud_msg) {
   // Check data available.
   if (frame_counter_ >= vector_of_transformations_.size()) {
     // Out of data.
@@ -72,7 +74,7 @@ void DriftReader::poseCallback(const sensor_msgs::PointCloud2& pointcloud_msg) {
 
   // Broadcast transform.
   geometry_msgs::TransformStamped transform;
-  transform.header.stamp = pointcloud_msg.header.stamp;
+  transform.header.stamp = pointcloud_msg->header.stamp;
   transform.header.frame_id = drifted_sensor_frame_name_;
   transform.child_frame_id = global_frame_name_;
   transform.transform.translation.x = pose_data[0];
@@ -83,5 +85,10 @@ void DriftReader::poseCallback(const sensor_msgs::PointCloud2& pointcloud_msg) {
   transform.transform.rotation.z = pose_data[5];
   transform.transform.rotation.w = pose_data[6];
   tf_broadcaster_.sendTransform(transform);
+
+  // Send pointcloud.
+  pointcloud_msg->header.frame_id = drifted_sensor_frame_name_;
+  pointcloud_pub_.publish(pointcloud_msg);
+
   frame_counter_ += 1;
 }

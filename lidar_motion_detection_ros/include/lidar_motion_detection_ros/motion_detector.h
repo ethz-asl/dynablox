@@ -55,9 +55,6 @@ class MotionDetector {
     // Number of threads to use.
     int num_threads = std::thread::hardware_concurrency();
 
-    // Maximum time to wait for a tf transform [s].
-    float transform_timeout = 1.f;
-
     Config() { setConfigName("MotionDetector"); }
 
    protected:
@@ -77,7 +74,7 @@ class MotionDetector {
 
   // Motion detection pipeline.
   bool lookupTransform(const std::string& target_frame,
-                       const std::string& source_frame, double timestamp,
+                       const std::string& source_frame, uint64_t timestamp,
                        tf::StampedTransform& result) const;
 
   /**

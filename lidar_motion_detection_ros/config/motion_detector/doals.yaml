@@ -7,8 +7,8 @@ queue_size: 100
 
 # Preprocessing.
 preprocessing:
-  min_range: 0.5  # m
-  max_range: 20  # m
+  min_range: &min_range 0.5  # m
+  max_range: &max_range 20  # m
   evaluation_range: 20  # m
 
 # Clustering.
@@ -27,8 +27,8 @@ ever_free_integrator:
   
 # Evaluation.
 evaluation:
-  min_range: 0.5  # m
-  max_range: 20  # m
+  min_range: *min_range  # m
+  max_range: *max_range  # m
   evaluate_point_level: true
   evaluate_cluster_level: true
   evaluate_object_level: true
@@ -43,18 +43,14 @@ voxblox:
   truncation_distance: 0.45
   use_tf_transforms: true
 
-#  esdf_min_distance_m: 0.2
-#  esdf_max_distance_m: 0.4
   tsdf_max_distance_m: 0.45
-#  esdf_default_distance_m: 0.4
   tsdf_default_distance_m: 0.45
-#  update_esdf_every_n_sec: 0.0
   update_mesh_every_n_sec: 0.0
   min_time_between_msgs_sec: 0.01
 
-  max_ray_length_m: 20.0
-  min_ray_length_m: 0.4
-
+  min_ray_length_m: *min_range
+  max_ray_length_m: *max_range
+  
   sensor_horizontal_resolution: 2048
   sensor_vertical_resolution: 64
   sensor_vertical_field_of_view_degrees: 33.22222

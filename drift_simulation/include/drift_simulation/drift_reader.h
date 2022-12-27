@@ -13,15 +13,16 @@
 
 class DriftReader {
  public:
-  DriftReader(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
+  DriftReader(ros::NodeHandle nh, ros::NodeHandle nh_private);
 
-  void poseCallback(const sensor_msgs::PointCloud2& pointcloud_msg);
+  void cloudCallback(const sensor_msgs::PointCloud2::Ptr& pointcloud_msg);
 
  private:
   // ROS.
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
   ros::Subscriber pointcloud_sub_;
+  ros::Publisher pointcloud_pub_;
 
   // Config.
   std::string drift_data_file_name_;
@@ -32,16 +33,8 @@ class DriftReader {
   size_t frame_counter_ = 0u;
   std::vector<std::string> vector_of_transformations_;
 
-  // TF transforms
+  // TF transforms.
   tf2_ros::TransformBroadcaster tf_broadcaster_;
-
-  // Method that waits for a transform to become available, while doing less
-  // agressive polling than ROS's standard tf2_ros::Buffer::canTransform(...)
-  bool waitForTransform(const std::string& from_frame_id,
-                        const std::string& to_frame_id,
-                        const ros::Time& frame_timestamp,
-                        const double& sleep_between_retries__s,
-                        const double& timeout__s);
 };
 
 #endif  // DRIFT_SIMULATION_DRIFT_READER_H_

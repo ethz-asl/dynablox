@@ -27,7 +27,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: Sensor Origin
+    SyncSource: Lidar Output Points
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -74,34 +74,6 @@ Visualization Manager:
           Axis: Z
           Channel Name: intensity
           Class: rviz/PointCloud2
-          Color: 255; 255; 255
-          Color Transformer: RGB8
-          Decay Time: 0
-          Enabled: true
-          Invert Rainbow: false
-          Max Color: 255; 255; 255
-          Min Color: 0; 0; 0
-          Name: Sensor Origin
-          Position Transformer: XYZ
-          Queue Size: 10
-          Selectable: true
-          Size (Pixels): 3
-          Size (m): 0.5
-          Style: Spheres
-          Topic: /lidar_motion_detection/sensor_origin
-          Unreliable: false
-          Use Fixed Frame: true
-          Use rainbow: true
-          Value: true
-        - Alpha: 1
-          Autocompute Intensity Bounds: true
-          Autocompute Value Bounds:
-            Max Value: 10
-            Min Value: -10
-            Value: true
-          Axis: Z
-          Channel Name: intensity
-          Class: rviz/PointCloud2
           Color: 0; 0; 0
           Color Transformer: FlatColor
           Decay Time: 0
@@ -116,7 +88,7 @@ Visualization Manager:
           Size (Pixels): 1
           Size (m): 0.009999999776482582
           Style: Points
-          Topic: /lidar_undistortion/pointcloud_corrected
+          Topic: /pointcloud_drifted
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
@@ -255,6 +227,34 @@ Visualization Manager:
             {}
           Queue Size: 100
           Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: Sensor
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.5
+          Style: Spheres
+          Topic: /lidar_motion_detection/sensor_origin
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
       Enabled: true
       Name: Visualization
     - Class: rviz/Group
@@ -366,7 +366,7 @@ Visualization Manager:
           Size (Pixels): 3
           Size (m): 0.009999999776482582
           Style: Points
-          Topic: /lidar_motion_detection/object_level_detections
+          Topic: /motion_detector/object_level_detections
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
@@ -417,9 +417,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9647971391677856
+      Pitch: 1.2397968769073486
       Target Frame: map
-      Yaw: 3.9067766666412354
+      Yaw: 4.001777172088623
     Saved: ~
 Window Geometry:
   Displays:
