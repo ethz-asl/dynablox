@@ -39,9 +39,9 @@
   </node>
 
   <!-- Motion Detection -->
-  <node name="lidar_motion_detection" pkg="lidar_motion_detection" type="motion_detector" output="screen" args="--alsologtostderr">
+  <node name="motion_detector" pkg="lidar_motion_detection_ros" type="motion_detector" output="screen" args="--alsologtostderr">
     <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected"/>
-    <rosparam command="load" file="$(find lidar_motion_detection)/config/$(arg config_file)" />
+    <rosparam command="load" file="$(find lidar_motion_detection_ros)/config/$(arg config_file)" />
     
     <!-- drift -->
     <param name="global_frame_name" value="map" />    
@@ -58,6 +58,6 @@
   </node>
   
   <!-- Visualize -->
-  <include file="$(find lidar_motion_detection)/launch/visualizer.launch" if="$(arg visualize)"/> 
+  <include file="$(find lidar_motion_detection_ros)/launch/visualizer.launch" if="$(arg visualize)"/> 
 
 </launch>

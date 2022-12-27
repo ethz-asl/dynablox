@@ -1,4 +1,4 @@
-#include "lidar_motion_detection/motion_detector.h"
+#include "lidar_motion_detection_ros/motion_detector.h"
 
 #include <math.h>
 

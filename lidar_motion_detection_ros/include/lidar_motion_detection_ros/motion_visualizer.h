@@ -12,7 +12,7 @@
 #include <voxblox_ros/tsdf_server.h>
 
 #include "lidar_motion_detection/common/types.h"
-#include "lidar_motion_detection/visualization_utils.h"
+#include "lidar_motion_detection_ros/visualization_utils.h"
 
 namespace motion_detection {
 

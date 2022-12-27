@@ -1,4 +1,4 @@
-#include "lidar_motion_detection/motion_visualizer.h"
+#include "lidar_motion_detection_ros/motion_visualizer.h"
 
 #include <memory>
 #include <string>

@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include "lidar_motion_detection/motion_detector.h"
+#include "lidar_motion_detection_ros/motion_detector.h"
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "motion_detector");

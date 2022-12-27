@@ -23,11 +23,11 @@
 #include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/evaluation/evaluator.h"
 #include "lidar_motion_detection/evaluation/ground_truth_handler.h"
-#include "lidar_motion_detection/motion_visualizer.h"
 #include "lidar_motion_detection/processing/clustering.h"
 #include "lidar_motion_detection/processing/ever_free_integrator.h"
 #include "lidar_motion_detection/processing/preprocessing.h"
-#include "lidar_motion_detection/visualization_utils.h"
+#include "lidar_motion_detection_ros/motion_visualizer.h"
+#include "lidar_motion_detection_ros/visualization_utils.h"
 
 namespace motion_detection {
 

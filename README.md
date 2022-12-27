@@ -41,8 +41,22 @@
 
 6. Build:
   ```bash
-  catkin build lidar_motion_detection
+  catkin build lidar_motion_detection_ros
   ```
+
+
+# Examples
+## Running on the DOALS dataset
+
+1. If not done so, download the dataset from [here](https://projects.asl.ethz.ch/datasets/doku.php?id=doals).
+
+2. TODO: Adjust some path settings and configs?
+
+3. Run
+```bash
+roslaunch lidar_motion_detection_ros run.launch 
+```
+
 
 # Old
 

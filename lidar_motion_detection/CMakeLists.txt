@@ -12,15 +12,7 @@ cs_add_library(${PROJECT_NAME}
         src/processing/ever_free_integrator.cpp
         src/evaluation/evaluator.cpp
         src/evaluation/ground_truth_handler.cpp
-        src/motion_detector.cpp
-        src/visualization_utils.cpp
-        src/motion_visualizer.cpp
         )
-
-cs_add_executable(motion_detector
-        src/motion_detector_node.cpp
-        )
-target_link_libraries(motion_detector ${PROJECT_NAME})
 
 cs_install()
 cs_export()
