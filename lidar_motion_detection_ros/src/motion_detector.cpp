@@ -201,6 +201,9 @@ void MotionDetector::shutdownTimerCallback(
   if (last_message_received_ == 0.0) {
     return;
   }
+  std::cout << "Shutdown time: "
+            << (ros::WallTime::now().toSec() - last_message_received_)
+            << " / 10s." << std::endl;
   if (ros::WallTime::now().toSec() - last_message_received_ >
       config_.shutdown_after) {
     LOG(INFO) << "No message received for " << config_.shutdown_after
