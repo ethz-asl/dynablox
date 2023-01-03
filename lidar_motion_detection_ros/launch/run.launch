@@ -7,7 +7,7 @@
   <arg name="player_rate" default="0.3" /> <!-- 0.3 -->
   
   <!-- Drift Simulation -->
-  <arg name="drift_simulation_rollout" default="doals/HG/sequence_1/light_3.csv" /> <!-- Leave empty to ignore drift-->
+  <arg name="drift_simulation_rollout" default="doals/hauptgebaeude/sequence_1/light_3.csv" /> <!-- Leave empty to ignore drift-->
   
   <!-- Evaluation -->
   <arg name="evaluate" default="true" />
@@ -50,7 +50,6 @@
     <param name="evaluation/ground_truth/file_path" value="$(arg ground_truth_file)" />
     <param name="evaluation/output_directory" value="$(arg eval_output_path)" />
     <param name="evaluate" value="$(arg evaluate)" />    
-    <param name="visualize" value="$(arg visualize)" />
   </node>
   
   <!-- Visualize -->
