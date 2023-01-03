@@ -56,7 +56,7 @@ class Evaluator {
    *
    * @param cloud_info Cloud info to be evaluated.
    */
-  void evaluateFrame(CloudInfo& cloud_info) const;
+  void evaluateFrame(CloudInfo& cloud_info);
 
   /**
    * @brief Update the timing information by overwriting the output file with
@@ -98,6 +98,8 @@ class Evaluator {
   static float computeIntersectionOverUnion(const uint tp, const uint fp,
                                             const uint fn);
 
+  int getNumberOfEvaluatedFrames() const { return gt_frame_counter_; }
+
  private:
   const Config config_;
   const GroundTruthHandler ground_truth_handler;
@@ -105,9 +107,7 @@ class Evaluator {
   // Variables.
   std::string output_directory_;
   std::vector<std::string> evaluated_levels_;
-
-  int gt_frame_counter_ = 1;
-  uint64_t start_time_;  // ns
+  int gt_frame_counter_ = 0;
 
   // Names of the created files
   static const std::string scores_file_name_;

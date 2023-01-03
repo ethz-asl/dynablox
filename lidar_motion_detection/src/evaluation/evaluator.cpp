@@ -77,15 +77,16 @@ void Evaluator::setupFiles() {
   writefile.close();
 }
 
-void Evaluator::evaluateFrame(CloudInfo& cloud_info) const {
+void Evaluator::evaluateFrame(CloudInfo& cloud_info) {
   // Update the timings every frame.
   writeTimingsToFile();
 
   // If ground truth available, label the cloud and compute the metrics.
   if (ground_truth_handler.labelCloudInfoIfAvailable(cloud_info)) {
     writeScoresToFile(cloud_info);
-    LOG(INFO) << "Evaluated cloud with timestamp " << cloud_info.timestamp
-              << ".";
+    gt_frame_counter_++;
+    LOG(INFO) << "Evaluated cloud " << gt_frame_counter_ << " with timestamp "
+              << cloud_info.timestamp << ".";
   }
 }
 

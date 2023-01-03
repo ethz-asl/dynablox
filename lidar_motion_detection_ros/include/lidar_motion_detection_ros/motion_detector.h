@@ -51,8 +51,8 @@ class MotionDetector {
     // Number of threads to use.
     int num_threads = std::thread::hardware_concurrency();
 
-    // If >0, shutdown after not having received a new message in wall time [s].
-    float shutdown_after = 0.f;
+    // If >0, shutdown after this many evaluated frames.
+    int shutdown_after = 0;
 
     Config() { setConfigName("MotionDetector"); }
 
@@ -141,7 +141,6 @@ class MotionDetector {
   ros::NodeHandle nh_private_;
   ros::Subscriber lidar_pcl_sub_;
   ros::Publisher pointcloud_without_detections_pub_;
-  ros::WallTimer shutdown_timer_;
   tf::TransformListener tf_listener_;
 
   // Voxblox map.
@@ -161,7 +160,6 @@ class MotionDetector {
 
   // Variables.
   int frame_counter_ = 0;
-  double last_message_received_ = 0.0;  // To track automated shutdown.
 };
 
 }  // namespace motion_detection
