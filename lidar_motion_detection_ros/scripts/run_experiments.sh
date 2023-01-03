@@ -47,7 +47,7 @@ data_path="/media/lukas/T7/Datasets/DOALS"
 player_rate="0.3"
 
 # Data to run.
-scenes=(hauptgebaeude niederdorf shopville station)
+scenes=(niederdorf shopville station) # hauptgebaeude
 sequences=(1 2)
 drift_intensities=(none) # light medium severe)
 drift_rollouts=(1 2 3)
@@ -57,4 +57,10 @@ config_file="motion_detector/doals.yaml"
 output_path="/media/lukas/T7/data/doals_nodrift"
 
 # ====== Run Experiments ======
+scenes=(niederdorf shopville station) # hauptgebaeude
+sequences=(1 2)
+run_experiments
+
+scenes=(hauptgebaeude)
+sequences=(2)
 run_experiments
