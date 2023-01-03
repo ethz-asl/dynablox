@@ -34,7 +34,7 @@
   ```bash
   # if wstool is not yet initialized:
   wstool init . ./lidar_motion_detection/ssh.rosinstall 
-  # if wstool is not yet initialized:
+  # if wstool is already initialized:
   wstool merge -t . ./lidar_motion_detection/ssh.rosinstall
   wstool update
   ```
