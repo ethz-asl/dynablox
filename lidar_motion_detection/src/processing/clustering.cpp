@@ -23,7 +23,7 @@ void Clustering::Config::setupParamsAndPrinting() {
 Clustering::Clustering(const Config& config,
                        voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
     : config_(config.checkValid()),
-    tsdf_layer_(std::move(tsdf_layer)),
+      tsdf_layer_(std::move(tsdf_layer)),
       neighborhood_search_(config_.neighbor_connectivity) {
   LOG(INFO) << "\n" << config_.toString();
 }
@@ -132,14 +132,17 @@ Clusters Clustering::inducePointClusters(
   for (const auto& voxel_cluster : voxel_cluster_ind) {
     Cluster candidate_cluster;
     for (auto coordinates : voxel_cluster) {
+      auto it = block2points_map.find(coordinates.first);
+      if (it == block2points_map.end()) {
+        // Should not happen but apparently does.
+        continue;
+      }
       for (auto point_index :
-           (blockwise_voxel2point_map[block2points_map.at(coordinates.first)])
-               .at(coordinates.second)) {
+           (blockwise_voxel2point_map.at(it->second)).at(coordinates.second)) {
         candidate_cluster.points.push_back(cloud[point_index]);
         candidate_cluster.point_indices.push_back(point_index);
       }
     }
-
     candidates.push_back(candidate_cluster);
   }
   return candidates;
