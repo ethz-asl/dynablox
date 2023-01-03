@@ -91,9 +91,8 @@ void MotionDetector::setupMembers() {
           ros::NodeHandle(nh_private_, "evaluation")));
 
   // Visualization.
-  motion_vis_ = std::make_shared<MotionVisualizer>(
-      nh_private_, &point_classifications_, &current_clusters_,
-      tsdf_server_->getTsdfMapPtr());
+  visualizer_ = std::make_shared<MotionVisualizer>(
+      ros::NodeHandle(nh_private_, "visualization"), tsdf_server_);
 }
 
 void MotionDetector::setupRos() {
@@ -163,17 +162,8 @@ void MotionDetector::pointcloudCallback(
   ever_free_integrator_->updateEverFreeVoxels(frame_counter_);
   update_ever_free_timer.Stop();
 
-  // TODO(schmluk): What is this for?
-  for (auto& point : cloud_info.points) {
-    if (point.cluster_level_dynamic) {
-      point.filtered_out = true;
-    }
-  }
-
-  // For downward compatibility.
-  point_classifications_ = cloud_info;
-  current_clusters_ = clusters;
-  // postprocessPointcloud(msg, &cloud, sensor_origin);
+  // Post-processing.
+  postprocessPointcloud(cloud_info);
 
   // Integrate the pointcloud into the voxblox TSDF map.
   Timer tsdf_timer("motion_detection/tsdf_integration");
@@ -181,7 +171,6 @@ void MotionDetector::pointcloudCallback(
   tf::transformTFToKindr(T_M_S, &T_G_C);
   tsdf_server_->processPointCloudMessageAndInsert(msg, T_G_C, false);
   tsdf_timer.Stop();
-
   detection_timer.Stop();
 
   // Evaluation if requested.
@@ -194,7 +183,7 @@ void MotionDetector::pointcloudCallback(
   // Visualization if requested.
   if (config_.visualize) {
     Timer vis_timer("visualizations");
-    visualizationStep(msg, cloud);
+    visualizer_->visualizeAll(cloud, cloud_info, clusters);
     vis_timer.Stop();
   }
 }
@@ -219,25 +208,12 @@ bool MotionDetector::lookupTransform(const std::string& target_frame,
   return true;
 }
 
-void MotionDetector::postprocessPointcloud(
-    const sensor_msgs::PointCloud2::Ptr& msg, Cloud* processed_pcl,
-    pcl::PointXYZ& sensor_origin) {
-  processed_pcl->clear();
-  processed_pcl->header.frame_id = msg->header.frame_id;
-
-  pcl::fromROSMsg(*msg, *processed_pcl);
-  // point_classifications_ptr_->points =
-  // std::vector<PointInfo>(static_cast<int>(processed_pcl->size()));
-
-  int i = 0;
-  for (const auto& point : *processed_pcl) {
-    if (point_classifications_.points.at(i).cluster_level_dynamic) {
-      point_classifications_.points.at(i).filtered_out = true;
+void MotionDetector::postprocessPointcloud(CloudInfo& cloud_info) {
+  for (auto& point : cloud_info.points) {
+    if (point.cluster_level_dynamic) {
+      point.filtered_out = true;
     }
-    i += 1;
   }
-  pcl_ros::transformPointCloud(config_.global_frame_name, *processed_pcl,
-                               *processed_pcl, tf_listener_);
 }
 
 voxblox::HierarchicalIndexIntMap MotionDetector::buildBlock2PointsMap(
@@ -352,12 +328,6 @@ void MotionDetector::setUpVoxel2PointMap(
   for (auto& thread : threads) {
     thread.get();
   }
-}
-
-void MotionDetector::visualizationStep(const sensor_msgs::PointCloud2::Ptr& msg,
-                                       const Cloud& lidar_points) {
-  motion_vis_->setAllCloudsToVisualize(lidar_points);
-  motion_vis_->publishAll();
 }
 
 }  // namespace motion_detection

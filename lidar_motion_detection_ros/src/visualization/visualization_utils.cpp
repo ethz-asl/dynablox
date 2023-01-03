@@ -1,4 +1,4 @@
-#include "lidar_motion_detection_ros/visualization_utils.h"
+#include "lidar_motion_detection_ros/visualization/visualization_utils.h"
 
 #include <cmath>
 #include <string>

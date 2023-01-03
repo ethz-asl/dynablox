@@ -4,7 +4,7 @@
   <!-- Dataset -->
   <arg name="sequence" default="sequence_1" />  <!-- sequence_1, sequence_2 -->
   <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/bag.bag" />
-  <arg name="player_rate" default="0.3" />
+  <arg name="player_rate" default="1" /> <!-- 0.3 -->
   
   <!-- Drift Simulation -->
   <arg name="drift_simulation_rollout" default="doals/HG/sequence_1/light_3.csv" /> <!-- Leave empty to ignore drift-->

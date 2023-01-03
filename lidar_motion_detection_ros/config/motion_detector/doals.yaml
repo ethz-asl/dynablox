@@ -33,6 +33,15 @@ evaluation:
   evaluate_cluster_level: true
   evaluate_object_level: true
   
+# Visualization
+visualization:
+  static_point_color: [0,0,0,1]
+  dynamic_point_color: [1,0,0.5,1]
+  static_point_scale: 0.05
+  dynamic_point_scale: 0.1
+  color_clusters: true
+  color_wheel_num_colors: 20
+  
 
 # Voxblox parameters
 voxblox:

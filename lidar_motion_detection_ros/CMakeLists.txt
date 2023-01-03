@@ -7,9 +7,9 @@ catkin_package()
 add_definitions(-std=c++17 -Wall -Wextra)
 
 cs_add_library(${PROJECT_NAME}
+        src/visualization/visualization_utils.cpp
+        src/visualization/motion_visualizer.cpp
         src/motion_detector.cpp
-        src/visualization_utils.cpp
-        src/motion_visualizer.cpp
         )
 
 cs_add_executable(motion_detector

@@ -1,5 +1,5 @@
-#ifndef LIDAR_MOTION_DETECTION_MOTION_DETECTOR_H_
-#define LIDAR_MOTION_DETECTION_MOTION_DETECTOR_H_
+#ifndef LIDAR_MOTION_DETECTION_ROS_MOTION_DETECTOR_H_
+#define LIDAR_MOTION_DETECTION_ROS_MOTION_DETECTOR_H_
 
 #include <deque>
 #include <memory>
@@ -8,12 +8,9 @@
 #include <utility>
 #include <vector>
 
-#include <pcl/segmentation/extract_clusters.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/point_cloud.h>
 #include <ros/ros.h>
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
 #include <voxblox/core/block_hash.h>
 #include <voxblox/core/common.h>
 #include <voxblox_ros/tsdf_server.h>
@@ -26,8 +23,7 @@
 #include "lidar_motion_detection/processing/clustering.h"
 #include "lidar_motion_detection/processing/ever_free_integrator.h"
 #include "lidar_motion_detection/processing/preprocessing.h"
-#include "lidar_motion_detection_ros/motion_visualizer.h"
-#include "lidar_motion_detection_ros/visualization_utils.h"
+#include "lidar_motion_detection_ros/visualization/motion_visualizer.h"
 
 namespace motion_detection {
 
@@ -126,12 +122,12 @@ class MotionDetector {
   voxblox::HierarchicalIndexIntMap buildBlock2PointsMap(
       const Cloud& cloud) const;
 
-  void visualizationStep(const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-                         const Cloud& lidar_points);
-
-  void postprocessPointcloud(
-      const sensor_msgs::PointCloud2::Ptr& pointcloud_msg_in,
-      Cloud* processed_pcl, pcl::PointXYZ& sensor_origin);
+    /**
+     * @brief Currently simply marks dynamic points as 
+     * 
+     * @param cloud_info Cloud info to be processed.
+     */
+  void postprocessPointcloud(CloudInfo& cloud_info);
 
  private:
   const Config config_;
@@ -141,6 +137,7 @@ class MotionDetector {
   ros::NodeHandle nh_private_;
   ros::Subscriber lidar_pcl_sub_;
   ros::Publisher pointcloud_without_detections_pub_;
+  tf::TransformListener tf_listener_;
 
   // Voxblox map.
   std::shared_ptr<voxblox::TsdfServer> tsdf_server_;
@@ -148,7 +145,7 @@ class MotionDetector {
 
   // Processing.
   std::shared_ptr<Preprocessing> preprocessing_;
-  std::shared_ptr<MotionVisualizer> motion_vis_;
+  std::shared_ptr<MotionVisualizer> visualizer_;
   std::shared_ptr<EverFreeIntegrator> ever_free_integrator_;
   std::shared_ptr<Clustering> clustering_;
   std::shared_ptr<Evaluator> evaluator_;
@@ -159,14 +156,8 @@ class MotionDetector {
 
   // Variables.
   int frame_counter_ = 0;
-  tf::TransformListener tf_listener_;
-
-  // Old
-  CloudInfo point_classifications_;
-  std::vector<Cluster> current_clusters_;
-  pcl::PointXYZ sensor_origin;
 };
 
 }  // namespace motion_detection
 
-#endif  // LIDAR_MOTION_DETECTION_MOTION_DETECTOR_H_
+#endif  // LIDAR_MOTION_DETECTION_ROS_MOTION_DETECTOR_H_
