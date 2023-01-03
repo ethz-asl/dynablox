@@ -4,6 +4,7 @@
 #visualize: true
 # num_threads: 8  # uses hardware concurrency if left empty.
 queue_size: 100
+shutdown_after: 3
 
 # Preprocessing.
 preprocessing:

@@ -37,6 +37,7 @@ void MotionDetector::Config::setupParamsAndPrinting() {
   setupParam("visualize", &visualize);
   setupParam("verbose", &verbose);
   setupParam("num_threads", &num_threads);
+  setupParam("shutdown_after", &shutdown_after);
 }
 
 MotionDetector::MotionDetector(const ros::NodeHandle& nh,
@@ -102,12 +103,19 @@ void MotionDetector::setupRos() {
   pointcloud_without_detections_pub_ =
       nh_private_.advertise<sensor_msgs::PointCloud2>(
           "pointcloud_without_detections", 1, true);
+
+  if (config_.shutdown_after > 0.f) {
+    shutdown_timer_ =
+        nh_.createTimer(ros::Duration(config_.shutdown_after / 5),
+                        &MotionDetector::shutdownTimerCallback, this);
+  }
 }
 
 void MotionDetector::pointcloudCallback(
     const sensor_msgs::PointCloud2::Ptr& msg) {
   Timer frame_timer("frame");
   Timer detection_timer("motion_detection");
+  last_message_received_ = ros::Time::now().toSec();
 
   // Lookup cloud transform T_M_S of sensor (S) to map (M).
   // If different sensor frame is required, update the message.
@@ -185,6 +193,18 @@ void MotionDetector::pointcloudCallback(
     Timer vis_timer("visualizations");
     visualizer_->visualizeAll(cloud, cloud_info, clusters);
     vis_timer.Stop();
+  }
+}
+
+void MotionDetector::shutdownTimerCallback(const ros::TimerEvent& /** e */) {
+  if (last_message_received_ == 0.0) {
+    return;
+  }
+  if (ros::Time::now().toSec() - last_message_received_ >
+      config_.shutdown_after) {
+    LOG(INFO) << "No message received for " << config_.shutdown_after
+              << "s, shutting down.";
+    ros::shutdown();
   }
 }
 

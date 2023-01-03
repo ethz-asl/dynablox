@@ -84,6 +84,8 @@ void Evaluator::evaluateFrame(CloudInfo& cloud_info) const {
   // If ground truth available, label the cloud and compute the metrics.
   if (ground_truth_handler.labelCloudInfoIfAvailable(cloud_info)) {
     writeScoresToFile(cloud_info);
+    LOG(INFO) << "Evaluated cloud with timestamp " << cloud_info.timestamp
+              << ".";
   }
 }
 
