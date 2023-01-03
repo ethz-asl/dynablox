@@ -43,16 +43,18 @@ function run_experiments() {
 
 
 # General params.
-config_file="motion_detector/doals.yaml"
+data_path="/media/lukas/T7/Datasets/DOALS"
 player_rate="0.2"
-output_path="/media/lukas/T7/data/doals_nodrift"
 
 # Data to run.
-data_path="/media/lukas/T7/Datasets/DOALS"
 scenes=(hauptgebaeude niederdorf shopville station)
 sequences=(1 2)
 drift_intensities=(none) # light medium severe)
 drift_rollouts=(1 2 3)
+
+# Method to run.
+config_file="motion_detector/doals.yaml"
+output_path="/media/lukas/T7/data/doals_nodrift"
 
 # ====== Run Experiments ======
 run_experiments

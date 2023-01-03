@@ -51,7 +51,7 @@ class MotionDetector {
     // Number of threads to use.
     int num_threads = std::thread::hardware_concurrency();
 
-    // If >0, shutdown after not having received a new message [s].
+    // If >0, shutdown after not having received a new message in wall time [s].
     float shutdown_after = 0.f;
 
     Config() { setConfigName("MotionDetector"); }
@@ -70,7 +70,7 @@ class MotionDetector {
 
   // Callbacks.
   void pointcloudCallback(const sensor_msgs::PointCloud2::Ptr& msg);
-  void shutdownTimerCallback(const ros::TimerEvent& /** e */);
+  void shutdownTimerCallback(const ros::WallTimerEvent& /** e */);
 
   // Motion detection pipeline.
   bool lookupTransform(const std::string& target_frame,
@@ -141,7 +141,7 @@ class MotionDetector {
   ros::NodeHandle nh_private_;
   ros::Subscriber lidar_pcl_sub_;
   ros::Publisher pointcloud_without_detections_pub_;
-  ros::Timer shutdown_timer_;
+  ros::WallTimer shutdown_timer_;
   tf::TransformListener tf_listener_;
 
   // Voxblox map.

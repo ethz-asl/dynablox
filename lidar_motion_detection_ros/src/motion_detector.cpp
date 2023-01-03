@@ -106,8 +106,8 @@ void MotionDetector::setupRos() {
 
   if (config_.shutdown_after > 0.f) {
     shutdown_timer_ =
-        nh_.createTimer(ros::Duration(config_.shutdown_after / 5),
-                        &MotionDetector::shutdownTimerCallback, this);
+        nh_.createWallTimer(ros::WallDuration(config_.shutdown_after / 5),
+                            &MotionDetector::shutdownTimerCallback, this);
   }
 }
 
@@ -115,7 +115,7 @@ void MotionDetector::pointcloudCallback(
     const sensor_msgs::PointCloud2::Ptr& msg) {
   Timer frame_timer("frame");
   Timer detection_timer("motion_detection");
-  last_message_received_ = ros::Time::now().toSec();
+  last_message_received_ = ros::WallTime::now().toSec();
 
   // Lookup cloud transform T_M_S of sensor (S) to map (M).
   // If different sensor frame is required, update the message.
@@ -196,11 +196,12 @@ void MotionDetector::pointcloudCallback(
   }
 }
 
-void MotionDetector::shutdownTimerCallback(const ros::TimerEvent& /** e */) {
+void MotionDetector::shutdownTimerCallback(
+    const ros::WallTimerEvent& /** e */) {
   if (last_message_received_ == 0.0) {
     return;
   }
-  if (ros::Time::now().toSec() - last_message_received_ >
+  if (ros::WallTime::now().toSec() - last_message_received_ >
       config_.shutdown_after) {
     LOG(INFO) << "No message received for " << config_.shutdown_after
               << "s, shutting down.";
