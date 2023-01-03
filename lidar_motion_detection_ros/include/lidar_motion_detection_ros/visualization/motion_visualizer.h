@@ -24,10 +24,12 @@ class MotionVisualizer {
     // Set RGBA colors in [0, 1] if wanted.
     std::vector<float> static_point_color = {0.f, 0.f, 0.f, 1.f};
     std::vector<float> dynamic_point_color = {1.f, 0.f, 0.5f, 1.f};
+    std::vector<float> sensor_color = {1.f, 0.f, 0.f, 1.f};
 
     // Scales of pointcloud [m].
     float static_point_scale = 0.1f;
     float dynamic_point_scale = 0.1f;
+    float sensor_scale = 0.3f;
 
     // Number of colors for the a full color wheel revolution.
     int color_wheel_num_colors = 20;
@@ -52,6 +54,7 @@ class MotionVisualizer {
   // Visualization.
   void visualizeAll(const Cloud& cloud, const CloudInfo& cloud_info,
                     const Clusters& clusters);
+  void visualizeLidarPose(const CloudInfo& cloud_info);
   void visualizeLidarPoints(const Cloud& cloud);
   void visualizePointDetections(const Cloud& cloud,
                                 const CloudInfo& cloud_info);
@@ -117,6 +120,7 @@ class MotionVisualizer {
   std::shared_ptr<voxblox::TsdfServer> tsdf_server_;
 
   // Publishers.
+  ros::Publisher sensor_pose_pub_;
   ros::Publisher sensor_points_pub_;
   ros::Publisher detection_points_pub_;
   ros::Publisher detection_points_comp_pub_;

@@ -31,6 +31,10 @@ bool Preprocessing::processPointcloud(const sensor_msgs::PointCloud2::Ptr& msg,
 
   // Populate the cloud information with data for all points.
   cloud_info.timestamp = msg->header.stamp.toNSec();
+  cloud_info.sensor_position.x = T_M_S.getOrigin().x();
+  cloud_info.sensor_position.y = T_M_S.getOrigin().y();
+  cloud_info.sensor_position.z = T_M_S.getOrigin().z();
+
   cloud_info.points = std::vector<PointInfo>(cloud.size());
   size_t i = 0;
   for (const auto& point : cloud) {

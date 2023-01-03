@@ -36,6 +36,7 @@ struct PointInfo {
 // Additional information for a point cloud.
 struct CloudInfo {
   std::uint64_t timestamp;
+  pcl::PointXYZ sensor_position;
   std::vector<PointInfo> points;
 };
 

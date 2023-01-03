@@ -12,8 +12,10 @@ void MotionVisualizer::Config::checkParams() const {
                "static_point_color.size");
   checkParamEq(static_cast<int>(dynamic_point_color.size()), 4,
                "dynamic_point_color.size");
+  checkParamEq(static_cast<int>(sensor_color.size()), 4, "sensor_color.size");
   checkParamGT(static_point_scale, 0.f, "static_point_scale");
   checkParamGT(dynamic_point_scale, 0.f, "dynamic_point_scale");
+  checkParamGT(sensor_scale, 0.f, "sensor_scale");
   checkParamGT(color_wheel_num_colors, 0, "color_wheel_num_colors");
 }
 
@@ -21,8 +23,10 @@ void MotionVisualizer::Config::setupParamsAndPrinting() {
   setupParam("global_frame_name", &global_frame_name);
   setupParam("static_point_color", &static_point_color);
   setupParam("dynamic_point_color", &dynamic_point_color);
+  setupParam("sensor_color", &sensor_color);
   setupParam("static_point_scale", &static_point_scale, "m");
   setupParam("dynamic_point_scale", &dynamic_point_scale, "m");
+  setupParam("sensor_scale", &sensor_scale, "m");
   setupParam("color_wheel_num_colors", &color_wheel_num_colors);
   setupParam("color_clusters", &color_clusters);
 }
@@ -40,6 +44,8 @@ MotionVisualizer::MotionVisualizer(
 
 void MotionVisualizer::setupRos() {
   // Advertise all topics.
+  sensor_pose_pub_ =
+      nh_.advertise<visualization_msgs::Marker>("lidar_pose", 10);
   sensor_points_pub_ =
       nh_.advertise<visualization_msgs::Marker>("lidar_points", 10);
   detection_points_pub_ =
@@ -61,9 +67,34 @@ void MotionVisualizer::setupRos() {
 void MotionVisualizer::visualizeAll(const Cloud& cloud,
                                     const CloudInfo& cloud_info,
                                     const Clusters& clusters) {
+  visualizeLidarPose(cloud_info);
   visualizeLidarPoints(cloud);
   visualizePointDetections(cloud, cloud_info);
   visualizeClusterDetections(cloud, cloud_info, clusters);
+}
+
+void MotionVisualizer::visualizeLidarPose(const CloudInfo& cloud_info) {
+  if (sensor_pose_pub_.getNumSubscribers() == 0u) {
+    return;
+  }
+  visualization_msgs::Marker result;
+  result.action = visualization_msgs::Marker::ADD;
+  result.id = 0;
+  result.header.stamp = ros::Time::now();
+  result.header.frame_id = config_.global_frame_name;
+  result.type = visualization_msgs::Marker::SPHERE;
+  result.color.r = config_.sensor_color[0];
+  result.color.g = config_.sensor_color[1];
+  result.color.b = config_.sensor_color[2];
+  result.color.a = config_.sensor_color[3];
+  result.scale.x = config_.sensor_scale;
+  result.scale.y = config_.sensor_scale;
+  result.scale.z = config_.sensor_scale;
+  result.pose.position.x = cloud_info.sensor_position.x;
+  result.pose.position.y = cloud_info.sensor_position.y;
+  result.pose.position.z = cloud_info.sensor_position.z;
+  result.pose.orientation.w = 1.0;
+  sensor_pose_pub_.publish(result);
 }
 
 void MotionVisualizer::visualizeLidarPoints(const Cloud& cloud) {
