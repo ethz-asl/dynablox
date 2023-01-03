@@ -137,8 +137,15 @@ Clusters Clustering::inducePointClusters(
         // Should not happen but apparently does.
         continue;
       }
-      for (auto point_index :
-           (blockwise_voxel2point_map.at(it->second)).at(coordinates.second)) {
+      if (static_cast<size_t>(it->second) >= blockwise_voxel2point_map.size()) {
+        continue;
+      }
+      auto it2 =
+          blockwise_voxel2point_map.at(it->second).find(coordinates.second);
+      if (it2 == blockwise_voxel2point_map.at(it->second).end()) {
+        continue;
+      }
+      for (auto point_index : it2->second) {
         candidate_cluster.points.push_back(cloud[point_index]);
         candidate_cluster.point_indices.push_back(point_index);
       }
