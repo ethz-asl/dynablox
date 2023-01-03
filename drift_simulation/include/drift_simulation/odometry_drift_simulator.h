@@ -79,7 +79,11 @@ class OdometryDriftSimulator {
   void publishTfs() const;
 
  private:
+  const Config config_;
+
+  // ROS.
   ros::NodeHandle nh_private_;
+  ros::Subscriber pointcloud_sub_;
 
   // Hacked variables to store the drift.
   std::string output_drifted_file_name_;
@@ -87,15 +91,11 @@ class OdometryDriftSimulator {
   std::string global_frame_name_ = "map";
   std::string sensor_frame_name_ = "os1_lidar";
 
-  // Members used to lookup TF transforms
+  // TF transforms
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
 
-  // ROS subscriber and publisher for the (un)corrected pointclouds
-  ros::Subscriber pointcloud_sub_;
-
   // Settings
-  const Config config_;
   bool started_publishing_;
 
   // Simulator state

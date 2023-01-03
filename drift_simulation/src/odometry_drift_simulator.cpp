@@ -8,13 +8,13 @@
 namespace unreal_airsim {
 OdometryDriftSimulator::OdometryDriftSimulator(
     Config config, ros::NodeHandle nh, const ros::NodeHandle& nh_private)
-    : nh_private_(nh_private),
-      config_(config.checkValid()),
+    : config_(config.checkValid()),
+      nh_private_(nh_private),
+      tf_listener_(tf_buffer_),
       started_publishing_(false),
       velocity_noise_sampling_period_(1.f / config.velocity_noise_frequency_hz),
       velocity_noise_(config.velocity_noise),
-      pose_noise_(config.pose_noise),
-      tf_listener_(tf_buffer_) {
+      pose_noise_(config.pose_noise) {
   // Get path to write drift values.
   nh_private_.param<std::string>("output_drifted_file_name",
                                  output_drifted_file_name_, "");
