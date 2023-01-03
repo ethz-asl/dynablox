@@ -44,7 +44,7 @@ function run_experiments() {
 
 # General params.
 data_path="/media/lukas/T7/Datasets/DOALS"
-player_rate="0.2"
+player_rate="0.3"
 
 # Data to run.
 scenes=(hauptgebaeude niederdorf shopville station)
