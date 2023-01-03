@@ -25,13 +25,13 @@ DriftReader::DriftReader(ros::NodeHandle nh, ros::NodeHandle nh_private)
   // Read drift data.
   if (drift_data_file_name_.empty()) {
     // No drift requested.
-    ros::shutdown();
     LOG(WARNING) << "No drift data file was requested. No drift will be added.";
+    use_drift_ = false;
   } else if (!std::filesystem::exists(drift_data_file_name_)) {
     // File specified but does not exist.
     LOG(WARNING) << "The specified drift data '" << drift_data_file_name_
                  << "' does not exist! No drift will be added.";
-    ros::shutdown();
+    use_drift_ = false;
   } else {
     // Read the drift values.
     std::string line;
@@ -44,17 +44,23 @@ DriftReader::DriftReader(ros::NodeHandle nh, ros::NodeHandle nh_private)
     }
     LOG(INFO) << "Read " << vector_of_transformations_.size()
               << " drifted poses from '" << drift_data_file_name_ << "'.";
-
-    // Subscribe to the undistorted pointcloud topic
-    pointcloud_sub_ =
-        nh_.subscribe("pointcloud", 100, &DriftReader::cloudCallback, this);
-    pointcloud_pub_ =
-        nh_.advertise<sensor_msgs::PointCloud2>("pointcloud_drifted", 10);
   }
+
+  // Subscribe to the undistorted pointcloud topic
+  pointcloud_sub_ =
+      nh_.subscribe("pointcloud", 100, &DriftReader::cloudCallback, this);
+  pointcloud_pub_ =
+      nh_.advertise<sensor_msgs::PointCloud2>("pointcloud_drifted", 10);
 }
 
 void DriftReader::cloudCallback(
     const sensor_msgs::PointCloud2::Ptr& pointcloud_msg) {
+  if (!use_drift_) {
+    // Simply forward the cloud.
+    pointcloud_pub_.publish(pointcloud_msg);
+    return;
+  }
+
   // Check data available.
   if (frame_counter_ >= vector_of_transformations_.size()) {
     // Out of data.

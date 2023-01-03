@@ -35,6 +35,9 @@ class DriftReader {
 
   // TF transforms.
   tf2_ros::TransformBroadcaster tf_broadcaster_;
+
+  // Variables.
+  bool use_drift_ = true;
 };
 
 #endif  // DRIFT_SIMULATION_DRIFT_READER_H_
