@@ -4,8 +4,8 @@
 #visualize: true
 # num_threads: 8  # uses hardware concurrency if left empty.
 queue_size: 5
-shutdown_after: 10
-
+shutdown_after: 10  # num evaluations.
+  
 # Preprocessing.
 preprocessing:
   min_range: &min_range 0.5  # m
@@ -33,6 +33,7 @@ evaluation:
   evaluate_point_level: true
   evaluate_cluster_level: true
   evaluate_object_level: true
+
   
 # Visualization
 visualization:
