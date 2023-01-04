@@ -75,6 +75,7 @@ Clustering::ClusterIndices Clustering::growCluster(
   ClusterIndices cluster;
   std::stack<voxblox::VoxelKey> stack({seed});
   const size_t voxels_per_side = tsdf_layer_->voxels_per_side();
+  std::cout << "growCluster start" << std::endl;
 
   while (!stack.empty()) {
     // Get the voxel.
@@ -99,9 +100,12 @@ Clustering::ClusterIndices Clustering::growCluster(
     cluster.push_back(voxel_key);
 
     // Extend cluster to neighbor voxels.
+      std::cout << "neighbor search start" << std::endl;
     voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
         neighborhood_search_.search(voxel_key.first, voxel_key.second,
                                     voxels_per_side);
+                                          std::cout << "neighbor search end" << std::endl;
+
 
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {
       voxblox::Block<voxblox::TsdfVoxel>::Ptr neighbor_block =
@@ -124,6 +128,8 @@ Clustering::ClusterIndices Clustering::growCluster(
       }
     }
   }
+        std::cout << "neighbor search end" << std::endl;
+
   return cluster;
 }
 
