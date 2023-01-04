@@ -4,7 +4,7 @@ import os
 import numpy as np
 from plotting_tools import read_plot_data_csv, verify_data, get_grid
 
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift_old"
+DATA_PATH = "/media/lukas/T7/data/doals_nodrift"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 
@@ -52,9 +52,9 @@ def table(metrics, print_names=True, print_std=True, print_nan=True, print_latex
 
     def evaluate_row(results):
         nans = np.sum(np.isnan(results))
-        msg = (f"{np.nanmean(results):.2f}" if nans == 0 else "-")
+        msg = (f"{np.nanmean(results):.1f}" if nans == 0 else "-")
         if print_std and nans == 0:
-            msg = msg + (" $\pm$ " if print_latex else " +- ") + f"{np.nanstd(results):.2f}"
+            msg = msg + (" $\pm$ " if print_latex else " +- ") + f"{np.nanstd(results):.1f}"
         if print_nan and nans > 0:
             msg = msg + f" ({nans})"
         return msg
@@ -67,7 +67,7 @@ def table(metrics, print_names=True, print_std=True, print_nan=True, print_latex
     for i, n in enumerate(names):
         entries = [n] if print_names else []
         for m in metrics:
-            results = get_grid(data[i], m)
+            results = get_grid(data[i], m) * 100
             all_data[m] = np.append(all_data[m], results)
             entries.append(evaluate_row(results))
         print_row(entries)

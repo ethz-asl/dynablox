@@ -3,7 +3,7 @@
 #evaluate: true # Set by launch file
 #visualize: true
 # num_threads: 8  # uses hardware concurrency if left empty.
-queue_size: 5
+queue_size: 10
 shutdown_after: 10  # num evaluations.
   
 # Preprocessing.

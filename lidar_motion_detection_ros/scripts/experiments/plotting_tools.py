@@ -1,4 +1,5 @@
 import csv
+import os
 import numpy as np
 
 def read_plot_data_csv(csv_file):
@@ -6,6 +7,9 @@ def read_plot_data_csv(csv_file):
     Read a single CSV file of a run (tsdf or ssc) and turn it into a dictionary.
     """
     data = {}
+    if not os.path.isfile(csv_file):
+        print(f"File '{csv_file}' does not exist!")
+        return data
     with open(csv_file, newline='\n') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         header = next(reader)
