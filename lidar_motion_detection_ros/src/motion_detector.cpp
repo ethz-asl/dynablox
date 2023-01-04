@@ -238,54 +238,6 @@ voxblox::HierarchicalIndexIntMap MotionDetector::buildBlock2PointsMap(
   return result;
 }
 
-void MotionDetector::blockwiseBuildVoxel2PointMap(
-    const Cloud& cloud, const voxblox::BlockIndex& blockindex,
-    const voxblox::HierarchicalIndexIntMap& block2points_map,
-    voxblox::HierarchicalIndexIntMap& voxel2points_map,
-    std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
-    CloudInfo& cloud_info) const {
-  const voxblox::AlignedVector<size_t>& points_in_block =
-      block2points_map.at(blockindex);
-  // Check block exists.
-  if (!tsdf_layer_->hasBlock(blockindex)) {
-    return;
-  }
-
-  // Create a mapping of each voxel index to the points it contains.
-  voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
-      tsdf_layer_->getBlockPtrByIndex(blockindex);
-  for (size_t i : points_in_block) {
-    const pcl::PointXYZ& point = cloud[i];
-    const voxblox::Point coords(point.x, point.y, point.z);
-    const voxblox::VoxelIndex voxel_index =
-        tsdf_block->computeVoxelIndexFromCoordinates(coords);
-    voxel2points_map[voxel_index].push_back(i);
-
-    // EverFree detection flag at the same time, since we anyways lookup voxels.
-    if (tsdf_block->getVoxelByVoxelIndex(voxel_index).ever_free) {
-      cloud_info.points[i].ever_free_level_dynamic = true;
-    }
-  }
-
-  // Update the voxel status of the currently occupied voxels.
-  for (const auto& voxel_points_pair : voxel2points_map) {
-    voxblox::TsdfVoxel& tsdf_voxel =
-        tsdf_block->getVoxelByVoxelIndex(voxel_points_pair.first);
-    tsdf_voxel.last_lidar_occupied = frame_counter_;
-
-    // This voxel attribute is used in the voxel clustering method: it
-    // signalizes that a currently occupied voxel has not yet been clustered
-    tsdf_voxel.clustering_processed = false;
-
-    // The set of occupied_ever_free_voxel_indices allows for fast access of
-    // the seed voxels in the voxel clustering
-    if (tsdf_voxel.ever_free) {
-      occupied_ever_free_voxel_indices.push_back(
-          std::make_pair(blockindex, voxel_points_pair.first));
-    }
-  }
-}
-
 void MotionDetector::setUpVoxel2PointMap(
     const Cloud& cloud,
     voxblox::AnyIndexHashMapType<int>::type& block2index_hash,
@@ -334,6 +286,54 @@ void MotionDetector::setUpVoxel2PointMap(
 
   for (auto& thread : threads) {
     thread.get();
+  }
+}
+
+void MotionDetector::blockwiseBuildVoxel2PointMap(
+    const Cloud& cloud, const voxblox::BlockIndex& blockindex,
+    const voxblox::HierarchicalIndexIntMap& block2points_map,
+    voxblox::HierarchicalIndexIntMap& voxel2points_map,
+    std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
+    CloudInfo& cloud_info) const {
+  const voxblox::AlignedVector<size_t>& points_in_block =
+      block2points_map.at(blockindex);
+  // Check block exists.
+  if (!tsdf_layer_->hasBlock(blockindex)) {
+    return;
+  }
+
+  // Create a mapping of each voxel index to the points it contains.
+  voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
+      tsdf_layer_->getBlockPtrByIndex(blockindex);
+  for (size_t i : points_in_block) {
+    const pcl::PointXYZ& point = cloud[i];
+    const voxblox::Point coords(point.x, point.y, point.z);
+    const voxblox::VoxelIndex voxel_index =
+        tsdf_block->computeVoxelIndexFromCoordinates(coords);
+    voxel2points_map[voxel_index].push_back(i);
+
+    // EverFree detection flag at the same time, since we anyways lookup voxels.
+    if (tsdf_block->getVoxelByVoxelIndex(voxel_index).ever_free) {
+      cloud_info.points[i].ever_free_level_dynamic = true;
+    }
+  }
+
+  // Update the voxel status of the currently occupied voxels.
+  for (const auto& voxel_points_pair : voxel2points_map) {
+    voxblox::TsdfVoxel& tsdf_voxel =
+        tsdf_block->getVoxelByVoxelIndex(voxel_points_pair.first);
+    tsdf_voxel.last_lidar_occupied = frame_counter_;
+
+    // This voxel attribute is used in the voxel clustering method: it
+    // signalizes that a currently occupied voxel has not yet been clustered
+    tsdf_voxel.clustering_processed = false;
+
+    // The set of occupied_ever_free_voxel_indices allows for fast access of
+    // the seed voxels in the voxel clustering
+    if (tsdf_voxel.ever_free) {
+      occupied_ever_free_voxel_indices.push_back(
+          std::make_pair(blockindex, voxel_points_pair.first));
+    }
   }
 }
 

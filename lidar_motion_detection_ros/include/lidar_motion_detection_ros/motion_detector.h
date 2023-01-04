@@ -97,6 +97,15 @@ class MotionDetector {
       CloudInfo& cloud_info);
 
   /**
+   * @brief Create a mapping of each block to ids of points that fall into it.
+   *
+   * @param cloud Points to process.
+   * @return Mapping of block to point ids in cloud.
+   */
+  voxblox::HierarchicalIndexIntMap buildBlock2PointsMap(
+      const Cloud& cloud) const;
+
+  /**
    * @brief Create a mapping of each voxel index to the points it contains. Each
    * point will be checked whether it falls into an ever-free voxel and updates
    * voxel occupancy, since we go through voxels anyways already. This function
@@ -116,15 +125,6 @@ class MotionDetector {
       voxblox::HierarchicalIndexIntMap& voxel2points_map,
       std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
       CloudInfo& cloud_info) const;
-
-  /**
-   * @brief Create a mapping of each block to ids of points that fall into it.
-   *
-   * @param cloud Points to process.
-   * @return Mapping of block to point ids in cloud.
-   */
-  voxblox::HierarchicalIndexIntMap buildBlock2PointsMap(
-      const Cloud& cloud) const;
 
   /**
    * @brief Currently simply marks dynamic points as

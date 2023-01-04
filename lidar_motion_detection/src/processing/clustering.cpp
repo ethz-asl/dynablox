@@ -58,6 +58,9 @@ std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
   for (const voxblox::VoxelKey& voxel_key : occupied_ever_free_voxel_indices) {
     voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
         tsdf_layer_->getBlockPtrByIndex(voxel_key.first);
+    if (!tsdf_block) {
+      continue;
+    }
     voxblox::TsdfVoxel& tsdf_voxel =
         tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
     if (!tsdf_voxel.clustering_processed) {
@@ -79,6 +82,9 @@ Clustering::ClusterIndices Clustering::growCluster(
     stack.pop();
     voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
         tsdf_layer_->getBlockPtrByIndex(voxel_key.first);
+    if (!tsdf_block) {
+      continue;
+    }
     voxblox::TsdfVoxel& tsdf_voxel =
         tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
 
