@@ -24,7 +24,7 @@ Clustering::Clustering(const Config& config,
                        voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
     : config_(config.checkValid()),
       tsdf_layer_(std::move(tsdf_layer)),
-      neighborhood_search_(config_.neighbor_connectivity) {
+      neighborhood_search_(config.neighbor_connectivity) {
   LOG(INFO) << "\n" << config_.toString();
 }
 
@@ -100,12 +100,11 @@ Clustering::ClusterIndices Clustering::growCluster(
     cluster.push_back(voxel_key);
 
     // Extend cluster to neighbor voxels.
-      std::cout << "neighbor search start" << std::endl;
+    std::cout << "neighbor search start" << std::endl;
     voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
         neighborhood_search_.search(voxel_key.first, voxel_key.second,
                                     voxels_per_side);
-                                          std::cout << "neighbor search end" << std::endl;
-
+    std::cout << "neighbor search end" << std::endl;
 
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {
       voxblox::Block<voxblox::TsdfVoxel>::Ptr neighbor_block =
@@ -128,7 +127,7 @@ Clustering::ClusterIndices Clustering::growCluster(
       }
     }
   }
-        std::cout << "growCluster search end" << std::endl;
+  std::cout << "growCluster search end" << std::endl;
 
   return cluster;
 }
