@@ -128,7 +128,7 @@ Clustering::ClusterIndices Clustering::growCluster(
       }
     }
   }
-        std::cout << "neighbor search end" << std::endl;
+        std::cout << "growCluster search end" << std::endl;
 
   return cluster;
 }

@@ -263,7 +263,7 @@ void MotionDetector::setUpVoxel2PointMap(
   // Builds the voxel2point-map in parallel blockwise.
   IndexGetter<voxblox::BlockIndex> index_getter(block_indices);
   std::vector<std::future<void>> threads;
-  blockwise_voxel2point_map.resize(i);
+  blockwise_voxel2point_map.resize(block2points_map.size());
   std::mutex occupied_voxels_mutex;
   for (int i = 0; i < config_.num_threads; ++i) {
     threads.emplace_back(std::async(std::launch::async, [&]() {
@@ -295,16 +295,19 @@ void MotionDetector::blockwiseBuildVoxel2PointMap(
     voxblox::HierarchicalIndexIntMap& voxel2points_map,
     std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
     CloudInfo& cloud_info) const {
-  const voxblox::AlignedVector<size_t>& points_in_block =
-      block2points_map.at(blockindex);
-  // Check block exists.
-  if (!tsdf_layer_->hasBlock(blockindex)) {
+  auto it = block2points_map.find(blockindex);
+  if (it == block2points_map.end()) {
+    return;
+  }
+
+  voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
+      tsdf_layer_->getBlockPtrByIndex(blockindex);
+  if (!tsdf_block) {
     return;
   }
 
   // Create a mapping of each voxel index to the points it contains.
-  voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
-      tsdf_layer_->getBlockPtrByIndex(blockindex);
+  const voxblox::AlignedVector<size_t>& points_in_block = it->second;
   for (size_t i : points_in_block) {
     const pcl::PointXYZ& point = cloud[i];
     const voxblox::Point coords(point.x, point.y, point.z);
