@@ -146,6 +146,9 @@ Clusters Clustering::inducePointClusters(
         continue;
       }
       for (auto point_index : it2->second) {
+        if (static_cast<size_t>(point_index) >= cloud.size()) {
+          continue;
+        }
         candidate_cluster.points.push_back(cloud[point_index]);
         candidate_cluster.point_indices.push_back(point_index);
       }
