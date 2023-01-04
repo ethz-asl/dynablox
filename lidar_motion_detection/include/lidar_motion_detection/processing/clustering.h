@@ -25,33 +25,24 @@ namespace motion_detection {
 class Clustering {
  public:
   // Config.
-  // struct Config : public config_utilities::Config<Config> {
-  //   // Filter out smaller or larger clusters than specified.
-  //   int min_cluster_size = 20;
-  //   int max_cluster_size = 20000;
-
-  //   // Connectivity used when clustering voxels. (6, 18, 26)
-  //   int neighbor_connectivity = 6;
-
-  //   Config() { setConfigName("Clustering"); }
-
-  //  protected:
-  //   void setupParamsAndPrinting() override;
-  //   void checkParams() const override;
-  // };
-  struct Config {
+  struct Config : public config_utilities::Config<Config> {
     // Filter out smaller or larger clusters than specified.
     int min_cluster_size = 20;
     int max_cluster_size = 20000;
 
     // Connectivity used when clustering voxels. (6, 18, 26)
     int neighbor_connectivity = 6;
+
+    Config() { setConfigName("Clustering"); }
+
+   protected:
+    void setupParamsAndPrinting() override;
+    void checkParams() const override;
   };
 
   // Constructor.
-  // Clustering(const Config& config,
-  //            voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer);
-  Clustering(voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer);
+  Clustering(const Config& config,
+             voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer);
 
   // Types.
   using ClusterIndices = std::vector<voxblox::VoxelKey>;

@@ -6,32 +6,27 @@
 
 namespace motion_detection {
 
-// void Clustering::Config::checkParams() const {
-//   checkParamCond(max_cluster_size > min_cluster_size,
-//                  "'max_cluster_size' must be larger than
-//                  'min_cluster_size'.");
-//   checkParamCond(neighbor_connectivity == 6 || neighbor_connectivity == 18 ||
-//                      neighbor_connectivity == 26,
-//                  "'neighbor_connectivity' must be 6, 18, or 26.");
-// }
+void Clustering::Config::checkParams() const {
+  checkParamCond(max_cluster_size > min_cluster_size,
+                 "'max_cluster_size' must be larger than 'min_cluster_size'.");
+  checkParamCond(neighbor_connectivity == 6 || neighbor_connectivity == 18 ||
+                     neighbor_connectivity == 26,
+                 "'neighbor_connectivity' must be 6, 18, or 26.");
+}
 
-// void Clustering::Config::setupParamsAndPrinting() {
-//   setupParam("min_cluster_size", &min_cluster_size);
-//   setupParam("max_cluster_size", &max_cluster_size);
-//   setupParam("neighbor_connectivity", &neighbor_connectivity);
-// }
+void Clustering::Config::setupParamsAndPrinting() {
+  setupParam("min_cluster_size", &min_cluster_size);
+  setupParam("max_cluster_size", &max_cluster_size);
+  setupParam("neighbor_connectivity", &neighbor_connectivity);
+}
 
-// Clustering::Clustering(const Config& config,
-//                        voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
-//     : config_(config.checkValid()),
-//       tsdf_layer_(std::move(tsdf_layer)),
-//       neighborhood_search_(config.neighbor_connectivity) {
-//   LOG(INFO) << "\n" << config_.toString();
-// }
-
-Clustering::Clustering(voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
-    : tsdf_layer_(std::move(tsdf_layer)),
-      neighborhood_search_(config_.neighbor_connectivity) {}
+Clustering::Clustering(const Config& config,
+                       voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
+    : config_(config.checkValid()),
+      tsdf_layer_(std::move(tsdf_layer)),
+      neighborhood_search_(config.neighbor_connectivity) {
+  LOG(INFO) << "\n" << config_.toString();
+}
 
 Clusters Clustering::performClustering(
     voxblox::AnyIndexHashMapType<int>::type& block2index_hash,
@@ -83,6 +78,8 @@ Clustering::ClusterIndices Clustering::growCluster(
   std::cout << "growCluster start" << std::endl;
 
   while (!stack.empty()) {
+    std::cout << "stack start" << std::endl;
+
     // Get the voxel.
     const voxblox::VoxelKey voxel_key = stack.top();
     stack.pop();
@@ -112,9 +109,12 @@ Clustering::ClusterIndices Clustering::growCluster(
     std::cout << "neighbor search end" << std::endl;
 
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {
+      std::cout << "neighbor process start" << std::endl;
       voxblox::Block<voxblox::TsdfVoxel>::Ptr neighbor_block =
           tsdf_layer_->getBlockPtrByIndex(neighbor_key.first);
       if (!tsdf_block) {
+        std::cout << "neighbor process continue" << std::endl;
+
         continue;
       }
       voxblox::TsdfVoxel& neighbor_voxel =
@@ -130,6 +130,7 @@ Clustering::ClusterIndices Clustering::growCluster(
           stack.push(neighbor_key);
         }
       }
+      std::cout << "neighbor process end" << std::endl;
     }
   }
   std::cout << "growCluster search end" << std::endl;
