@@ -73,10 +73,11 @@ void MotionDetector::setupMembers() {
           ros::NodeHandle(nh_private_, "preprocessing")));
 
   // Clustering.
-  clustering_ = std::make_shared<Clustering>(
-      config_utilities::getConfigFromRos<Clustering::Config>(
-          ros::NodeHandle(nh_private_, "clustering")),
-      tsdf_layer_);
+  // clustering_ = std::make_shared<Clustering>(
+  //     config_utilities::getConfigFromRos<Clustering::Config>(
+  //         ros::NodeHandle(nh_private_, "clustering")),
+  //     tsdf_layer_);
+  clustering_ = std::make_shared<Clustering>(tsdf_layer_);
 
   // Ever-Free Integrator.
   ros::NodeHandle nh_ever_free(nh_private_, "ever_free_integrator");
