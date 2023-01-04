@@ -1,7 +1,6 @@
 #include "lidar_motion_detection/processing/clustering.h"
 
 #include <algorithm>
-#include <stack>
 #include <vector>
 
 namespace motion_detection {
@@ -73,16 +72,14 @@ std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
 Clustering::ClusterIndices Clustering::growCluster(
     const voxblox::VoxelKey& seed, int frame_counter) const {
   ClusterIndices cluster;
-  std::stack<voxblox::VoxelKey> stack({seed});
+  std::vector<voxblox::VoxelKey> stack = {
+      seed};  // std::stack doesnt work reliably somehow.
   const size_t voxels_per_side = tsdf_layer_->voxels_per_side();
-  std::cout << "growCluster start" << std::endl;
 
   while (!stack.empty()) {
-    std::cout << "stack start" << std::endl;
-
     // Get the voxel.
-    const voxblox::VoxelKey voxel_key = stack.top();
-    stack.pop();
+    const voxblox::VoxelKey voxel_key = *stack.end();
+    stack.erase(stack.end());
     voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
         tsdf_layer_->getBlockPtrByIndex(voxel_key.first);
     if (!tsdf_block) {
@@ -102,19 +99,14 @@ Clustering::ClusterIndices Clustering::growCluster(
     cluster.push_back(voxel_key);
 
     // Extend cluster to neighbor voxels.
-    std::cout << "neighbor search start" << std::endl;
     voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
         neighborhood_search_.search(voxel_key.first, voxel_key.second,
                                     voxels_per_side);
-    std::cout << "neighbor search end" << std::endl;
 
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {
-      std::cout << "neighbor process start" << std::endl;
       voxblox::Block<voxblox::TsdfVoxel>::Ptr neighbor_block =
           tsdf_layer_->getBlockPtrByIndex(neighbor_key.first);
       if (!tsdf_block) {
-        std::cout << "neighbor process continue" << std::endl;
-
         continue;
       }
       voxblox::TsdfVoxel& neighbor_voxel =
@@ -127,14 +119,11 @@ Clustering::ClusterIndices Clustering::growCluster(
         cluster.push_back(neighbor_key);
         neighbor_voxel.dynamic = true;
         if (neighbor_voxel.ever_free) {
-          stack.push(neighbor_key);
+          stack.push_back(neighbor_key);
         }
       }
-      std::cout << "neighbor process end" << std::endl;
     }
   }
-  std::cout << "growCluster search end" << std::endl;
-
   return cluster;
 }
 
