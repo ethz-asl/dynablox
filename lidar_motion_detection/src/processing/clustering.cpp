@@ -19,8 +19,7 @@ void Clustering::Config::setupParamsAndPrinting() {
   setupParam("neighbor_connectivity", &neighbor_connectivity);
 }
 
-Clustering::Clustering(const Config& config,
-                       voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
+Clustering::Clustering(const Config& config, TsdfLayer::Ptr tsdf_layer)
     : config_(config.checkValid()),
       tsdf_layer_(std::move(tsdf_layer)),
       neighborhood_search_(config.neighbor_connectivity) {
@@ -28,17 +27,15 @@ Clustering::Clustering(const Config& config,
 }
 
 Clusters Clustering::performClustering(
-    voxblox::AnyIndexHashMapType<int>::type& block2index_hash,
-    std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel2point_map,
-    ClusterIndices& occupied_ever_free_voxel_indices, const Cloud& cloud,
-    CloudInfo& cloud_info, int frame_counter) const {
+    const BlockToPointMap& point_map,
+    const ClusterIndices& occupied_ever_free_voxel_indices,
+    const int frame_counter, CloudInfo& cloud_info) const {
   // Cluster all occupied voxels.
-  std::vector<ClusterIndices> voxel_cluster_ind =
+  std::vector<ClusterIndices> voxel_cluster_indices =
       voxelClustering(occupied_ever_free_voxel_indices, frame_counter);
 
   // Group points into clusters.
-  Clusters clusters = inducePointClusters(
-      block2index_hash, blockwise_voxel2point_map, cloud, voxel_cluster_ind);
+  Clusters clusters = inducePointClusters(point_map, voxel_cluster_indices);
 
   // Apply filters to remove spurious clusters.
   applyClusterLevelFilters(clusters);
@@ -55,13 +52,12 @@ std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
 
   // Process all newly occupied ever-free voxels as potential cluster seeds.
   for (const voxblox::VoxelKey& voxel_key : occupied_ever_free_voxel_indices) {
-    voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
+    TsdfBlock::Ptr tsdf_block =
         tsdf_layer_->getBlockPtrByIndex(voxel_key.first);
     if (!tsdf_block) {
       continue;
     }
-    voxblox::TsdfVoxel& tsdf_voxel =
-        tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
+    TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
     if (!tsdf_voxel.clustering_processed) {
       voxel_cluster_indices.push_back(growCluster(voxel_key, frame_counter));
     }
@@ -72,20 +68,19 @@ std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
 Clustering::ClusterIndices Clustering::growCluster(
     const voxblox::VoxelKey& seed, int frame_counter) const {
   ClusterIndices cluster;
-  std::vector<voxblox::VoxelKey> stack({seed});
+  std::vector<voxblox::VoxelKey> stack = {seed};
   const size_t voxels_per_side = tsdf_layer_->voxels_per_side();
 
   while (!stack.empty()) {
     // Get the voxel.
     const voxblox::VoxelKey voxel_key = stack.back();
     stack.pop_back();
-    voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
+    TsdfBlock::Ptr tsdf_block =
         tsdf_layer_->getBlockPtrByIndex(voxel_key.first);
     if (!tsdf_block) {
       continue;
     }
-    voxblox::TsdfVoxel& tsdf_voxel =
-        tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
+    TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
 
     // Process every voxel only once.
     if (tsdf_voxel.clustering_processed) {
@@ -103,12 +98,12 @@ Clustering::ClusterIndices Clustering::growCluster(
                                     voxels_per_side);
 
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {
-      voxblox::Block<voxblox::TsdfVoxel>::Ptr neighbor_block =
+      TsdfBlock::Ptr neighbor_block =
           tsdf_layer_->getBlockPtrByIndex(neighbor_key.first);
       if (!tsdf_block) {
         continue;
       }
-      voxblox::TsdfVoxel& neighbor_voxel =
+      TsdfVoxel& neighbor_voxel =
           neighbor_block->getVoxelByVoxelIndex(neighbor_key.second);
 
       // If neighbor is valid add it to the cluster, and potentially keep
@@ -127,35 +122,29 @@ Clustering::ClusterIndices Clustering::growCluster(
 }
 
 Clusters Clustering::inducePointClusters(
-    const voxblox::AnyIndexHashMapType<int>::type& block2points_map,
-    const std::vector<voxblox::HierarchicalIndexIntMap>&
-        blockwise_voxel2point_map,
-    const pcl::PointCloud<pcl::PointXYZ>& cloud,
-    const std::vector<ClusterIndices>& voxel_cluster_ind) const {
+    const BlockToPointMap& point_map,
+    const std::vector<ClusterIndices>& voxel_cluster_indices) const {
   Clusters candidates;
 
-  for (const auto& voxel_cluster : voxel_cluster_ind) {
+  for (const auto& voxel_cluster : voxel_cluster_indices) {
     Cluster candidate_cluster;
-    for (auto coordinates : voxel_cluster) {
-      auto it = block2points_map.find(coordinates.first);
-      if (it == block2points_map.end()) {
-        // Should not happen but apparently does.
+    for (const voxblox::VoxelKey& voxel_key : voxel_cluster) {
+      // Find the block.
+      auto block_it = point_map.find(voxel_key.first);
+      if (block_it == point_map.end()) {
         continue;
       }
-      if (static_cast<size_t>(it->second) >= blockwise_voxel2point_map.size()) {
+
+      // Find the voxel.
+      const VoxelToPointMap& voxel_map = block_it->second;
+      auto voxel_it = voxel_map.find(voxel_key.second);
+      if (voxel_it == voxel_map.end()) {
         continue;
       }
-      auto it2 =
-          blockwise_voxel2point_map.at(it->second).find(coordinates.second);
-      if (it2 == blockwise_voxel2point_map.at(it->second).end()) {
-        continue;
-      }
-      for (auto point_index : it2->second) {
-        if (static_cast<size_t>(point_index) >= cloud.size()) {
-          continue;
-        }
-        candidate_cluster.points.push_back(cloud[point_index]);
-        candidate_cluster.point_indices.push_back(point_index);
+
+      // Add all points.
+      for (const auto& point_index : voxel_it->second) {
+        candidate_cluster.push_back(point_index);
       }
     }
     candidates.push_back(candidate_cluster);
@@ -168,7 +157,7 @@ void Clustering::applyClusterLevelFilters(Clusters& candidates) const {
       std::remove_if(candidates.begin(), candidates.end(),
                      [this](const Cluster& cluster) {
                        const int cluster_size =
-                           static_cast<int>(cluster.point_indices.size());
+                           static_cast<int>(cluster.size());
                        return cluster_size < config_.min_cluster_size ||
                               cluster_size > config_.max_cluster_size;
                      }),
@@ -178,7 +167,7 @@ void Clustering::applyClusterLevelFilters(Clusters& candidates) const {
 void Clustering::setClusterLevelDynamicFlagOfallPoints(
     const Clusters& clusters, CloudInfo& cloud_info) const {
   for (const Cluster& valid_cluster : clusters) {
-    for (const auto& idx : valid_cluster.point_indices) {
+    for (int idx : valid_cluster) {
       cloud_info.points[idx].cluster_level_dynamic = true;
     }
   }

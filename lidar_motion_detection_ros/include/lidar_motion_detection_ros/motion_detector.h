@@ -83,18 +83,15 @@ class MotionDetector {
    * voxel occupancy, since we go through voxels anyways already.
    *
    * @param cloud Complete point cloud to look up positions.
-   * @param block2index_hash
-   * @param blockwise_voxel_map .
-   * @param occupied_ever_free_voxel_indices
-   * point ids.
+   * @param point_map Resulting map.
+   * @param occupied_ever_free_voxel_indices Indices of voxels containing
+   * ever-free points.
    * @param cloud_info Cloud info to store ever-free flags of checked points.
    */
-  void setUpVoxel2PointMap(
-      const Cloud& cloud,
-      voxblox::AnyIndexHashMapType<int>::type& block2index_hash,
-      std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel_map,
+  void setUpPointMap(
+      const Cloud& cloud, BlockToPointMap& point_map,
       std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
-      CloudInfo& cloud_info);
+      CloudInfo& cloud_info) const;
 
   /**
    * @brief Create a mapping of each block to ids of points that fall into it.
@@ -102,7 +99,7 @@ class MotionDetector {
    * @param cloud Points to process.
    * @return Mapping of block to point ids in cloud.
    */
-  voxblox::HierarchicalIndexIntMap buildBlock2PointsMap(
+  voxblox::HierarchicalIndexIntMap buildBlockToPointsMap(
       const Cloud& cloud) const;
 
   /**
@@ -112,17 +109,16 @@ class MotionDetector {
    * operates on a single block for data parallelism.
    *
    * @param cloud Complete point cloud to look up positions.
-   * @param blockindex Block index to check in the tsdf map.
-   * @param block2points_map Mapping of all block to contained points.
-   * @param voxel2points_map Resulting mapping of each voxel index to contained
-   * point ids.
-   * @param occupied_ever_free_voxel_indices
+   * @param block_index Index of the block to be processed.
+   * @param points_in_block Indices of all points in the block.
+   * @param point_map Where to store the resulting point map for this block.
+   * @param occupied_ever_free_voxel_indices Where to store the indices of ever
+   * free voxels in this block.
    * @param cloud_info Cloud info to store ever-free flags of checked points.
    */
-  void blockwiseBuildVoxel2PointMap(
-      const Cloud& cloud, const voxblox::BlockIndex& blockindex,
-      const voxblox::HierarchicalIndexIntMap& block2points_map,
-      voxblox::HierarchicalIndexIntMap& voxel2points_map,
+  void blockwiseBuildPointMap(
+      const Cloud& cloud, const BlockIndex& block_index, const voxblox::AlignedVector<size_t>& points_in_block,
+      VoxelToPointMap& point_map,
       std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
       CloudInfo& cloud_info) const;
 
@@ -145,7 +141,7 @@ class MotionDetector {
 
   // Voxblox map.
   std::shared_ptr<voxblox::TsdfServer> tsdf_server_;
-  std::shared_ptr<voxblox::Layer<voxblox::TsdfVoxel>> tsdf_layer_;
+  std::shared_ptr<TsdfLayer> tsdf_layer_;
 
   // Processing.
   std::shared_ptr<Preprocessing> preprocessing_;

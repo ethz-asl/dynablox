@@ -3,16 +3,16 @@
 <launch>
   <!-- Dataset -->
   <arg name="sequence" default="sequence_1" />  <!-- sequence_1, sequence_2 -->
-  <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/bag.bag" />
-  <arg name="player_rate" default="0.3" /> <!-- 0.3 -->
+  <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/niederdorf/sequence_1/bag.bag" />
+  <arg name="player_rate" default="0.5" /> <!-- 0.3 -->
   
   <!-- Drift Simulation -->
-  <arg name="drift_simulation_rollout" default="doals/hauptgebaeude/sequence_1/light_3.csv" /> <!-- Leave empty to ignore drift-->
+  <arg name="drift_simulation_rollout" default="" /> <!-- Leave empty to ignore drift--> <!-- doals/niederdorf/sequence_1/light_3.csv -->
   
   <!-- Evaluation -->
   <arg name="evaluate" default="true" />
   <arg name="eval_output_path" default="/media/lukas/T7/data/tmp" />
-  <arg name="ground_truth_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/indices.csv" />
+  <arg name="ground_truth_file" default="/media/lukas/T7/Datasets/DOALS/niederdorf/sequence_1/indices.csv" />
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/doals.yaml" />
@@ -21,7 +21,7 @@
   
   <!-- Run Nodes -->
   <param name="use_sim_time" value="true" />
-  <arg name="use_drift" value="$(eval arg('drift_simulation_rollout')=='')" />
+  <arg name="use_drift" value="$(eval arg('drift_simulation_rollout')!='')" />
 
   <!-- Play the bag -->
   <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg bag_file) -d 1" /> 

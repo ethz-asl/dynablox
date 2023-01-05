@@ -133,29 +133,18 @@ void MotionDetector::pointcloudCallback(
   preprocessing_->processPointcloud(msg, T_M_S, cloud, cloud_info);
   preprocessing_timer.Stop();
 
-  // Voxel-Point-map setup.
-  // NOTE(schmluk): This function also does all voxel processing since we
-  // already go over that. Maybe better to rename. Double check how this is
-  // done. voxel2point-map as the vector blockwise_voxel2point_map, where each
-  // entry of the vector corresponds to an updated block and each entry is a
-  // hash map mapping voxelindices to the set of points falling into the voxel.
-  // The hash map block2index_hash maps any updated blockindex to its
-  // corresponding index in blockwise_voxel_map. The vector
-  // occupied_ever_free_voxel_indices stores all currently occupied voxels.
-  voxblox::AnyIndexHashMapType<int>::type block2index_hash;
-  std::vector<voxblox::HierarchicalIndexIntMap> blockwise_voxel2point_map;
+  // Build a mapping of all blocks to voxels to points for the scan.
+  BlockToPointMap point_map;
   std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices;
 
   Timer setup_timer("motion_detection/indexing_setup");
-  setUpVoxel2PointMap(cloud, block2index_hash, blockwise_voxel2point_map,
-                      occupied_ever_free_voxel_indices, cloud_info);
+  setUpPointMap(cloud, point_map, occupied_ever_free_voxel_indices, cloud_info);
   setup_timer.Stop();
 
   // Clustering.
   Timer clustering_timer("motion_detection/clustering");
   Clusters clusters = clustering_->performClustering(
-      block2index_hash, blockwise_voxel2point_map,
-      occupied_ever_free_voxel_indices, cloud, cloud_info, frame_counter_);
+      point_map, occupied_ever_free_voxel_indices, frame_counter_, cloud_info);
   clustering_timer.Stop();
 
   // Integrate ever-free information.
@@ -223,64 +212,48 @@ void MotionDetector::postprocessPointcloud(CloudInfo& cloud_info) {
   }
 }
 
-voxblox::HierarchicalIndexIntMap MotionDetector::buildBlock2PointsMap(
-    const Cloud& cloud) const {
-  voxblox::HierarchicalIndexIntMap result;
-
-  int i = 0;
-  for (auto& point : cloud) {
-    voxblox::Point coord(point.x, point.y, point.z);
-    const voxblox::BlockIndex blockindex =
-        tsdf_layer_->computeBlockIndexFromCoordinates(coord);
-    result[blockindex].push_back(i);
-    i++;
-  }
-  return result;
-}
-
-void MotionDetector::setUpVoxel2PointMap(
-    const Cloud& cloud,
-    voxblox::AnyIndexHashMapType<int>::type& block2index_hash,
-    std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel2point_map,
+void MotionDetector::setUpPointMap(
+    const Cloud& cloud, BlockToPointMap& point_map,
     std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
-    CloudInfo& cloud_info) {
+    CloudInfo& cloud_info) const {
   // Identifies for any LiDAR point the block it falls in and constructs the
   // hash-map block2points_map mapping each block to the LiDAR points that fall
-  // into the block
-  // TODO(schmluk): This could also easily be parallelized if needs speedup.
-  voxblox::HierarchicalIndexIntMap block2points_map =
-      buildBlock2PointsMap(cloud);
-
-  // Assigns all updated blocks an index in the vector voxel2point-map.
-  std::vector<voxblox::BlockIndex> block_indices(block2points_map.size());
-  int i = 0;
-  for (auto block_points_pair : block2points_map) {
-    block_indices[i] = block_points_pair.first;
-    block2index_hash[block_points_pair.first] = i;
-    i++;
-  }
+  // into the block.
+  const voxblox::HierarchicalIndexIntMap block2points_map =
+      buildBlockToPointsMap(cloud);
 
   // Builds the voxel2point-map in parallel blockwise.
-  IndexGetter<voxblox::BlockIndex> index_getter(block_indices);
+  std::vector<BlockIndex> block_indices(block2points_map.size());
+  size_t i = 0;
+  for (const auto& block : block2points_map) {
+    block_indices[i] = block.first;
+    ++i;
+  }
+  IndexGetter<BlockIndex> index_getter(block_indices);
   std::vector<std::future<void>> threads;
-  blockwise_voxel2point_map.resize(block2points_map.size());
-  std::mutex occupied_voxels_mutex;
+  std::mutex aggregate_results_mutex;
   for (int i = 0; i < config_.num_threads; ++i) {
     threads.emplace_back(std::async(std::launch::async, [&]() {
-      voxblox::BlockIndex index;
+      // Data to store results.
+      BlockIndex block_index;
       std::vector<voxblox::VoxelKey> local_occupied_indices;
-      while (index_getter.getNextIndex(&index)) {
-        this->blockwiseBuildVoxel2PointMap(
-            cloud, index, block2points_map,
-            blockwise_voxel2point_map[block2index_hash[index]],
-            local_occupied_indices, cloud_info);
+      BlockToPointMap local_point_map;
+
+      // Process until no more blocks.
+      while (index_getter.getNextIndex(&block_index)) {
+        VoxelToPointMap result;
+        this->blockwiseBuildPointMap(cloud, block_index,
+                                     block2points_map.at(block_index), result,
+                                     local_occupied_indices, cloud_info);
+        local_point_map.insert(std::pair(block_index, result));
       }
+
       // After processing is done add data to the output map.
-      occupied_voxels_mutex.lock();
+      std::lock_guard lock(aggregate_results_mutex);
       occupied_ever_free_voxel_indices.insert(
           occupied_ever_free_voxel_indices.end(),
           local_occupied_indices.begin(), local_occupied_indices.end());
-      occupied_voxels_mutex.unlock();
+      point_map.merge(local_point_map);
     }));
   }
 
@@ -289,31 +262,40 @@ void MotionDetector::setUpVoxel2PointMap(
   }
 }
 
-void MotionDetector::blockwiseBuildVoxel2PointMap(
-    const Cloud& cloud, const voxblox::BlockIndex& blockindex,
-    const voxblox::HierarchicalIndexIntMap& block2points_map,
-    voxblox::HierarchicalIndexIntMap& voxel2points_map,
+voxblox::HierarchicalIndexIntMap MotionDetector::buildBlockToPointsMap(
+    const Cloud& cloud) const {
+  voxblox::HierarchicalIndexIntMap result;
+
+  int i = 0;
+  for (const pcl::PointXYZ& point : cloud) {
+    voxblox::Point coord(point.x, point.y, point.z);
+    const BlockIndex blockindex =
+        tsdf_layer_->computeBlockIndexFromCoordinates(coord);
+    result[blockindex].push_back(i);
+    i++;
+  }
+  return result;
+}
+
+void MotionDetector::blockwiseBuildPointMap(
+    const Cloud& cloud, const BlockIndex& block_index,
+    const voxblox::AlignedVector<size_t>& points_in_block,
+    VoxelToPointMap& voxel_map,
     std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
     CloudInfo& cloud_info) const {
-  auto it = block2points_map.find(blockindex);
-  if (it == block2points_map.end()) {
-    return;
-  }
-
-  voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
-      tsdf_layer_->getBlockPtrByIndex(blockindex);
+  // Get the block.
+  TsdfBlock::Ptr tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
   if (!tsdf_block) {
     return;
   }
 
   // Create a mapping of each voxel index to the points it contains.
-  const voxblox::AlignedVector<size_t>& points_in_block = it->second;
   for (size_t i : points_in_block) {
     const pcl::PointXYZ& point = cloud[i];
     const voxblox::Point coords(point.x, point.y, point.z);
-    const voxblox::VoxelIndex voxel_index =
+    const VoxelIndex voxel_index =
         tsdf_block->computeVoxelIndexFromCoordinates(coords);
-    voxel2points_map[voxel_index].push_back(i);
+    voxel_map[voxel_index].push_back(i);
 
     // EverFree detection flag at the same time, since we anyways lookup voxels.
     if (tsdf_block->getVoxelByVoxelIndex(voxel_index).ever_free) {
@@ -322,8 +304,8 @@ void MotionDetector::blockwiseBuildVoxel2PointMap(
   }
 
   // Update the voxel status of the currently occupied voxels.
-  for (const auto& voxel_points_pair : voxel2points_map) {
-    voxblox::TsdfVoxel& tsdf_voxel =
+  for (const auto& voxel_points_pair : voxel_map) {
+    TsdfVoxel& tsdf_voxel =
         tsdf_block->getVoxelByVoxelIndex(voxel_points_pair.first);
     tsdf_voxel.last_lidar_occupied = frame_counter_;
 
@@ -335,7 +317,7 @@ void MotionDetector::blockwiseBuildVoxel2PointMap(
     // the seed voxels in the voxel clustering
     if (tsdf_voxel.ever_free) {
       occupied_ever_free_voxel_indices.push_back(
-          std::make_pair(blockindex, voxel_points_pair.first));
+          std::make_pair(block_index, voxel_points_pair.first));
     }
   }
 }

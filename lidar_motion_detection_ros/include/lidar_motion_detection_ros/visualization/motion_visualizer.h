@@ -69,7 +69,7 @@ class MotionVisualizer {
   voxblox::ExponentialOffsetIdColorMap color_map_;
   ros::NodeHandle nh_;
   std::shared_ptr<voxblox::TsdfServer> tsdf_server_;
-  std::shared_ptr<voxblox::MeshIntegrator<voxblox::TsdfVoxel>> mesh_integrator_;
+  std::shared_ptr<voxblox::MeshIntegrator<TsdfVoxel>> mesh_integrator_;
   std::shared_ptr<voxblox::MeshLayer> mesh_layer_;
 
   // Publishers.

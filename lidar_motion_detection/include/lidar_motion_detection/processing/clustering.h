@@ -41,29 +41,24 @@ class Clustering {
   };
 
   // Constructor.
-  Clustering(const Config& config,
-             voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer);
+  Clustering(const Config& config, TsdfLayer::Ptr tsdf_layer);
 
   // Types.
   using ClusterIndices = std::vector<voxblox::VoxelKey>;
 
   /**
-   * @brief Execute all clustering steps to identify the final clusters. Also
-   * modifies the infos?
+   * @brief
    *
-   * @param block2index_hash
-   * @param blockwise_voxel2point_map
+   * @param point_map
    * @param occupied_ever_free_voxel_indices
-   * @param cloud
-   * @param cloud_info
    * @param frame_counter
+   * @param cloud_info
    * @return Clusters
    */
   Clusters performClustering(
-      voxblox::AnyIndexHashMapType<int>::type& block2index_hash,
-      std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel2point_map,
-      ClusterIndices& occupied_ever_free_voxel_indices, const Cloud& cloud,
-      CloudInfo& cloud_info, int frame_counter) const;
+      const BlockToPointMap& point_map,
+      const ClusterIndices& occupied_ever_free_voxel_indices,
+      const int frame_counter, CloudInfo& cloud_info) const;
 
   /**
    * @brief Cluster all currently occupied voxels that are next to an ever-free
@@ -95,17 +90,13 @@ class Clustering {
   /**
    * @brief Use the voxel level clustering to assign all points to clusters.
    *
-   * @param block2points_map Mapping of blocks to points in the cloud.
-   * @param blockwise_voxel_map Mapping of blocks to voxels containing points.
-   * @param cloud The complete scan point cloud.
-   * @param voxel_cluster_ind Voxel indices per cluster.
+   * @param point_map Mapping of blocks to voxels and points in the cloud.
+   * @param voxel_cluster_indices Voxel indices per cluster.
    * @return All clusters.
    */
   Clusters inducePointClusters(
-      const voxblox::AnyIndexHashMapType<int>::type& block2points_map,
-      const std::vector<voxblox::HierarchicalIndexIntMap>& blockwise_voxel_map,
-      const Cloud& cloud,
-      const std::vector<ClusterIndices>& voxel_cluster_ind) const;
+      const BlockToPointMap& point_map,
+      const std::vector<ClusterIndices>& voxel_cluster_indices) const;
 
   /**
    * @brief Removes all clusters that don't meet the filtering criteria.
@@ -126,7 +117,7 @@ class Clustering {
 
  private:
   const Config config_;
-  const voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer_;
+  const TsdfLayer::Ptr tsdf_layer_;
   const NeighborhoodSearch neighborhood_search_;
 };
 

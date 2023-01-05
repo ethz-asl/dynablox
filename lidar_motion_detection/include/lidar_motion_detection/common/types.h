@@ -4,10 +4,20 @@
 #include <vector>
 
 #include <pcl_ros/point_cloud.h>
+#include <voxblox/core/block.h>
+#include <voxblox/core/common.h>
+#include <voxblox/core/layer.h>
+#include <voxblox/core/voxel.h>
 
 namespace motion_detection {
 
 using Cloud = pcl::PointCloud<pcl::PointXYZ>;
+
+using VoxelIndex = voxblox::VoxelIndex;
+using BlockIndex = voxblox::BlockIndex;
+using TsdfVoxel = voxblox::TsdfVoxel;
+using TsdfBlock = voxblox::Block<TsdfVoxel>;
+using TsdfLayer = voxblox::Layer<TsdfVoxel>;
 
 // Additional information stored for every point in the cloud.
 struct PointInfo {
@@ -40,10 +50,14 @@ struct CloudInfo {
   std::vector<PointInfo> points;
 };
 
-struct Cluster {
-  Cloud points;
-  std::vector<int> point_indices;
-};
+// Maps each voxel in a block to all point cloud indices that fall into in it.
+using VoxelToPointMap = voxblox::HierarchicalIndexIntMap;
+
+// Map of block indices to voxel indices and point indices of the cloud.
+using BlockToPointMap = voxblox::AnyIndexHashMapType<VoxelToPointMap>::type;
+
+// Indices of all points in the cloud belonging to this cluster.
+using Cluster = std::vector<int>;
 
 using Clusters = std::vector<Cluster>;
 

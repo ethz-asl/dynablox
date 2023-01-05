@@ -46,7 +46,7 @@ class EverFreeIntegrator {
 
   EverFreeIntegrator(
       const Config& config,
-      std::shared_ptr<voxblox::Layer<voxblox::TsdfVoxel>> tsdf_layer);
+      std::shared_ptr<TsdfLayer> tsdf_layer);
 
   /**
    * @brief Update the ever-free state of all changed TSDF-voxels by checking
@@ -63,7 +63,7 @@ class EverFreeIntegrator {
    * @param tsdf_voxel Voxel to update.
    * @param frame_counter Current lidar scan time index.
    */
-  void updateOccupancyCounter(voxblox::TsdfVoxel& tsdf_voxel,
+  void updateOccupancyCounter(TsdfVoxel& tsdf_voxel,
                               const int frame_counter) const;
 
   /**
@@ -73,7 +73,7 @@ class EverFreeIntegrator {
    * @param block_index Index of block to check.
    * @param frame_counter Current frame to compute occupied time.
    */
-  void makeEverFree(const voxblox::BlockIndex& block_index,
+  void makeEverFree(const BlockIndex& block_index,
                     const int frame_counter) const;
 
   /**
@@ -83,12 +83,12 @@ class EverFreeIntegrator {
    * @param block_index Block index of voxel to clear.
    * @param voxel_index voxel index of voxel to clear.
    */
-  void removeEverFree(const voxblox::BlockIndex& block_index,
-                      const voxblox::VoxelIndex& voxel_index) const;
+  void removeEverFree(const BlockIndex& block_index,
+                      const VoxelIndex& voxel_index) const;
 
  private:
   const Config config_;
-  const voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer_;
+  const TsdfLayer::Ptr tsdf_layer_;
   const NeighborhoodSearch neighborhood_search_;
 
   // Cached frequently used values.

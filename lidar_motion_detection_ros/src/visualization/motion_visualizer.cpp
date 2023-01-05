@@ -44,7 +44,7 @@ MotionVisualizer::MotionVisualizer(
       tsdf_server_->getTsdfMapPtr()->block_size());
   voxblox::MeshIntegratorConfig mesh_config;
   mesh_integrator_ =
-      std::make_shared<voxblox::MeshIntegrator<voxblox::TsdfVoxel>>(
+      std::make_shared<voxblox::MeshIntegrator<TsdfVoxel>>(
           mesh_config, tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr(),
           mesh_layer_.get());
 
@@ -282,7 +282,8 @@ void MotionVisualizer::visualizeClusterDetections(const Cloud& cloud,
     color.g = static_cast<float>(color_voxblox.g) / 255.f;
     color.b = static_cast<float>(color_voxblox.b) / 255.f;
     color.a = static_cast<float>(color_voxblox.a) / 255.f;
-    for (const auto& point : cluster.points) {
+    for (int index : cluster) {
+      const pcl::PointXYZ& point = cloud[index];
       geometry_msgs::Point point_msg;
       point_msg.x = point.x;
       point_msg.y = point.y;

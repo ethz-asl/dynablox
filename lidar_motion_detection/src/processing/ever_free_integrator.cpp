@@ -32,7 +32,7 @@ void EverFreeIntegrator::Config::setupParamsAndPrinting() {
 
 EverFreeIntegrator::EverFreeIntegrator(
     const EverFreeIntegrator::Config& config,
-    voxblox::Layer<voxblox::TsdfVoxel>::Ptr tsdf_layer)
+    TsdfLayer::Ptr tsdf_layer)
     : config_(config.checkValid()),
       tsdf_layer_(std::move(tsdf_layer)),
       neighborhood_search_(config_.neighbor_connectivity),
@@ -51,14 +51,14 @@ void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
 
   // Update occupancy counter and calls removeEverFree if warranted.
   Timer remove_timer("update_ever_free/remove_occupied");
-  for (const voxblox::BlockIndex& block_index : updated_blocks) {
-    voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
+  for (const BlockIndex& block_index : updated_blocks) {
+    TsdfBlock::Ptr tsdf_block =
         tsdf_layer_->getBlockPtrByIndex(block_index);
     if (!tsdf_block) {
       continue;
     }
     for (size_t index = 0; index < voxels_per_block_; ++index) {
-      voxblox::TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByLinearIndex(index);
+      TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByLinearIndex(index);
 
       // Updating the occupancy counter.
       if (tsdf_voxel.distance < config_.tsdf_occupancy_threshold ||
@@ -82,16 +82,16 @@ void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
   // Labels tsdf-updated voxels as ever-free if they satisfy the criteria.
   // Performed blockwise in parallel.
   Timer free_timer("update_ever_free/label_free");
-  std::vector<voxblox::BlockIndex> indices(updated_blocks.size());
+  std::vector<BlockIndex> indices(updated_blocks.size());
   for (size_t i = 0; i < indices.size(); ++i) {
     indices[i] = updated_blocks[i];
   }
-  IndexGetter<voxblox::BlockIndex> index_getter(indices);
+  IndexGetter<BlockIndex> index_getter(indices);
   std::vector<std::future<void>> threads;
 
   for (int i = 0; i < config_.num_threads; ++i) {
     threads.emplace_back(std::async(std::launch::async, [&]() {
-      voxblox::BlockIndex index;
+      BlockIndex index;
       while (index_getter.getNextIndex(&index)) {
         makeEverFree(index, frame_counter);
       }
@@ -102,9 +102,9 @@ void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
   }
 }
 
-void EverFreeIntegrator::makeEverFree(const voxblox::BlockIndex& block_index,
+void EverFreeIntegrator::makeEverFree(const BlockIndex& block_index,
                                       const int frame_counter) const {
-  voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
+  TsdfBlock::Ptr tsdf_block =
       tsdf_layer_->getBlockPtrByIndex(block_index);
   if (!tsdf_block) {
     return;
@@ -112,7 +112,7 @@ void EverFreeIntegrator::makeEverFree(const voxblox::BlockIndex& block_index,
 
   // Check all voxels.
   for (size_t index = 0; index < voxels_per_block_; ++index) {
-    voxblox::TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByLinearIndex(index);
+    TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByLinearIndex(index);
 
     // If already ever-free we can save the cost of checking the neighbourhood.
     // Only observed voxels (with weight) can be set to ever free.
@@ -124,14 +124,14 @@ void EverFreeIntegrator::makeEverFree(const voxblox::BlockIndex& block_index,
     }
 
     // Check the neighbourhood for unobserved or occupied voxels.
-    const voxblox::VoxelIndex voxel_index =
+    const VoxelIndex voxel_index =
         tsdf_block->computeVoxelIndexFromLinearIndex(index);
     voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
         neighborhood_search_.search(block_index, voxel_index, voxels_per_side_);
     bool neighbor_occupied_or_unobserved = false;
 
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {
-      const voxblox::Block<voxblox::TsdfVoxel>* neighbor_block;
+      const TsdfBlock* neighbor_block;
       if (neighbor_key.first == block_index) {
         // Often will be the same block.
         neighbor_block = tsdf_block.get();
@@ -146,7 +146,7 @@ void EverFreeIntegrator::makeEverFree(const voxblox::BlockIndex& block_index,
       }
 
       // Check the voxel if it is unobserved or static.
-      const voxblox::TsdfVoxel& neighbor_voxel =
+      const TsdfVoxel& neighbor_voxel =
           neighbor_block->getVoxelByVoxelIndex(neighbor_key.second);
       if (neighbor_voxel.weight < 1e-6 ||
           neighbor_voxel.last_occupied >
@@ -165,11 +165,11 @@ void EverFreeIntegrator::makeEverFree(const voxblox::BlockIndex& block_index,
 }
 
 void EverFreeIntegrator::removeEverFree(
-    const voxblox::BlockIndex& block_index,
-    const voxblox::VoxelIndex& voxel_index) const {
-  voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
+    const BlockIndex& block_index,
+    const VoxelIndex& voxel_index) const {
+  TsdfBlock::Ptr tsdf_block =
       tsdf_layer_->getBlockPtrByIndex(block_index);
-  voxblox::TsdfVoxel& voxel = tsdf_block->getVoxelByVoxelIndex(voxel_index);
+  TsdfVoxel& voxel = tsdf_block->getVoxelByVoxelIndex(voxel_index);
 
   // Remove ever-free attributes.
   voxel.ever_free = false;
@@ -180,7 +180,7 @@ void EverFreeIntegrator::removeEverFree(
       neighborhood_search_.search(block_index, voxel_index, voxels_per_side_);
 
   for (const voxblox::VoxelKey& neighbor_key : neighbors) {
-    voxblox::Block<voxblox::TsdfVoxel>* neighbor_block;
+    TsdfBlock* neighbor_block;
     if (neighbor_key.first == block_index) {
       // Often will be the same block.
       neighbor_block = tsdf_block.get();
@@ -192,7 +192,7 @@ void EverFreeIntegrator::removeEverFree(
       }
     }
 
-    voxblox::TsdfVoxel& neighbor_voxel =
+    TsdfVoxel& neighbor_voxel =
         neighbor_block->getVoxelByVoxelIndex(neighbor_key.second);
 
     neighbor_voxel.ever_free = false;
@@ -200,7 +200,7 @@ void EverFreeIntegrator::removeEverFree(
   }
 }
 
-void EverFreeIntegrator::updateOccupancyCounter(voxblox::TsdfVoxel& voxel,
+void EverFreeIntegrator::updateOccupancyCounter(TsdfVoxel& voxel,
                                                 const int frame_counter) const {
   // If allow for breaks of temporal_buffer between occupied observations to
   // compensate for lidar sparsity.
