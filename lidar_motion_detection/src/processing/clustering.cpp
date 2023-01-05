@@ -59,7 +59,8 @@ std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
     }
     TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
     if (!tsdf_voxel.clustering_processed) {
-      voxel_cluster_indices.push_back(growCluster(voxel_key, frame_counter));
+      const ClusterIndices cluster = growCluster(voxel_key, frame_counter);
+      voxel_cluster_indices.push_back(cluster);
     }
   }
   return voxel_cluster_indices;
@@ -93,7 +94,7 @@ Clustering::ClusterIndices Clustering::growCluster(
     cluster.push_back(voxel_key);
 
     // Extend cluster to neighbor voxels.
-    voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
+    const voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
         neighborhood_search_.search(voxel_key.first, voxel_key.second,
                                     voxels_per_side);
 
@@ -110,10 +111,13 @@ Clustering::ClusterIndices Clustering::growCluster(
       // growing if it is ever-free.
       if (!neighbor_voxel.clustering_processed &&
           neighbor_voxel.last_lidar_occupied == frame_counter) {
-        cluster.push_back(neighbor_key);
-        neighbor_voxel.dynamic = true;
         if (neighbor_voxel.ever_free) {
           stack.push_back(neighbor_key);
+        } else {
+          // Add voxel to cluster.
+          neighbor_voxel.dynamic = true;
+          neighbor_voxel.clustering_processed = true;
+          cluster.push_back(neighbor_key);
         }
       }
     }
