@@ -85,7 +85,7 @@ class Clustering {
    * @return Voxel keys of all voxels of the cluster.
    */
   ClusterIndices growCluster(const voxblox::VoxelKey& seed,
-                             int frame_counter) const;
+                             const int frame_counter) const;
 
   /**
    * @brief Use the voxel level clustering to assign all points to clusters.

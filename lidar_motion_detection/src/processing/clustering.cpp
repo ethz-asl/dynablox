@@ -66,7 +66,7 @@ std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
 }
 
 Clustering::ClusterIndices Clustering::growCluster(
-    const voxblox::VoxelKey& seed, int frame_counter) const {
+    const voxblox::VoxelKey& seed, const int frame_counter) const {
   ClusterIndices cluster;
   std::vector<voxblox::VoxelKey> stack = {seed};
   const size_t voxels_per_side = tsdf_layer_->voxels_per_side();
