@@ -39,6 +39,9 @@ class MotionVisualizer {
     // dynamic.
     bool color_clusters = true;
 
+  // Maximum distance for which tracks are considered [m].
+    float max_tracking_distance = 1.f;
+
     Config() { setConfigName("MotionVisualizer"); }
 
    protected:
@@ -62,7 +65,15 @@ class MotionVisualizer {
   void visualizeClusterDetections(const Cloud& cloud,
                                   const CloudInfo& cloud_info,
                                   const Clusters& clusters);
+  void visualizeObjectDetections(const Cloud& cloud,
+                                 const CloudInfo& cloud_info,
+                                 const Clusters& clusters);
   void visualizeMesh();
+
+  // Simply assign to the closest clusters compared to last time the function
+  // was called.
+  std::vector<int> trackClusterIDs(const Cloud& cloud,
+                                   const Clusters& clusters);
 
  private:
   const Config config_;
@@ -84,6 +95,10 @@ class MotionVisualizer {
   ros::Publisher ever_free_pub_;
   ros::Publisher never_free_pub_;
   ros::Publisher mesh_pub_;
+
+  // Tracking info for object visualization.
+  std::vector<voxblox::Point> previous_centroids_;
+  std::vector<int> previous_ids_;
 };
 
 }  // namespace motion_detection

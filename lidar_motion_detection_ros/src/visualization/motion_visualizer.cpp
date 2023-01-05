@@ -29,6 +29,7 @@ void MotionVisualizer::Config::setupParamsAndPrinting() {
   setupParam("sensor_scale", &sensor_scale, "m");
   setupParam("color_wheel_num_colors", &color_wheel_num_colors);
   setupParam("color_clusters", &color_clusters);
+  setupParam("max_tracking_distance", &max_tracking_distance, "m");
 }
 
 MotionVisualizer::MotionVisualizer(
@@ -43,10 +44,9 @@ MotionVisualizer::MotionVisualizer(
   mesh_layer_ = std::make_shared<voxblox::MeshLayer>(
       tsdf_server_->getTsdfMapPtr()->block_size());
   voxblox::MeshIntegratorConfig mesh_config;
-  mesh_integrator_ =
-      std::make_shared<voxblox::MeshIntegrator<TsdfVoxel>>(
-          mesh_config, tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr(),
-          mesh_layer_.get());
+  mesh_integrator_ = std::make_shared<voxblox::MeshIntegrator<TsdfVoxel>>(
+      mesh_config, tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr(),
+      mesh_layer_.get());
 
   // Advertise topics.
   setupRos();
@@ -86,6 +86,7 @@ void MotionVisualizer::visualizeAll(const Cloud& cloud,
   visualizeMesh();
   visualizePointDetections(cloud, cloud_info);
   visualizeClusterDetections(cloud, cloud_info, clusters);
+  visualizeObjectDetections(cloud, cloud_info, clusters);
 }
 
 void MotionVisualizer::visualizeLidarPose(const CloudInfo& cloud_info) {
@@ -314,6 +315,187 @@ void MotionVisualizer::visualizeClusterDetections(const Cloud& cloud,
   if (!result_comp.points.empty()) {
     detection_cluster_comp_pub_.publish(result_comp);
   }
+}
+
+void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
+                                                 const CloudInfo& cloud_info,
+                                                 const Clusters& clusters) {
+  // TODO(schmluk): This is currently copied from the clusters, it simply tries
+  // to do color associations for a bit more consistency during visualization.
+  const bool dynamic = detection_object_pub_.getNumSubscribers() > 0u;
+  const bool comp = detection_object_comp_pub_.getNumSubscribers() > 0u;
+
+  if (!dynamic && !comp) {
+    return;
+  }
+
+  visualization_msgs::Marker result;
+  visualization_msgs::Marker result_comp;
+
+  if (dynamic) {
+    // We just reserve too much space to save compute.
+    result.points.reserve(cloud.points.size());
+
+    // Common properties.
+    result.action = visualization_msgs::Marker::ADD;
+    result.id = 0;
+    result.header.stamp = ros::Time::now();
+    result.header.frame_id = config_.global_frame_name;
+    result.type = visualization_msgs::Marker::POINTS;
+    result.scale.x = config_.dynamic_point_scale;
+    result.scale.y = config_.dynamic_point_scale;
+    result.scale.z = config_.dynamic_point_scale;
+  }
+
+  if (comp) {
+    result_comp.points.reserve(cloud.points.size());
+
+    // Common properties.
+    result_comp.action = visualization_msgs::Marker::ADD;
+    result_comp.id = 0;
+    result_comp.header.stamp = ros::Time::now();
+    result_comp.header.frame_id = config_.global_frame_name;
+    result_comp.type = visualization_msgs::Marker::POINTS;
+    result_comp.color.r = config_.static_point_color[0];
+    result_comp.color.g = config_.static_point_color[1];
+    result_comp.color.b = config_.static_point_color[2];
+    result_comp.color.a = config_.static_point_color[3];
+    result_comp.scale.x = config_.static_point_scale;
+    result_comp.scale.y = config_.static_point_scale;
+    result_comp.scale.z = config_.static_point_scale;
+  }
+
+  // Get all cluster points.
+  int i = 0;
+  std::vector<int> cluster_ids = trackClusterIDs(cloud, clusters);
+  for (const Cluster& cluster : clusters) {
+    std_msgs::ColorRGBA color;
+    const voxblox::Color color_voxblox = color_map_.colorLookup(i);
+    ++i;
+    color.r = static_cast<float>(color_voxblox.r) / 255.f;
+    color.g = static_cast<float>(color_voxblox.g) / 255.f;
+    color.b = static_cast<float>(color_voxblox.b) / 255.f;
+    color.a = static_cast<float>(color_voxblox.a) / 255.f;
+    for (int index : cluster) {
+      const pcl::PointXYZ& point = cloud[index];
+      geometry_msgs::Point point_msg;
+      point_msg.x = point.x;
+      point_msg.y = point.y;
+      point_msg.z = point.z;
+      result.points.push_back(point_msg);
+      result.colors.push_back(color);
+    }
+  }
+
+  // Get all other points.
+  if (comp) {
+    size_t i = 0;
+    for (const auto& point : cloud.points) {
+      if (!cloud_info.points[i].cluster_level_dynamic) {
+        geometry_msgs::Point point_msg;
+        point_msg.x = point.x;
+        point_msg.y = point.y;
+        point_msg.z = point.z;
+        result_comp.points.push_back(point_msg);
+      }
+      ++i;
+    }
+  }
+
+  if (!result.points.empty()) {
+    detection_object_pub_.publish(result);
+  }
+  if (!result_comp.points.empty()) {
+    detection_object_comp_pub_.publish(result_comp);
+  }
+}
+
+std::vector<int> MotionVisualizer::trackClusterIDs(const Cloud& cloud,
+                                                   const Clusters& clusters) {
+  // Compute the centroids of all clusters.
+  std::vector<voxblox::Point> centroids(clusters.size());
+  size_t i = 0;
+  for (const Cluster& cluster : clusters) {
+    voxblox::Point centroid = {0, 0, 0};
+    for (int index : cluster) {
+      const pcl::PointXYZ& point = cloud[index];
+      centroid = centroid + voxblox::Point(point.x, point.y, point.z);
+    }
+    centroids[i] = centroid / cluster.size();
+    ++i;
+  }
+
+  // Compute the distances of all clusters. [previous][current]->dist
+  struct Association {
+    float distance;
+    int previous_id;
+    int current_id;
+  };
+
+  std::vector<std::vector<Association>> distances;
+  distances.reserve(previous_centroids_.size());
+  for (size_t i = 0; i < previous_centroids_.size(); ++i) {
+    std::vector<Association> d;
+    d.reserve(centroids.size());
+    for (size_t j = 0; j < centroids.size(); ++j) {
+      Association association;
+      association.distance = (previous_centroids_[i] - centroids[j]).norm();
+      association.previous_id = i;
+      association.current_id = j;
+      d.push_back(association);
+    }
+  }
+
+  // Associate all previous ids until no more minimum distances exist.
+  std::vector<int> ids(centroids.size(), -1);
+  std::unordered_set<int> reused_ids;
+  while (true) {
+    // Find the minimum distance and IDs (exhaustively).
+    float min = std::numeric_limits<float>::max();
+    int prev_id = 0;
+    int curr_id = 0;
+    for (size_t i = 0u; i < distances.size(); ++i) {
+      for (size_t j = 0u; j < distances[i].size(); ++j) {
+        const Association& association = distances[i][j];
+        if (association.distance < min) {
+          min = association.distance;
+          curr_id = association.current_id;
+          prev_id = association.previous_id;
+        }
+      }
+    }
+
+    if (min > config_.max_tracking_distance) {
+      // no more good fits.
+      break;
+    }
+
+    // Remove that match and search for next best.
+    ids[curr_id] = previous_ids_[prev_id];
+    reused_ids.insert(previous_ids_[prev_id]);
+    distances.erase(distances.begin() + prev_id);
+    for (auto& vec : distances) {
+      vec.erase(vec.begin() + curr_id);
+    }
+  }
+
+  // Fill in all remaining values.
+  int id_counter = 0;
+  for (int& id : ids) {
+    if (id == -1) {
+      // We need to replace it.
+      while (reused_ids.find(id_counter) != reused_ids.end()) {
+        id_counter++;
+      }
+      id = id_counter;
+      id_counter++;
+    }
+  }
+
+  // Finish up.
+  previous_ids_ = ids;
+  previous_centroids_ = centroids;
+  return ids;
 }
 
 void MotionVisualizer::visualizeMesh() {
