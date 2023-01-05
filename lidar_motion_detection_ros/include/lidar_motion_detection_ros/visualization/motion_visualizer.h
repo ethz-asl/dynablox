@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <visualization_msgs/Marker.h>
+#include <voxblox/mesh/mesh_integrator.h>
 #include <voxblox/utils/color_maps.h>
 #include <voxblox_ros/tsdf_server.h>
 
@@ -61,12 +62,15 @@ class MotionVisualizer {
   void visualizeClusterDetections(const Cloud& cloud,
                                   const CloudInfo& cloud_info,
                                   const Clusters& clusters);
+  void visualizeMesh();
 
  private:
   const Config config_;
   voxblox::ExponentialOffsetIdColorMap color_map_;
   ros::NodeHandle nh_;
   std::shared_ptr<voxblox::TsdfServer> tsdf_server_;
+  std::shared_ptr<voxblox::MeshIntegrator<voxblox::TsdfVoxel>> mesh_integrator_;
+  std::shared_ptr<voxblox::MeshLayer> mesh_layer_;
 
   // Publishers.
   ros::Publisher sensor_pose_pub_;
@@ -79,6 +83,7 @@ class MotionVisualizer {
   ros::Publisher detection_object_comp_pub_;
   ros::Publisher ever_free_pub_;
   ros::Publisher never_free_pub_;
+  ros::Publisher mesh_pub_;
 };
 
 }  // namespace motion_detection

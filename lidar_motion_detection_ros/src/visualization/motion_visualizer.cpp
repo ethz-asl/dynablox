@@ -39,29 +39,43 @@ MotionVisualizer::MotionVisualizer(
       tsdf_server_(std::move(tsdf_server)) {
   color_map_.setItemsPerRevolution(config_.color_wheel_num_colors);
   LOG(INFO) << "\n" << config_.toString();
+  // Setup mesh integrator.
+  mesh_layer_ = std::make_shared<voxblox::MeshLayer>(
+      tsdf_server_->getTsdfMapPtr()->block_size());
+  voxblox::MeshIntegratorConfig mesh_config;
+  mesh_integrator_ =
+      std::make_shared<voxblox::MeshIntegrator<voxblox::TsdfVoxel>>(
+          mesh_config, tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr(),
+          mesh_layer_.get());
+
+  // Advertise topics.
   setupRos();
 }
 
 void MotionVisualizer::setupRos() {
   // Advertise all topics.
+  const int queue_size = 10;
   sensor_pose_pub_ =
-      nh_.advertise<visualization_msgs::Marker>("lidar_pose", 10);
+      nh_.advertise<visualization_msgs::Marker>("lidar_pose", queue_size);
   sensor_points_pub_ =
-      nh_.advertise<visualization_msgs::Marker>("lidar_points", 10);
-  detection_points_pub_ =
-      nh_.advertise<visualization_msgs::Marker>("detections/point/dynamic", 10);
-  detection_points_comp_pub_ =
-      nh_.advertise<visualization_msgs::Marker>("detections/point/static", 10);
+      nh_.advertise<visualization_msgs::Marker>("lidar_points", queue_size);
+  detection_points_pub_ = nh_.advertise<visualization_msgs::Marker>(
+      "detections/point/dynamic", queue_size);
+  detection_points_comp_pub_ = nh_.advertise<visualization_msgs::Marker>(
+      "detections/point/static", queue_size);
   detection_cluster_pub_ = nh_.advertise<visualization_msgs::Marker>(
-      "detections/cluster/dynamic", 10);
+      "detections/cluster/dynamic", queue_size);
   detection_cluster_comp_pub_ = nh_.advertise<visualization_msgs::Marker>(
-      "detections/cluster/static", 10);
+      "detections/cluster/static", queue_size);
   detection_object_pub_ = nh_.advertise<visualization_msgs::Marker>(
-      "detections/object/dynamic", 10);
-  detection_object_comp_pub_ =
-      nh_.advertise<visualization_msgs::Marker>("detections/object/static", 10);
-  ever_free_pub_ = nh_.advertise<visualization_msgs::Marker>("ever_free", 10);
-  never_free_pub_ = nh_.advertise<visualization_msgs::Marker>("never_free", 10);
+      "detections/object/dynamic", queue_size);
+  detection_object_comp_pub_ = nh_.advertise<visualization_msgs::Marker>(
+      "detections/object/static", queue_size);
+  ever_free_pub_ =
+      nh_.advertise<visualization_msgs::Marker>("ever_free", queue_size);
+  never_free_pub_ =
+      nh_.advertise<visualization_msgs::Marker>("never_free", queue_size);
+  mesh_pub_ = nh_.advertise<voxblox_msgs::Mesh>("mesh", queue_size);
 }
 
 void MotionVisualizer::visualizeAll(const Cloud& cloud,
@@ -69,6 +83,7 @@ void MotionVisualizer::visualizeAll(const Cloud& cloud,
                                     const Clusters& clusters) {
   visualizeLidarPose(cloud_info);
   visualizeLidarPoints(cloud);
+  visualizeMesh();
   visualizePointDetections(cloud, cloud_info);
   visualizeClusterDetections(cloud, cloud_info, clusters);
 }
@@ -298,6 +313,19 @@ void MotionVisualizer::visualizeClusterDetections(const Cloud& cloud,
   if (!result_comp.points.empty()) {
     detection_cluster_comp_pub_.publish(result_comp);
   }
+}
+
+void MotionVisualizer::visualizeMesh() {
+  if (mesh_pub_.getNumSubscribers() == 0u) {
+    return;
+  }
+  mesh_integrator_->generateMesh(true, true);
+  voxblox_msgs::Mesh mesh_msg;
+  voxblox::generateVoxbloxMeshMsg(mesh_layer_, voxblox::ColorMode::kLambert,
+                                  &mesh_msg);
+  mesh_msg.header.frame_id = config_.global_frame_name;
+  mesh_msg.header.stamp = ros::Time::now();
+  mesh_pub_.publish(mesh_msg);
 }
 
 }  // namespace motion_detection
