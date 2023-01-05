@@ -82,10 +82,11 @@ class Clustering {
    * @param seed Voxel key to start clustering from.
    * @param frame_counter Frame number to verify added voxels contain points
    * this scan.
-   * @return Voxel keys of all voxels of the cluster.
+   * @param result Where to store the voxel keys of all voxels of the cluster.
+   * @return If a result cluster was found.
    */
-  ClusterIndices growCluster(const voxblox::VoxelKey& seed,
-                             const int frame_counter) const;
+  bool growCluster(const voxblox::VoxelKey& seed, const int frame_counter,
+                   ClusterIndices& result) const;
 
   /**
    * @brief Use the voxel level clustering to assign all points to clusters.

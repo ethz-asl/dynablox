@@ -52,23 +52,17 @@ std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
 
   // Process all newly occupied ever-free voxels as potential cluster seeds.
   for (const voxblox::VoxelKey& voxel_key : occupied_ever_free_voxel_indices) {
-    TsdfBlock::Ptr tsdf_block =
-        tsdf_layer_->getBlockPtrByIndex(voxel_key.first);
-    if (!tsdf_block) {
-      continue;
-    }
-    TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
-    if (!tsdf_voxel.clustering_processed) {
-      const ClusterIndices cluster = growCluster(voxel_key, frame_counter);
+    ClusterIndices cluster;
+    if (growCluster(voxel_key, frame_counter, cluster)) {
       voxel_cluster_indices.push_back(cluster);
     }
   }
   return voxel_cluster_indices;
 }
 
-Clustering::ClusterIndices Clustering::growCluster(
-    const voxblox::VoxelKey& seed, const int frame_counter) const {
-  ClusterIndices cluster;
+bool Clustering::growCluster(const voxblox::VoxelKey& seed,
+                             const int frame_counter,
+                             ClusterIndices& result) const {
   std::vector<voxblox::VoxelKey> stack = {seed};
   const size_t voxels_per_side = tsdf_layer_->voxels_per_side();
 
@@ -91,7 +85,7 @@ Clustering::ClusterIndices Clustering::growCluster(
     // Add voxel to cluster.
     tsdf_voxel.dynamic = true;
     tsdf_voxel.clustering_processed = true;
-    cluster.push_back(voxel_key);
+    result.push_back(voxel_key);
 
     // Extend cluster to neighbor voxels.
     const voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
@@ -117,12 +111,12 @@ Clustering::ClusterIndices Clustering::growCluster(
           // Add voxel to cluster.
           neighbor_voxel.dynamic = true;
           neighbor_voxel.clustering_processed = true;
-          cluster.push_back(neighbor_key);
+          result.push_back(neighbor_key);
         }
       }
     }
   }
-  return cluster;
+  return !result.empty();
 }
 
 Clusters Clustering::inducePointClusters(
