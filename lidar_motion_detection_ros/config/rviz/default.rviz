@@ -27,7 +27,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: Lidar Output Points
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -216,7 +216,7 @@ Visualization Manager:
           Enabled: true
           Name: Voxblox Mesh
           Queue Size: 10
-          Topic: /lidar_motion_detection/voxblox/mesh
+          Topic: /motion_detector/visualization/mesh
           Unreliable: false
           Value: true
         - Class: rviz/Marker
@@ -330,7 +330,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/cluster/dynamic
               Name: Dynamic
               Namespaces:
-                "": true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
