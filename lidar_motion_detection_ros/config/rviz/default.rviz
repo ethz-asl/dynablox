@@ -219,90 +219,30 @@ Visualization Manager:
           Topic: /motion_detector/visualization/mesh
           Unreliable: false
           Value: false
-        - Class: rviz/Marker
-          Enabled: false
-          Marker Topic: /lidar_motion_detection/max_raylength_circle
-          Name: Max Ray Length
-          Namespaces:
-            {}
-          Queue Size: 100
-          Value: false
-        - Alpha: 1
-          Autocompute Intensity Bounds: true
-          Autocompute Value Bounds:
-            Max Value: 10
-            Min Value: -10
-            Value: true
-          Axis: Z
-          Channel Name: intensity
-          Class: rviz/PointCloud2
-          Color: 255; 255; 255
-          Color Transformer: RGB8
-          Decay Time: 0
+        - Class: rviz/Group
+          Displays:
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /motion_detector/visualization/lidar_pose
+              Name: Lidar Pose
+              Namespaces:
+                "": true
+              Queue Size: 100
+              Value: true
+            - Class: rviz/Marker
+              Enabled: false
+              Marker Topic: /motion_detector/visualization/lidar_points
+              Name: Lidar Points
+              Namespaces:
+                {}
+              Queue Size: 100
+              Value: false
           Enabled: true
-          Invert Rainbow: false
-          Max Color: 255; 255; 255
-          Min Color: 0; 0; 0
-          Name: Sensor Position
-          Position Transformer: XYZ
-          Queue Size: 10
-          Selectable: true
-          Size (Pixels): 3
-          Size (m): 0.5
-          Style: Spheres
-          Topic: /lidar_motion_detection/sensor_origin
-          Unreliable: false
-          Use Fixed Frame: true
-          Use rainbow: true
-          Value: true
+          Name: Sensor
       Enabled: true
       Name: Visualization
     - Class: rviz/Group
       Displays:
-        - Alpha: 1
-          Autocompute Intensity Bounds: true
-          Autocompute Value Bounds:
-            Max Value: 10
-            Min Value: -10
-            Value: true
-          Axis: Z
-          Channel Name: intensity
-          Class: rviz/PointCloud2
-          Color: 255; 255; 255
-          Color Transformer: RGB8
-          Decay Time: 0
-          Enabled: true
-          Invert Rainbow: false
-          Max Color: 255; 255; 255
-          Min Color: 0; 0; 0
-          Name: Ground Truth
-          Position Transformer: XYZ
-          Queue Size: 10
-          Selectable: true
-          Size (Pixels): 4
-          Size (m): 0.009999999776482582
-          Style: Points
-          Topic: /lidar_motion_detection/ground_truth_detections
-          Unreliable: false
-          Use Fixed Frame: true
-          Use rainbow: true
-          Value: true
-        - Class: rviz/Marker
-          Enabled: true
-          Marker Topic: /motion_detector/visualization/lidar_pose
-          Name: Lidar Pose
-          Namespaces:
-            "": true
-          Queue Size: 100
-          Value: true
-        - Class: rviz/Marker
-          Enabled: false
-          Marker Topic: /motion_detector/visualization/lidar_points
-          Name: Lidar Points
-          Namespaces:
-            {}
-          Queue Size: 100
-          Value: false
         - Class: rviz/Group
           Displays:
             - Class: rviz/Marker
@@ -330,7 +270,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/cluster/dynamic
               Name: Dynamic
               Namespaces:
-                "": true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -338,11 +278,31 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/cluster/static
               Name: Static
               Namespaces:
+                {}
+              Queue Size: 100
+              Value: true
+          Enabled: false
+          Name: Clusters
+        - Class: rviz/Group
+          Displays:
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /motion_detector/visualization/detections/object/dynamic
+              Name: Dynamic
+              Namespaces:
+                "": true
+              Queue Size: 100
+              Value: true
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /motion_detector/visualization/detections/object/static
+              Name: Static
+              Namespaces:
                 "": true
               Queue Size: 100
               Value: true
           Enabled: true
-          Name: Clusters
+          Name: Objects
       Enabled: true
       Name: Detection
   Enabled: true
@@ -373,7 +333,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 39.77408981323242
+      Distance: 47.08028793334961
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -381,17 +341,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -7.691157817840576
-        Y: 0.28322145342826843
-        Z: -7.462385177612305
+        X: -21.17776870727539
+        Y: 5.9905314445495605
+        Z: -4.832289218902588
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9747971892356873
+      Pitch: 1.189797043800354
       Target Frame: map
-      Yaw: 4.106790542602539
+      Yaw: 4.44679069519043
     Saved: ~
 Window Geometry:
   Displays:

@@ -277,12 +277,19 @@ void MotionVisualizer::visualizeClusterDetections(const Cloud& cloud,
   int i = 0;
   for (const Cluster& cluster : clusters) {
     std_msgs::ColorRGBA color;
-    const voxblox::Color color_voxblox = color_map_.colorLookup(i);
+    if (config_.color_clusters) {
+      const voxblox::Color color_voxblox = color_map_.colorLookup(i);
+      color.r = static_cast<float>(color_voxblox.r) / 255.f;
+      color.g = static_cast<float>(color_voxblox.g) / 255.f;
+      color.b = static_cast<float>(color_voxblox.b) / 255.f;
+      color.a = static_cast<float>(color_voxblox.a) / 255.f;
+    } else {
+      color.r = config_.dynamic_point_color[0];
+      color.g = config_.dynamic_point_color[1];
+      color.b = config_.dynamic_point_color[2];
+      color.a = config_.dynamic_point_color[3];
+    }
     ++i;
-    color.r = static_cast<float>(color_voxblox.r) / 255.f;
-    color.g = static_cast<float>(color_voxblox.g) / 255.f;
-    color.b = static_cast<float>(color_voxblox.b) / 255.f;
-    color.a = static_cast<float>(color_voxblox.a) / 255.f;
     for (int index : cluster) {
       const pcl::PointXYZ& point = cloud[index];
       geometry_msgs::Point point_msg;
@@ -367,15 +374,26 @@ void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
 
   // Get all cluster points.
   int i = 0;
-  std::vector<int> cluster_ids = trackClusterIDs(cloud, clusters);
+  std::vector<int> cluster_ids;
+  if (config_.color_clusters) {
+    cluster_ids = trackClusterIDs(cloud, clusters);
+  }
   for (const Cluster& cluster : clusters) {
     std_msgs::ColorRGBA color;
-    const voxblox::Color color_voxblox = color_map_.colorLookup(i);
+    if (config_.color_clusters) {
+      voxblox::Color color_voxblox = color_map_.colorLookup(cluster_ids[i]);
+      color.r = static_cast<float>(color_voxblox.r) / 255.f;
+      color.g = static_cast<float>(color_voxblox.g) / 255.f;
+      color.b = static_cast<float>(color_voxblox.b) / 255.f;
+      color.a = static_cast<float>(color_voxblox.a) / 255.f;
+    } else {
+      color.r = config_.dynamic_point_color[0];
+      color.g = config_.dynamic_point_color[1];
+      color.b = config_.dynamic_point_color[2];
+      color.a = config_.dynamic_point_color[3];
+    }
     ++i;
-    color.r = static_cast<float>(color_voxblox.r) / 255.f;
-    color.g = static_cast<float>(color_voxblox.g) / 255.f;
-    color.b = static_cast<float>(color_voxblox.b) / 255.f;
-    color.a = static_cast<float>(color_voxblox.a) / 255.f;
+
     for (int index : cluster) {
       const pcl::PointXYZ& point = cloud[index];
       geometry_msgs::Point point_msg;
@@ -432,10 +450,9 @@ std::vector<int> MotionVisualizer::trackClusterIDs(const Cloud& cloud,
     int current_id;
   };
 
-  std::vector<std::vector<Association>> distances;
-  distances.reserve(previous_centroids_.size());
+  std::vector<std::vector<Association>> distances(previous_centroids_.size());
   for (size_t i = 0; i < previous_centroids_.size(); ++i) {
-    std::vector<Association> d;
+    std::vector<Association>& d = distances[i];
     d.reserve(centroids.size());
     for (size_t j = 0; j < centroids.size(); ++j) {
       Association association;
@@ -454,6 +471,8 @@ std::vector<int> MotionVisualizer::trackClusterIDs(const Cloud& cloud,
     float min = std::numeric_limits<float>::max();
     int prev_id = 0;
     int curr_id = 0;
+    int erase_i = 0;
+    int erase_j = 0;
     for (size_t i = 0u; i < distances.size(); ++i) {
       for (size_t j = 0u; j < distances[i].size(); ++j) {
         const Association& association = distances[i][j];
@@ -461,6 +480,8 @@ std::vector<int> MotionVisualizer::trackClusterIDs(const Cloud& cloud,
           min = association.distance;
           curr_id = association.current_id;
           prev_id = association.previous_id;
+          erase_i = i;
+          erase_j = j;
         }
       }
     }
@@ -473,9 +494,9 @@ std::vector<int> MotionVisualizer::trackClusterIDs(const Cloud& cloud,
     // Remove that match and search for next best.
     ids[curr_id] = previous_ids_[prev_id];
     reused_ids.insert(previous_ids_[prev_id]);
-    distances.erase(distances.begin() + prev_id);
+    distances.erase(distances.begin() + erase_i);
     for (auto& vec : distances) {
-      vec.erase(vec.begin() + curr_id);
+      vec.erase(vec.begin() + erase_j);
     }
   }
 
