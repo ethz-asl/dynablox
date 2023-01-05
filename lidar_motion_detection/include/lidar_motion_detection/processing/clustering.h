@@ -72,7 +72,7 @@ class Clustering {
    */
   std::vector<ClusterIndices> voxelClustering(
       const ClusterIndices& occupied_ever_free_voxel_indices,
-      int frame_counter) const;
+      const int frame_counter) const;
 
   /**
    * @brief Grow a single cluster from a seed voxel key. All voxels that are not

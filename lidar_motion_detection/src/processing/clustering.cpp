@@ -47,7 +47,7 @@ Clusters Clustering::performClustering(
 
 std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
     const ClusterIndices& occupied_ever_free_voxel_indices,
-    int frame_counter) const {
+    const int frame_counter) const {
   std::vector<ClusterIndices> voxel_cluster_indices;
 
   // Process all newly occupied ever-free voxels as potential cluster seeds.
@@ -95,7 +95,7 @@ bool Clustering::growCluster(const voxblox::VoxelKey& seed,
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {
       TsdfBlock::Ptr neighbor_block =
           tsdf_layer_->getBlockPtrByIndex(neighbor_key.first);
-      if (!tsdf_block) {
+      if (!neighbor_block) {
         continue;
       }
       TsdfVoxel& neighbor_voxel =
