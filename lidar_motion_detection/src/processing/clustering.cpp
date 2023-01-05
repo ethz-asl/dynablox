@@ -72,14 +72,13 @@ std::vector<Clustering::ClusterIndices> Clustering::voxelClustering(
 Clustering::ClusterIndices Clustering::growCluster(
     const voxblox::VoxelKey& seed, int frame_counter) const {
   ClusterIndices cluster;
-  std::vector<voxblox::VoxelKey> stack = {
-      seed};  // std::stack doesnt work reliably somehow.
+  std::vector<voxblox::VoxelKey> stack({seed});
   const size_t voxels_per_side = tsdf_layer_->voxels_per_side();
 
   while (!stack.empty()) {
     // Get the voxel.
-    const voxblox::VoxelKey voxel_key = *stack.end();
-    stack.erase(stack.end());
+    const voxblox::VoxelKey voxel_key = stack.back();
+    stack.pop_back();
     voxblox::Block<voxblox::TsdfVoxel>::Ptr tsdf_block =
         tsdf_layer_->getBlockPtrByIndex(voxel_key.first);
     if (!tsdf_block) {

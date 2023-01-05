@@ -213,12 +213,12 @@ Visualization Manager:
           Use rainbow: true
           Value: false
         - Class: voxblox_rviz_plugin/VoxbloxMesh
-          Enabled: true
+          Enabled: false
           Name: Voxblox Mesh
           Queue Size: 10
           Topic: /motion_detector/visualization/mesh
           Unreliable: false
-          Value: true
+          Value: false
         - Class: rviz/Marker
           Enabled: false
           Marker Topic: /lidar_motion_detection/max_raylength_circle
@@ -330,7 +330,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/cluster/dynamic
               Name: Dynamic
               Namespaces:
-                {}
+                "": true
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -389,9 +389,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2847968339920044
+      Pitch: 0.9747971892356873
       Target Frame: map
-      Yaw: 3.9217934608459473
+      Yaw: 4.106790542602539
     Saved: ~
 Window Geometry:
   Displays:
