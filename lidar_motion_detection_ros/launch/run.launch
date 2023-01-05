@@ -4,7 +4,7 @@
   <!-- Dataset -->
   <arg name="sequence" default="sequence_1" />  <!-- sequence_1, sequence_2 -->
   <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/bag.bag" />
-  <arg name="player_rate" default="0.3" /> <!-- 0.3 -->
+  <arg name="player_rate" default="0.25" /> <!-- 0.25 -->
   
   <!-- Drift Simulation -->
   <arg name="drift_simulation_rollout" default="doals/hauptgebaeude/sequence_1/light_3.csv" /> <!-- Leave empty to ignore drift-->
@@ -33,14 +33,15 @@
   </node>
 
   <!-- Drift Simulation -->
-  <node name="drift_reader" pkg="drift_simulation" type="drift_reader" output="screen" args="--alsologtostderr">
+  <node name="drift_reader" pkg="drift_simulation" type="drift_reader" output="screen" args="--alsologtostderr" if="$(arg drift_simulation_rollout)">
     <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected" />
     <param name="drift_data_file_name" value="$(find drift_simulation)/config/rollouts/$(arg drift_simulation_rollout)" />
   </node>
 
   <!-- Motion Detection -->
   <node name="motion_detector" pkg="lidar_motion_detection_ros" type="motion_detector" output="screen" args="--alsologtostderr" required="true">
-    <remap from="pointcloud" to="/pointcloud_drifted"/>
+    <remap from="pointcloud" to="/pointcloud_drifted" if="$(arg drift_simulation_rollout" />
+    <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected" unless="$(arg drift_simulation_rollout" />
     <rosparam command="load" file="$(find lidar_motion_detection_ros)/config/$(arg config_file)" />
 
     <!-- config -->
