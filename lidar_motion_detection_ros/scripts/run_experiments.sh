@@ -45,17 +45,17 @@ function run_experiments() {
 
 # General params.
 data_path="/home/voliro/data"
-player_rate="0.3"
+player_rate="0.2"
 
 # Data to run.
 scenes=(hauptgebaeude niederdorf shopville station) # hauptgebaeude niederdorf station shopville
 sequences=(1 2)
-drift_intensities=(none) # light moderate strong severe)
+drift_intensities=(none) # none light moderate strong severe)
 drift_rollouts=(1 2 3)
 
 # Method to run.
 config_file="motion_detector/doals.yaml"
-output_path="/media/lukas/T7/data/doals_nodrift_inf_eval_range"
+output_path="/media/lukas/T7/data/doals_nodrift_inf"
 
 # ====== Run Experiments ======
 run_experiments
