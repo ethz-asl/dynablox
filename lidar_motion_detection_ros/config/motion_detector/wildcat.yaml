@@ -22,7 +22,7 @@ ever_free_integrator:
   counter_to_reset: 120
   temporal_buffer: 2   # To compensate sparsity.
   burn_in_period: 5
-  tsdf_occupancy_threshold: 0.15 # 1.5 voxel sizes.
+  tsdf_occupancy_threshold: 0.225 # 1.5 voxel sizes.
   neighbor_connectivity: 18
   
 # Evaluation.
@@ -44,12 +44,11 @@ visualization:
   color_clusters: true
   color_wheel_num_colors: 20
   
-
 # Voxblox parameters
 voxblox:
   # SDF.
-  tsdf_voxel_size: 0.1
-  truncation_distance: 0.2
+  tsdf_voxel_size: 0.15
+  truncation_distance: 0.3
   tsdf_voxels_per_side: 16
   max_weight: 1000
   
