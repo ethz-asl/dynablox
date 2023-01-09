@@ -30,9 +30,8 @@ void EverFreeIntegrator::Config::setupParamsAndPrinting() {
   setupParam("num_threads", &num_threads);
 }
 
-EverFreeIntegrator::EverFreeIntegrator(
-    const EverFreeIntegrator::Config& config,
-    TsdfLayer::Ptr tsdf_layer)
+EverFreeIntegrator::EverFreeIntegrator(const EverFreeIntegrator::Config& config,
+                                       TsdfLayer::Ptr tsdf_layer)
     : config_(config.checkValid()),
       tsdf_layer_(std::move(tsdf_layer)),
       neighborhood_search_(config_.neighbor_connectivity),
@@ -52,8 +51,7 @@ void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
   // Update occupancy counter and calls removeEverFree if warranted.
   Timer remove_timer("update_ever_free/remove_occupied");
   for (const BlockIndex& block_index : updated_blocks) {
-    TsdfBlock::Ptr tsdf_block =
-        tsdf_layer_->getBlockPtrByIndex(block_index);
+    TsdfBlock::Ptr tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
     if (!tsdf_block) {
       continue;
     }
@@ -104,8 +102,7 @@ void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
 
 void EverFreeIntegrator::makeEverFree(const BlockIndex& block_index,
                                       const int frame_counter) const {
-  TsdfBlock::Ptr tsdf_block =
-      tsdf_layer_->getBlockPtrByIndex(block_index);
+  TsdfBlock::Ptr tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
   if (!tsdf_block) {
     return;
   }
@@ -164,11 +161,12 @@ void EverFreeIntegrator::makeEverFree(const BlockIndex& block_index,
   tsdf_block->updated().reset(voxblox::Update::kEsdf);
 }
 
-void EverFreeIntegrator::removeEverFree(
-    const BlockIndex& block_index,
-    const VoxelIndex& voxel_index) const {
-  TsdfBlock::Ptr tsdf_block =
-      tsdf_layer_->getBlockPtrByIndex(block_index);
+void EverFreeIntegrator::removeEverFree(const BlockIndex& block_index,
+                                        const VoxelIndex& voxel_index) const {
+  TsdfBlock::Ptr tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
+  if (!tsdf_block) {
+    return;
+  }
   TsdfVoxel& voxel = tsdf_block->getVoxelByVoxelIndex(voxel_index);
 
   // Remove ever-free attributes.
@@ -202,7 +200,7 @@ void EverFreeIntegrator::removeEverFree(
 
 void EverFreeIntegrator::updateOccupancyCounter(TsdfVoxel& voxel,
                                                 const int frame_counter) const {
-  // If allow for breaks of temporal_buffer between occupied observations to
+  // Allow for breaks of temporal_buffer between occupied observations to
   // compensate for lidar sparsity.
   if (voxel.last_occupied >= frame_counter - config_.temporal_buffer) {
     voxel.occ_counter++;

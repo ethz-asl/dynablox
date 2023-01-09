@@ -11,9 +11,7 @@
 #include <nav_msgs/Odometry.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_ros/transform_listener.h>
+#include <tf/transform_listener.h>
 
 namespace unreal_airsim {
 class OdometryDriftSimulator {
@@ -76,8 +74,6 @@ class OdometryDriftSimulator {
   geometry_msgs::TransformStamped convertGroundTruthToDriftedPoseMsg(
       const geometry_msgs::TransformStamped& ground_truth_pose_msg) const;
 
-  void publishTfs() const;
-
  private:
   const Config config_;
 
@@ -92,8 +88,7 @@ class OdometryDriftSimulator {
   std::string sensor_frame_name_ = "os1_lidar";
 
   // TF transforms
-  tf2_ros::Buffer tf_buffer_;
-  tf2_ros::TransformListener tf_listener_;
+  tf::TransformListener tf_listener_;
 
   // Settings
   bool started_publishing_;
@@ -121,11 +116,6 @@ class OdometryDriftSimulator {
     NoiseDistribution x, y, z;
     NoiseDistribution yaw, pitch, roll;
   } pose_noise_;
-
-  // Transform publishing
-  mutable tf2_ros::TransformBroadcaster transform_broadcaster_;
-  void publishSimulatedPoseTf() const;
-  void publishGroundTruthPoseTf() const;
 };
 }  // namespace unreal_airsim
 

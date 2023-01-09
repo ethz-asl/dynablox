@@ -1,6 +1,8 @@
 #include "drift_simulation/odometry_drift_simulator.h"
 
+#include <chrono>
 #include <fstream>
+#include <thread>
 
 #include <eigen_conversions/eigen_msg.h>
 #include <minkindr_conversions/kindr_msg.h>
@@ -10,7 +12,6 @@ OdometryDriftSimulator::OdometryDriftSimulator(
     Config config, ros::NodeHandle nh, const ros::NodeHandle& nh_private)
     : config_(config.checkValid()),
       nh_private_(nh_private),
-      tf_listener_(tf_buffer_),
       started_publishing_(false),
       velocity_noise_sampling_period_(1.f / config.velocity_noise_frequency_hz),
       velocity_noise_(config.velocity_noise),
@@ -44,9 +45,28 @@ OdometryDriftSimulator::OdometryDriftSimulator(
 
 void OdometryDriftSimulator::poseCallback(
     const sensor_msgs::PointCloud2& pointcloud_msg) {
-  geometry_msgs::TransformStamped ground_truth_pose_msg =
-      tf_buffer_.lookupTransform(sensor_frame_name_, global_frame_name_,
-                                 pointcloud_msg.header.stamp);
+  tf::StampedTransform transform;
+  const int max_tries = 1000;
+  int tries = 0;
+  std::string except;
+  while (tries < max_tries) {
+    try {
+      tf_listener_.lookupTransform(sensor_frame_name_, global_frame_name_,
+                                   pointcloud_msg.header.stamp, transform);
+      break;
+    } catch (tf::TransformException& ex) {
+      tries++;
+      except = ex.what();
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+  }
+  if (tries == max_tries) {
+    LOG(FATAL) << "Failed to get transform: " << except;
+  }
+  geometry_msgs::TransformStamped ground_truth_pose_msg;
+  ground_truth_pose_msg.header.stamp = transform.stamp_;
+  tf::transformTFToMsg(transform, ground_truth_pose_msg.transform);
+
   this->tick(ground_truth_pose_msg);
 
   geometry_msgs::TransformStamped simulated_pose_msg;
@@ -224,33 +244,6 @@ OdometryDriftSimulator::PoseNoiseDistributions::PoseNoiseDistributions(
       yaw(pose_noise_configs.at("yaw")),
       pitch(pose_noise_configs.at("pitch")),
       roll(pose_noise_configs.at("roll")) {}
-
-void OdometryDriftSimulator::publishSimulatedPoseTf() const {
-  transform_broadcaster_.sendTransform(getSimulatedPoseMsg());
-}
-
-void OdometryDriftSimulator::publishGroundTruthPoseTf() const {
-  // Publish the ground truth pose with a frame name that differs from the
-  // simulated pose to avoid conflicting TFs
-  geometry_msgs::TransformStamped ground_truth_pose_msg =
-      getGroundTruthPoseMsg();
-  ground_truth_pose_msg.child_frame_id += config_.ground_truth_frame_suffix;
-  transform_broadcaster_.sendTransform(ground_truth_pose_msg);
-}
-
-void OdometryDriftSimulator::publishTfs() const {
-  if (!started_publishing_) {
-    return;
-  }
-
-  // Publish simulated pose TF
-  publishSimulatedPoseTf();
-
-  // Publish true pose TF if requested
-  if (config_.publish_ground_truth_pose) {
-    publishGroundTruthPoseTf();
-  }
-}
 
 OdometryDriftSimulator::Config OdometryDriftSimulator::Config::fromRosParams(
     const ros::NodeHandle& nh) {
