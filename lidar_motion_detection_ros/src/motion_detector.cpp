@@ -306,12 +306,15 @@ void MotionDetector::blockwiseBuildPointMap(
     const voxblox::Point coords(point.x, point.y, point.z);
     const VoxelIndex voxel_index =
         tsdf_block->computeVoxelIndexFromCoordinates(coords);
+    if (!tsdf_block->isValidVoxelIndex(voxel_index)) {
+      continue;
+    }
     voxel_map[voxel_index].push_back(i);
 
     // EverFree detection flag at the same time, since we anyways lookup
     // voxels.
     if (tsdf_block->getVoxelByVoxelIndex(voxel_index).ever_free) {
-      cloud_info.points[i].ever_free_level_dynamic = true;
+      cloud_info.points.at(i).ever_free_level_dynamic = true;
     }
   }
 
