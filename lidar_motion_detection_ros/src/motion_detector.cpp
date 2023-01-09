@@ -64,6 +64,13 @@ void MotionDetector::setupMembers() {
   // shared with all other processing components and is mutable for processing.
   ros::NodeHandle nh_voxblox(nh_private_, "voxblox");
   nh_voxblox.setParam("world_frame", config_.global_frame_name);
+  nh_voxblox.setParam("update_mesh_every_n_sec", 0);
+  nh_voxblox.setParam("voxel_carving_enabled",
+                      true);  // Integrate whole ray not only truncation band.
+  nh_voxblox.setParam("allow_clear",
+                      true);  // Integrate rays up to max_ray_length.
+  nh_voxblox.setParam("integrator_threads", config_.num_threads);
+
   tsdf_server_ = std::make_shared<voxblox::TsdfServer>(nh_voxblox, nh_voxblox);
   tsdf_layer_.reset(tsdf_server_->getTsdfMapPtr()->getTsdfLayerPtr());
 
@@ -87,9 +94,13 @@ void MotionDetector::setupMembers() {
       tsdf_layer_);
 
   // Evaluation.
-  evaluator_ = std::make_shared<Evaluator>(
-      config_utilities::getConfigFromRos<Evaluator::Config>(
-          ros::NodeHandle(nh_private_, "evaluation")));
+  if (config_.evaluate) {
+    // NOTE(schmluk): These will be uninitialized if not requested, but then no
+    // config files need to be set.
+    evaluator_ = std::make_shared<Evaluator>(
+        config_utilities::getConfigFromRos<Evaluator::Config>(
+            ros::NodeHandle(nh_private_, "evaluation")));
+  }
 
   // Visualization.
   visualizer_ = std::make_shared<MotionVisualizer>(
@@ -217,8 +228,8 @@ void MotionDetector::setUpPointMap(
     std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
     CloudInfo& cloud_info) const {
   // Identifies for any LiDAR point the block it falls in and constructs the
-  // hash-map block2points_map mapping each block to the LiDAR points that fall
-  // into the block.
+  // hash-map block2points_map mapping each block to the LiDAR points that
+  // fall into the block.
   const voxblox::HierarchicalIndexIntMap block2points_map =
       buildBlockToPointsMap(cloud);
 
@@ -297,7 +308,8 @@ void MotionDetector::blockwiseBuildPointMap(
         tsdf_block->computeVoxelIndexFromCoordinates(coords);
     voxel_map[voxel_index].push_back(i);
 
-    // EverFree detection flag at the same time, since we anyways lookup voxels.
+    // EverFree detection flag at the same time, since we anyways lookup
+    // voxels.
     if (tsdf_block->getVoxelByVoxelIndex(voxel_index).ever_free) {
       cloud_info.points[i].ever_free_level_dynamic = true;
     }
