@@ -2,10 +2,9 @@
 
 import os
 import numpy as np
-from plotting_tools import verify_data, get_grid
 
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift"
-SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
+DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf_range"    # doals_nodrift_inf_range, doals_nodrift
+SCENES = ["hauptgebaeude"]#, "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 
 
@@ -47,7 +46,7 @@ def main():
     key = 'motion_detection'    # evaluation, frame, motion_detection, motion_detection/clustering, motion_detection/indexing_setup, motion_detection/preprocessing, motion_detection/tf_lookup, motion_detection/tsdf_integration, motion_detection/update_ever_free, update_ever_free/label_free, update_ever_free/remove_occupied, visualizations
 
     # Print configuration
-    print_by = 'sequence'    # sequence, key
+    print_by = 'key'    # sequence, key
     print_names = True
     print_std = True
     print_latex = False

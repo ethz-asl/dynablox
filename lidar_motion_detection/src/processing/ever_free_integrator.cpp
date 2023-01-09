@@ -47,46 +47,61 @@ void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
   // tracking.
   voxblox::BlockIndexList updated_blocks;
   tsdf_layer_->getAllUpdatedBlocks(voxblox::Update::kEsdf, &updated_blocks);
+  std::vector<BlockIndex> indices(updated_blocks.size());
+  for (size_t i = 0; i < indices.size(); ++i) {
+    indices[i] = updated_blocks[i];
+  }
 
-  // Update occupancy counter and calls removeEverFree if warranted.
+  // Update occupancy counter and calls removeEverFree if warranted in parallel
+  // by block.
+  voxblox::AlignedVector<voxblox::VoxelKey> voxels_to_remove;
+  std::mutex result_aggregation_mutex;
+  IndexGetter<BlockIndex> index_getter(indices);
+  std::vector<std::future<void>> threads;
   Timer remove_timer("update_ever_free/remove_occupied");
-  for (const BlockIndex& block_index : updated_blocks) {
-    TsdfBlock::Ptr tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
+  for (int i = 0; i < config_.num_threads; ++i) {
+    threads.emplace_back(std::async(std::launch::async, [&]() {
+      BlockIndex index;
+      voxblox::AlignedVector<voxblox::VoxelKey> local_voxels_to_remove;
+
+      // Process all blocks.
+      while (index_getter.getNextIndex(&index)) {
+        voxblox::AlignedVector<voxblox::VoxelKey> voxels;
+        if (blockWiseUpdateEverFree(index, frame_counter, voxels)) {
+          local_voxels_to_remove.insert(local_voxels_to_remove.end(),
+                                        voxels.begin(), voxels.end());
+        }
+      }
+
+      // Aggregate results.
+      std::lock_guard lock(result_aggregation_mutex);
+      voxels_to_remove.insert(voxels_to_remove.end(),
+                              local_voxels_to_remove.begin(),
+                              local_voxels_to_remove.end());
+    }));
+  }
+  for (auto& thread : threads) {
+    thread.get();
+  }
+
+  // Remove the remaining voxels single threaded.
+  for (const auto& voxel_key : voxels_to_remove) {
+    TsdfBlock::Ptr tsdf_block =
+        tsdf_layer_->getBlockPtrByIndex(voxel_key.first);
     if (!tsdf_block) {
       continue;
     }
-    for (size_t index = 0; index < voxels_per_block_; ++index) {
-      TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByLinearIndex(index);
-
-      // Updating the occupancy counter.
-      if (tsdf_voxel.distance < config_.tsdf_occupancy_threshold ||
-          tsdf_voxel.last_lidar_occupied == frame_counter) {
-        updateOccupancyCounter(tsdf_voxel, frame_counter);
-      }
-      if (tsdf_voxel.last_lidar_occupied <
-          frame_counter - config_.temporal_buffer) {
-        tsdf_voxel.dynamic = false;
-      }
-
-      // Call to remove ever-free if warranted.
-      if (tsdf_voxel.occ_counter >= config_.counter_to_reset) {
-        removeEverFree(block_index,
-                       tsdf_block->computeVoxelIndexFromLinearIndex(index));
-      }
-    }
+    TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByVoxelIndex(voxel_key.second);
+    tsdf_voxel.ever_free = false;
+    tsdf_voxel.dynamic = false;
   }
   remove_timer.Stop();
 
   // Labels tsdf-updated voxels as ever-free if they satisfy the criteria.
   // Performed blockwise in parallel.
-  Timer free_timer("update_ever_free/label_free");
-  std::vector<BlockIndex> indices(updated_blocks.size());
-  for (size_t i = 0; i < indices.size(); ++i) {
-    indices[i] = updated_blocks[i];
-  }
-  IndexGetter<BlockIndex> index_getter(indices);
-  std::vector<std::future<void>> threads;
-
+  index_getter.reset();
+  threads.clear();
+  Timer label_timer("update_ever_free/label_free");
   for (int i = 0; i < config_.num_threads; ++i) {
     threads.emplace_back(std::async(std::launch::async, [&]() {
       BlockIndex index;
@@ -98,6 +113,41 @@ void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
   for (auto& thread : threads) {
     thread.get();
   }
+}
+
+bool EverFreeIntegrator::blockWiseUpdateEverFree(
+    const BlockIndex& block_index, const int frame_counter,
+    voxblox::AlignedVector<voxblox::VoxelKey>& voxels_to_remove) const {
+  TsdfBlock::Ptr tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
+  if (!tsdf_block) {
+    return false;
+  }
+
+  for (size_t index = 0; index < voxels_per_block_; ++index) {
+    TsdfVoxel& tsdf_voxel = tsdf_block->getVoxelByLinearIndex(index);
+
+    // Updating the occupancy counter.
+    if (tsdf_voxel.distance < config_.tsdf_occupancy_threshold ||
+        tsdf_voxel.last_lidar_occupied == frame_counter) {
+      updateOccupancyCounter(tsdf_voxel, frame_counter);
+    }
+    if (tsdf_voxel.last_lidar_occupied <
+        frame_counter - config_.temporal_buffer) {
+      tsdf_voxel.dynamic = false;
+    }
+
+    // Call to remove ever-free if warranted.
+    if (tsdf_voxel.occ_counter >= config_.counter_to_reset) {
+      const VoxelIndex voxel_index =
+          tsdf_block->computeVoxelIndexFromLinearIndex(index);
+      voxblox::AlignedVector<voxblox::VoxelKey> voxels =
+          removeEverFree(*tsdf_block, tsdf_voxel, block_index, voxel_index);
+      voxels_to_remove.insert(voxels_to_remove.end(), voxels.begin(),
+                              voxels.end());
+    }
+  }
+
+  return !voxels_to_remove.empty();
 }
 
 void EverFreeIntegrator::makeEverFree(const BlockIndex& block_index,
@@ -161,14 +211,9 @@ void EverFreeIntegrator::makeEverFree(const BlockIndex& block_index,
   tsdf_block->updated().reset(voxblox::Update::kEsdf);
 }
 
-void EverFreeIntegrator::removeEverFree(const BlockIndex& block_index,
-                                        const VoxelIndex& voxel_index) const {
-  TsdfBlock::Ptr tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
-  if (!tsdf_block) {
-    return;
-  }
-  TsdfVoxel& voxel = tsdf_block->getVoxelByVoxelIndex(voxel_index);
-
+voxblox::AlignedVector<voxblox::VoxelKey> EverFreeIntegrator::removeEverFree(
+    TsdfBlock& block, TsdfVoxel& voxel, const BlockIndex& block_index,
+    const VoxelIndex& voxel_index) const {
   // Remove ever-free attributes.
   voxel.ever_free = false;
   voxel.dynamic = false;
@@ -176,26 +221,22 @@ void EverFreeIntegrator::removeEverFree(const BlockIndex& block_index,
   // Remove ever-free attribute also from neighbouring voxels.
   voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
       neighborhood_search_.search(block_index, voxel_index, voxels_per_side_);
+  voxblox::AlignedVector<voxblox::VoxelKey> voxels_to_remove;
 
   for (const voxblox::VoxelKey& neighbor_key : neighbors) {
-    TsdfBlock* neighbor_block;
     if (neighbor_key.first == block_index) {
-      // Often will be the same block.
-      neighbor_block = tsdf_block.get();
+      // Since this is executed in parallel only modify this block.
+      TsdfVoxel& neighbor_voxel =
+          block.getVoxelByVoxelIndex(neighbor_key.second);
+      neighbor_voxel.ever_free = false;
+      neighbor_voxel.dynamic = false;
     } else {
-      neighbor_block =
-          tsdf_layer_->getBlockPtrByIndex(neighbor_key.first).get();
-      if (neighbor_block == nullptr) {
-        continue;
-      }
+      // Otherwise mark the voxel for later clean-up.
+      voxels_to_remove.push_back(neighbor_key);
     }
-
-    TsdfVoxel& neighbor_voxel =
-        neighbor_block->getVoxelByVoxelIndex(neighbor_key.second);
-
-    neighbor_voxel.ever_free = false;
-    neighbor_voxel.dynamic = false;
   }
+
+  return voxels_to_remove;
 }
 
 void EverFreeIntegrator::updateOccupancyCounter(TsdfVoxel& voxel,

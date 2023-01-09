@@ -25,6 +25,9 @@ class IndexGetter {
     return true;
   }
 
+  // Not thread safe, use for setup only!
+  void reset() { current_index_ = 0u; }
+
  private:
   std::mutex mutex_;
   std::vector<IndexT> indices_;

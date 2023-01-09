@@ -44,9 +44,8 @@ class EverFreeIntegrator {
     void checkParams() const override;
   };
 
-  EverFreeIntegrator(
-      const Config& config,
-      std::shared_ptr<TsdfLayer> tsdf_layer);
+  EverFreeIntegrator(const Config& config,
+                     std::shared_ptr<TsdfLayer> tsdf_layer);
 
   /**
    * @brief Update the ever-free state of all changed TSDF-voxels by checking
@@ -55,6 +54,16 @@ class EverFreeIntegrator {
    * @param frame_counter Index of current lidar scan to compute age.
    */
   void updateEverFreeVoxels(const int frame_counter) const;
+
+  /**
+   * @brief Process each block in parallel.
+   *
+   * @param block_index Index of block to process.
+   * @param frame_counter Index of current lidar scan to compute age.
+   * @return All voxels that fell outside the block and need clearing later.
+   */
+  bool blockWiseUpdateEverFree(const BlockIndex& block_index,
+                               const int frame_counter, voxblox::AlignedVector<voxblox::VoxelKey>& voxels_to_remove) const;
 
   /**
    * @brief If the voxel is currently static we leave it. If it was last static
@@ -67,6 +76,20 @@ class EverFreeIntegrator {
                               const int frame_counter) const;
 
   /**
+   * @brief Remove the ever-free and dynamic attributes from a given voxel and
+   * all its neighbors (which now also don't meet the criteria anymore.)
+   *
+   * @param block Tsdf block containing the voxel.
+   * @param voxel Voxel to be cleared from ever-free.
+   * @param block_index Index of the containing block.
+   * @param voxel_index Index of the voxel in the block.
+   * @return All voxels that fell outside the block and need clearing later.
+   */
+  voxblox::AlignedVector<voxblox::VoxelKey> removeEverFree(
+      TsdfBlock& block, TsdfVoxel& voxel, const BlockIndex& block_index,
+      const VoxelIndex& voxel_index) const;
+
+  /**
    * @brief Check for any occupied or unknown voxels in neighborhood, otherwise
    * mark voxel as ever free. Check all voxels in the block.
    *
@@ -75,16 +98,6 @@ class EverFreeIntegrator {
    */
   void makeEverFree(const BlockIndex& block_index,
                     const int frame_counter) const;
-
-  /**
-   * @brief Remove the ever-free and dynamic attributes from a given voxel and
-   * all its neighbors (which now also don't meet the criteria anymore.)
-   *
-   * @param block_index Block index of voxel to clear.
-   * @param voxel_index voxel index of voxel to clear.
-   */
-  void removeEverFree(const BlockIndex& block_index,
-                      const VoxelIndex& voxel_index) const;
 
  private:
   const Config config_;
