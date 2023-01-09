@@ -13,6 +13,7 @@
 
 namespace motion_detection {
 
+const std::string Evaluator::ranges_file_name_ = "ranges.csv";
 const std::string Evaluator::scores_file_name_ = "scores.csv";
 const std::string Evaluator::timings_file_name_ = "timings.txt";
 
@@ -31,6 +32,7 @@ void Evaluator::Config::setupParamsAndPrinting() {
   setupParam("evaluate_point_level", &evaluate_point_level);
   setupParam("evaluate_cluster_level", &evaluate_cluster_level);
   setupParam("evaluate_object_level", &evaluate_object_level);
+  setupParam("evaluate_ranges", &evaluate_ranges);
   setupParam("ground_truth", &ground_truth_config, "ground_truth");
 }
 
@@ -65,6 +67,7 @@ void Evaluator::setupFiles() {
     evaluated_levels_.push_back("object");
   }
 
+  // Setup scores file.
   std::ofstream writefile;
   writefile.open(output_directory_ + "/" + scores_file_name_, std::ios::trunc);
   writefile << "timestamp,";
@@ -75,6 +78,11 @@ void Evaluator::setupFiles() {
   }
   writefile << "EvaluatedPoints,TotalPoints" << std::endl;
   writefile.close();
+
+  // Initialize ranges.
+  if (config_.evaluate_ranges) {
+    ranges_ = std::vector<std::vector<float>>(4);
+  }
 }
 
 void Evaluator::evaluateFrame(CloudInfo& cloud_info) {
@@ -98,7 +106,7 @@ void Evaluator::writeTimingsToFile() const {
   writefile.close();
 }
 
-void Evaluator::writeScoresToFile(CloudInfo& cloud_info) const {
+void Evaluator::writeScoresToFile(CloudInfo& cloud_info) {
   std::ofstream writefile;
   writefile.open(output_directory_ + "/" + scores_file_name_, std::ios::app);
 
@@ -114,6 +122,55 @@ void Evaluator::writeScoresToFile(CloudInfo& cloud_info) const {
   // Number of evaluated points.
   writefile << "," << evaluated_points << "," << cloud_info.points.size()
             << std::endl;
+
+  // Evalaute ranges.
+  if (config_.evaluate_ranges) {
+    evaluateRanges(cloud_info);
+  }
+}
+
+void Evaluator::evaluateRanges(const CloudInfo& cloud_info) {
+  // Overwrite all ranges at each iteration with the collected data.
+  std::ofstream writefile;
+  writefile.open(output_directory_ + "/" + ranges_file_name_, std::ios::trunc);
+
+  // Add all new data to the database.
+  for (const PointInfo& point : cloud_info.points) {
+    if (!point.ready_for_evaluation) {
+      continue;
+    }
+    // TODO(schmluk): This could also be more general.
+    const bool is_dynamic = point.cluster_level_dynamic;
+    if (is_dynamic && point.ground_truth_dynamic) {
+      ranges_[0].push_back(point.distance_to_sensor);
+    } else if (is_dynamic && !point.ground_truth_dynamic) {
+      ranges_[1].push_back(point.distance_to_sensor);
+    } else if (!is_dynamic && !point.ground_truth_dynamic) {
+      ranges_[2].push_back(point.distance_to_sensor);
+    } else if (!is_dynamic && point.ground_truth_dynamic) {
+      ranges_[3].push_back(point.distance_to_sensor);
+    }
+  }
+
+  // Write to file.
+  writefile << "TP";
+  for (float tp : ranges_[0]) {
+    writefile << "," << tp;
+  }
+  writefile << "\nFP";
+  for (float fp : ranges_[1]) {
+    writefile << "," << fp;
+  }
+  writefile << "\nTN";
+  for (float tn : ranges_[1]) {
+    writefile << "," << tn;
+  }
+  writefile << "\nFN";
+  for (float fn : ranges_[1]) {
+    writefile << "," << fn;
+  }
+  writefile << "\n";
+
   writefile.close();
 }
 

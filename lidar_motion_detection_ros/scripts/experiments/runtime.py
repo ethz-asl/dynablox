@@ -40,7 +40,7 @@ def read_data(data_set):
 
 def main():
     # What to plot
-    data_set = 'doals_nodrift_inf_range'  # doals_nodrift_inf, doals_nodrift_20m
+    data_set = 'doals_nodrift_inf'  # doals_nodrift_inf, doals_nodrift_20m
     metrics = ['mean', 'std', 'min', 'max']  # 'calls', 'total',
     key = 'motion_detection'    # evaluation, frame, motion_detection, motion_detection/clustering, motion_detection/indexing_setup, motion_detection/preprocessing, motion_detection/tf_lookup, motion_detection/tsdf_integration, motion_detection/update_ever_free, update_ever_free/label_free, update_ever_free/remove_occupied, visualizations
 

@@ -31,6 +31,9 @@ class Evaluator {
     bool evaluate_cluster_level = true;
     bool evaluate_object_level = true;
 
+    // If ranges are evaluated they are evaluated at cluster level.
+    bool evaluate_ranges = true;
+
     // Config for the ground truth handler.
     GroundTruthHandler::Config ground_truth_config;
 
@@ -70,7 +73,14 @@ class Evaluator {
    *
    * @param cloud_info Labeled input pointcloud to be evaluated.
    */
-  void writeScoresToFile(CloudInfo& cloud_info) const;
+  void writeScoresToFile(CloudInfo& cloud_info);
+
+  /**
+   * @brief Note down the ranges of true and false positives or negatives.
+   *
+   * @param cloud_info Cloud info to be evaluated.
+   */
+  void evaluateRanges(const CloudInfo& cloud_info);
 
   /**
    * @brief Mark only relevant points for evaluation.
@@ -108,8 +118,10 @@ class Evaluator {
   std::string output_directory_;
   std::vector<std::string> evaluated_levels_;
   int gt_frame_counter_ = 0;
+  std::vector<std::vector<float>> ranges_;  // TP, FP, TN, FN
 
-  // Names of the created files
+  // Names of the created files.
+  static const std::string ranges_file_name_;
   static const std::string scores_file_name_;
   static const std::string timings_file_name_;
 };
