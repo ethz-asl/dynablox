@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os
-from click import style
 import numpy as np
 import csv
 from matplotlib import pyplot as plt

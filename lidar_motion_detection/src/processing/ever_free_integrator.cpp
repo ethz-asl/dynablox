@@ -137,7 +137,8 @@ bool EverFreeIntegrator::blockWiseUpdateEverFree(
     }
 
     // Call to remove ever-free if warranted.
-    if (tsdf_voxel.occ_counter >= config_.counter_to_reset) {
+    if (tsdf_voxel.occ_counter >= config_.counter_to_reset &&
+        tsdf_voxel.ever_free) {
       const VoxelIndex voxel_index =
           tsdf_block->computeVoxelIndexFromLinearIndex(index);
       voxblox::AlignedVector<voxblox::VoxelKey> voxels =
