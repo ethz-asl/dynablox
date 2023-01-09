@@ -43,10 +43,9 @@
   <node name="motion_detector" pkg="lidar_motion_detection_ros" type="motion_detector" output="screen" args="--alsologtostderr" required="true">
     <remap from="pointcloud" to="/pointcloud_drifted" if="$(arg use_drift)" />
     <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected" unless="$(arg use_drift)" />
-    <rosparam command="load" file="$(find lidar_motion_detection_ros)/config/$(arg config_file)" />
 
     <!-- config -->
-    <param name="config_file" value="$(arg config_file)" />
+    <rosparam command="load" file="$(find lidar_motion_detection_ros)/config/$(arg config_file)" />
     
     <!-- evaluation -->
     <param name="evaluation/ground_truth/file_path" value="$(arg ground_truth_file)" />
