@@ -3,9 +3,28 @@
 import os
 import numpy as np
 
-DATA_PATH = "/media/lukas/T7/data"
-SCENES = ["hauptgebaeude"]  # , "niederdorf", "shopville", "station"]
+# doals_nodrift_inf, doals_nodrift_20m
+DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf"
+SCENES = ["hauptgebaeude", "niederdorf" , "shopville"]#, "station"]
 SEQUENCES = [1, 2]
+
+
+def main():
+    # What to plot
+    metrics = ['mean', 'std', 'min', 'max']  # 'calls', 'total',
+    key = 'motion_detection'    # evaluation, frame, motion_detection, motion_detection/clustering, motion_detection/indexing_setup, motion_detection/preprocessing, motion_detection/tf_lookup, motion_detection/tsdf_integration, motion_detection/update_ever_free, update_ever_free/label_free, update_ever_free/remove_occupied, visualizations
+
+    # Print configuration
+    print_by = 'sequence'    # sequence, key
+    print_names = True
+    print_std = True
+    print_latex = False
+
+    # Run.
+    print_overall = print_by == 'sequence'
+    data, names = read_data()
+    table(data, names, metrics, key, print_by,  print_names, print_std,
+          print_latex, print_overall)
 
 
 def read_time_data(file_name):
@@ -26,35 +45,16 @@ def read_time_data(file_name):
     return data
 
 
-def read_data(data_set):
+def read_data():
     data = []
     names = []
     for s in SCENES:
         for seq in SEQUENCES:
             name = f"{s}_{seq}_none"
             data.append(read_time_data(os.path.join(
-                DATA_PATH, data_set, name, "timings.txt")))
+                DATA_PATH, name, "timings.txt")))
             names.append(name)
     return data, names
-
-
-def main():
-    # What to plot
-    data_set = 'doals_nodrift_inf'  # doals_nodrift_inf, doals_nodrift_20m
-    metrics = ['mean', 'std', 'min', 'max']  # 'calls', 'total',
-    key = 'motion_detection'    # evaluation, frame, motion_detection, motion_detection/clustering, motion_detection/indexing_setup, motion_detection/preprocessing, motion_detection/tf_lookup, motion_detection/tsdf_integration, motion_detection/update_ever_free, update_ever_free/label_free, update_ever_free/remove_occupied, visualizations
-
-    # Print configuration
-    print_by = 'key'    # sequence, key
-    print_names = True
-    print_std = True
-    print_latex = False
-    print_overall = print_by == 'sequence'
-
-    # Run.
-    data, names = read_data(data_set)
-    table(data, names, metrics, key, print_by,  print_names, print_std,
-          print_latex, print_overall)
 
 
 def table(data, names, metrics, key, print_by, print_names=True, print_std=True, print_latex=False, print_overall=True):

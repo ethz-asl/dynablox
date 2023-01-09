@@ -12,6 +12,18 @@ INTENSITIES = ['light', 'moderate', 'strong', 'severe']
 OUTPUT_DIR = "/home/lukas/Documents/motion_detection/drift_analysis"
 
 
+def main():
+    data, names = read_data()  # data [bag][intensity][rollout]
+
+    # Plot rollouts.
+    current_max = np.zeros((1, 8))
+    for id, _ in enumerate(names):
+        new_rates = plot_rollouts(data, names, id)
+        current_max = np.maximum(current_max, new_rates)
+    print("Maximum distances and rates:")
+    print(current_max)
+
+
 def read_drift_data(csv_file):
     data = []
     if not os.path.isfile(csv_file):
@@ -40,19 +52,6 @@ def read_data():
             names.append(name)
             data.append(d)
     return data, names
-
-
-def main():
-    data, names = read_data()  # data [bag][intensity][rollout]
-
-    # Plot rollouts.
-    if False:
-        current_max = np.zeros((1, 8))
-        for id, _ in enumerate(names):
-            new_rates = plot_rollouts(data, names, id)
-            current_max = np.maximum(current_max, new_rates)
-        print("Maximum distances and rates:")
-        print(current_max)
 
 
 def plot_rollouts(data, names, id):
