@@ -47,11 +47,11 @@ def main():
     key = 'motion_detection'    # evaluation, frame, motion_detection, motion_detection/clustering, motion_detection/indexing_setup, motion_detection/preprocessing, motion_detection/tf_lookup, motion_detection/tsdf_integration, motion_detection/update_ever_free, update_ever_free/label_free, update_ever_free/remove_occupied, visualizations
 
     # Print configuration
+    print_by = 'sequence'    # sequence, key
     print_names = True
     print_std = True
     print_latex = False
-    print_overall = True
-    print_by = 'key'    # sequence, key
+    print_overall = print_by == 'sequence'
 
     # Run.
     # TODO: by sequence, by metric, or by key?
@@ -66,12 +66,17 @@ def table(data, names, metrics, key, print_by, print_names=True, print_std=True,
         else:
             print("".join('%-25s' % x for x in entries))
 
-    def evaluate_row(results):
-        msg = f"{np.nanmean(results):.3f}"
-        if print_std:
-            msg = msg + (" $\pm$ " if print_latex else " +- ") + \
-                f"{np.nanstd(results):.3f}"
-        return msg
+    def evaluate_row(results, metric):
+        if metric == 'min':
+            return f"{np.min(results):.3f}"
+        elif metric == 'max':
+            return f"{np.max(results):.3f}"
+        else:
+            msg = f"{np.nanmean(results):.3f}"
+            if print_std:
+                msg = msg + (" $\pm$ " if print_latex else " +- ") + \
+                    f"{np.nanstd(results):.3f}"
+            return msg
 
     all_data = {}
     for m in metrics:
@@ -85,7 +90,7 @@ def table(data, names, metrics, key, print_by, print_names=True, print_std=True,
             for m in metrics:
                 results = np.array([data[i][key][m]])
                 all_data[m] = np.append(all_data[m], results)
-                entries.append(evaluate_row(results))
+                entries.append(evaluate_row(results, m))
             print_row(entries)
     else:   # by keys
         print_row((['%-35s' % "Data"] + metrics) if print_names else metrics)
@@ -96,13 +101,14 @@ def table(data, names, metrics, key, print_by, print_names=True, print_std=True,
                 results = np.array([data[i][k][m]
                                     for i, _ in enumerate(names)])
                 all_data[m] = np.append(all_data[m], results)
-                entries.append(evaluate_row(results))
+                entries.append(evaluate_row(results, m))
             print_row(entries)
 
     if print_overall:
-        entries = ['%-35s' % "All"] if print_names else []
+        entries = [('%-35s' % "All" if print_by ==
+                    'key' else "All")] if print_names else []
         for m in metrics:
-            entries.append(evaluate_row(all_data[m]))
+            entries.append(evaluate_row(all_data[m], m))
         print_row(entries)
 
 
