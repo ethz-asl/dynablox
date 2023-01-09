@@ -4,7 +4,7 @@ import os
 import numpy as np
 from plotting_tools import read_plot_data_csv, verify_data, get_grid
 
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift"
+DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf_eval_range" # doals_nodrift_inf_eval_range, doals_nodrift
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 
