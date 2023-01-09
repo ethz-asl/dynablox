@@ -10,7 +10,6 @@ shutdown_after: 10  # num evaluations.
 preprocessing:
   min_range: &min_range 0.5  # m
   max_range: &max_range 20  # m
-  evaluation_range: 20  # m
 
 # Clustering.
 clustering:
@@ -29,7 +28,7 @@ ever_free_integrator:
 # Evaluation.
 evaluation:
   min_range: *min_range  # m
-  max_range: *max_range  # m
+  max_range: 1000000  # m
   evaluate_point_level: true
   evaluate_cluster_level: true
   evaluate_object_level: true
@@ -48,35 +47,18 @@ visualization:
 
 # Voxblox parameters
 voxblox:
+  # SDF.
   tsdf_voxel_size: 0.2
+  truncation_distance: 0.4
   tsdf_voxels_per_side: 16
-  voxel_carving_enabled: true
-  color_mode: lambert
-  truncation_distance: 0.45
-  use_tf_transforms: true
-
-  tsdf_max_distance_m: 0.45
-  tsdf_default_distance_m: 0.45
-  update_mesh_every_n_sec: 0.0
-  min_time_between_msgs_sec: 0.01
-
-  min_ray_length_m: *min_range
-  max_ray_length_m: *max_range
+  max_weight: 1000
   
+  # Integration.
+  method: projective
   sensor_horizontal_resolution: 2048
   sensor_vertical_resolution: 64
   sensor_vertical_field_of_view_degrees: 33.22222
-
-  allow_clear: true
-  verbose: false
-  publish_tsdf_map: false
-  publish_pointlouds: false
-  output_mesh_as_pointcloud: false
-  publish_tsdf_info: false
-  publish_slices: true
-  slice_level: 0
-  publish_pointclouds_on_update: false
-  max_weight: 1000
-  method: projective
+  min_ray_length_m: *min_range
+  max_ray_length_m: *max_range
   use_const_weight: true
-  integrator_threads: 8
+  verbose: false

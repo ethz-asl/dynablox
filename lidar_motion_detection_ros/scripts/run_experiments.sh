@@ -3,7 +3,7 @@
 # Functions.
 function run_experiments() {
   # Make sure output directory exists.
-  if [ -d "$data_dir" ]; then
+  if [ -d "$output_path" ]; then
     echo "Directory '$output_path' exists."
   else
     echo "Directory '$output_path' did not exist, was created."
@@ -17,15 +17,16 @@ function run_experiments() {
     do
       for int in "${drift_intensities[@]}" 
       do
-        rollout="\"\""
-        if [ "$drift_intensities" == "none" ]; then
-        drift_rollouts=(1)
+        local_rollouts=("${drift_rollouts[@]}")   
+        if [ "$int" == "none" ]; then
+        local_rollouts=(1)
+        rollout="doals/$scene/sequence_$seq/none.csv"
         fi
-        for r in "${drift_rollouts[@]}" 
+        for r in "${local_rollouts[@]}" 
         do
           # Configure drift rollout.
           nametag="${scene}_${seq}_$int"
-          if [ "$drift_intensities" != "none" ]; then
+          if [ "$int" != "none" ]; then
             rollout="doals/$scene/sequence_$seq/${int}_$r.csv"
             nametag="${nametag}_$r"
           fi
@@ -43,24 +44,18 @@ function run_experiments() {
 
 
 # General params.
-data_path="/media/lukas/T7/Datasets/DOALS"
-player_rate="0.3"/usr/
+data_path="/home/voliro/data"
+player_rate="0.3"
 
 # Data to run.
-scenes=(niederdorf shopville station) # hauptgebaeude
+scenes=(hauptgebaeude niederdorf shopville station) # hauptgebaeude niederdorf station shopville
 sequences=(1 2)
-drift_intensities=(none) # light medium severe)
+drift_intensities=(none) # light moderate strong severe)
 drift_rollouts=(1 2 3)
 
 # Method to run.
 config_file="motion_detector/doals.yaml"
-output_path="/media/lukas/T7/data/doals_nodrift"
+output_path="/media/lukas/T7/data/doals_nodrift_inf_eval_range"
 
 # ====== Run Experiments ======
-scenes=(niederdorf shopville station) # hauptgebaeude
-sequences=(1 2)
-run_experiments
-
-scenes=(hauptgebaeude)
-sequences=(2)
 run_experiments
