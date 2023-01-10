@@ -290,7 +290,7 @@ void MotionVisualizer::visualizeClusterDetections(const Cloud& cloud,
       color.a = config_.dynamic_point_color[3];
     }
     ++i;
-    for (int index : cluster) {
+    for (int index : cluster.points) {
       const pcl::PointXYZ& point = cloud[index];
       geometry_msgs::Point point_msg;
       point_msg.x = point.x;
@@ -374,14 +374,15 @@ void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
 
   // Get all cluster points.
   int i = 0;
-  std::vector<int> cluster_ids;
   if (config_.color_clusters) {
-    cluster_ids = trackClusterIDs(cloud, clusters);
   }
   for (const Cluster& cluster : clusters) {
+    if (!cluster.valid) {
+      continue;
+    }
     std_msgs::ColorRGBA color;
     if (config_.color_clusters) {
-      voxblox::Color color_voxblox = color_map_.colorLookup(cluster_ids[i]);
+      voxblox::Color color_voxblox = color_map_.colorLookup(cluster.id);
       color.r = static_cast<float>(color_voxblox.r) / 255.f;
       color.g = static_cast<float>(color_voxblox.g) / 255.f;
       color.b = static_cast<float>(color_voxblox.b) / 255.f;
@@ -394,7 +395,7 @@ void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
     }
     ++i;
 
-    for (int index : cluster) {
+    for (int index : cluster.points) {
       const pcl::PointXYZ& point = cloud[index];
       geometry_msgs::Point point_msg;
       point_msg.x = point.x;
@@ -426,97 +427,6 @@ void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
   if (!result_comp.points.empty()) {
     detection_object_comp_pub_.publish(result_comp);
   }
-}
-
-std::vector<int> MotionVisualizer::trackClusterIDs(const Cloud& cloud,
-                                                   const Clusters& clusters) {
-  // Compute the centroids of all clusters.
-  std::vector<voxblox::Point> centroids(clusters.size());
-  size_t i = 0;
-  for (const Cluster& cluster : clusters) {
-    voxblox::Point centroid = {0, 0, 0};
-    for (int index : cluster) {
-      const pcl::PointXYZ& point = cloud[index];
-      centroid = centroid + voxblox::Point(point.x, point.y, point.z);
-    }
-    centroids[i] = centroid / cluster.size();
-    ++i;
-  }
-
-  // Compute the distances of all clusters. [previous][current]->dist
-  struct Association {
-    float distance;
-    int previous_id;
-    int current_id;
-  };
-
-  std::vector<std::vector<Association>> distances(previous_centroids_.size());
-  for (size_t i = 0; i < previous_centroids_.size(); ++i) {
-    std::vector<Association>& d = distances[i];
-    d.reserve(centroids.size());
-    for (size_t j = 0; j < centroids.size(); ++j) {
-      Association association;
-      association.distance = (previous_centroids_[i] - centroids[j]).norm();
-      association.previous_id = i;
-      association.current_id = j;
-      d.push_back(association);
-    }
-  }
-
-  // Associate all previous ids until no more minimum distances exist.
-  std::vector<int> ids(centroids.size(), -1);
-  std::unordered_set<int> reused_ids;
-  while (true) {
-    // Find the minimum distance and IDs (exhaustively).
-    float min = std::numeric_limits<float>::max();
-    int prev_id = 0;
-    int curr_id = 0;
-    int erase_i = 0;
-    int erase_j = 0;
-    for (size_t i = 0u; i < distances.size(); ++i) {
-      for (size_t j = 0u; j < distances[i].size(); ++j) {
-        const Association& association = distances[i][j];
-        if (association.distance < min) {
-          min = association.distance;
-          curr_id = association.current_id;
-          prev_id = association.previous_id;
-          erase_i = i;
-          erase_j = j;
-        }
-      }
-    }
-
-    if (min > config_.max_tracking_distance) {
-      // no more good fits.
-      break;
-    }
-
-    // Remove that match and search for next best.
-    ids[curr_id] = previous_ids_[prev_id];
-    reused_ids.insert(previous_ids_[prev_id]);
-    distances.erase(distances.begin() + erase_i);
-    for (auto& vec : distances) {
-      vec.erase(vec.begin() + erase_j);
-    }
-  }
-
-  // Fill in all remaining values.
-  int id_counter = 0;
-  for (int& id : ids) {
-    if (id == -1) {
-      // We need to replace it.
-      while (reused_ids.find(id_counter) != reused_ids.end()) {
-        id_counter++;
-      }
-      id = id_counter;
-      id_counter++;
-    }
-  }
-
-  // Finish up.
-  previous_ids_ = ids;
-  previous_centroids_ = centroids;
-  return ids;
 }
 
 void MotionVisualizer::visualizeMesh() {

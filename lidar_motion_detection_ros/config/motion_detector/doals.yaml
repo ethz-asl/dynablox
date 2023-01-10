@@ -11,19 +11,25 @@ preprocessing:
   min_range: &min_range 0.5  # m
   max_range: &max_range 200000  # m
 
+# Ever-Free Integration.
+ever_free_integrator:
+  counter_to_reset: 120 # Observations to un-free an ever-free voxel [frames]
+  temporal_buffer: 2   # To compensate sparsity [frames].
+  burn_in_period: 5   # Burn in before becoming ever-free [frames].
+  tsdf_occupancy_threshold: 0.3 # 1.5 voxel sizes.
+  neighbor_connectivity: 18
+  
 # Clustering.
 clustering:
   min_cluster_size: 20
   max_cluster_size: 20000
   neighbor_connectivity: 6
-
-# Ever-Free Integration.
-ever_free_integrator:
-  counter_to_reset: 120
-  temporal_buffer: 2   # To compensate sparsity.
-  burn_in_period: 5
-  tsdf_occupancy_threshold: 0.3 # 1.5 voxel sizes.
-  neighbor_connectivity: 18
+  
+# Tracking.
+tracking:
+  use_tracking: true
+  min_track_duration: 2 # frames
+  max_tracking_distance: 1  # m
   
 # Evaluation.
 evaluation:
@@ -32,13 +38,15 @@ evaluation:
   evaluate_point_level: true
   evaluate_cluster_level: true
   evaluate_object_level: true
-
+  evaluate_ranges: true
+  evaluate_range_at_level: object # point, cluster, object
+  
 # Visualization.
 visualization:
   static_point_color: [0,0,0,1]
   dynamic_point_color: [1,0,0.5,1]
-  static_point_scale: 0.05
-  dynamic_point_scale: 0.1
+  static_point_scale: 0.03
+  dynamic_point_scale: 0.08
   sensor_scale: 0.5
   color_clusters: true
   color_wheel_num_colors: 20

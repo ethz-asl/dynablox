@@ -142,7 +142,7 @@ Clusters Clustering::inducePointClusters(
 
       // Add all points.
       for (const auto& point_index : voxel_it->second) {
-        candidate_cluster.push_back(point_index);
+        candidate_cluster.points.push_back(point_index);
       }
     }
     candidates.push_back(candidate_cluster);
@@ -155,7 +155,7 @@ void Clustering::applyClusterLevelFilters(Clusters& candidates) const {
       std::remove_if(candidates.begin(), candidates.end(),
                      [this](const Cluster& cluster) {
                        const int cluster_size =
-                           static_cast<int>(cluster.size());
+                           static_cast<int>(cluster.points.size());
                        return cluster_size < config_.min_cluster_size ||
                               cluster_size > config_.max_cluster_size;
                      }),
@@ -165,7 +165,7 @@ void Clustering::applyClusterLevelFilters(Clusters& candidates) const {
 void Clustering::setClusterLevelDynamicFlagOfallPoints(
     const Clusters& clusters, CloudInfo& cloud_info) const {
   for (const Cluster& valid_cluster : clusters) {
-    for (int idx : valid_cluster) {
+    for (int idx : valid_cluster.points) {
       cloud_info.points[idx].cluster_level_dynamic = true;
     }
   }

@@ -57,7 +57,13 @@ using VoxelToPointMap = voxblox::HierarchicalIndexIntMap;
 using BlockToPointMap = voxblox::AnyIndexHashMapType<VoxelToPointMap>::type;
 
 // Indices of all points in the cloud belonging to this cluster.
-using Cluster = std::vector<int>;
+struct Cluster {
+  int id = -1;           // ID of the cluster set during tracking.
+  int track_length = 0;  // Frames this cluster has been tracked.
+  bool valid = false;
+  std::vector<int>
+      points;  // indices of points in cloud belonging to this cluster.
+};
 
 using Clusters = std::vector<Cluster>;
 

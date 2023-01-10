@@ -23,6 +23,7 @@
 #include "lidar_motion_detection/processing/clustering.h"
 #include "lidar_motion_detection/processing/ever_free_integrator.h"
 #include "lidar_motion_detection/processing/preprocessing.h"
+#include "lidar_motion_detection/processing/tracking.h"
 #include "lidar_motion_detection_ros/visualization/motion_visualizer.h"
 
 namespace motion_detection {
@@ -117,7 +118,8 @@ class MotionDetector {
    * @param cloud_info Cloud info to store ever-free flags of checked points.
    */
   void blockwiseBuildPointMap(
-      const Cloud& cloud, const BlockIndex& block_index, const voxblox::AlignedVector<size_t>& points_in_block,
+      const Cloud& cloud, const BlockIndex& block_index,
+      const voxblox::AlignedVector<size_t>& points_in_block,
       VoxelToPointMap& point_map,
       std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
       CloudInfo& cloud_info) const;
@@ -145,10 +147,11 @@ class MotionDetector {
 
   // Processing.
   std::shared_ptr<Preprocessing> preprocessing_;
-  std::shared_ptr<MotionVisualizer> visualizer_;
   std::shared_ptr<EverFreeIntegrator> ever_free_integrator_;
   std::shared_ptr<Clustering> clustering_;
+  std::shared_ptr<Tracking> tracking_;
   std::shared_ptr<Evaluator> evaluator_;
+  std::shared_ptr<MotionVisualizer> visualizer_;
 
   // Cached data.
   size_t voxels_per_side_;

@@ -22,6 +22,12 @@ void Evaluator::Config::checkParams() const {
   checkParamGE(min_range, 0.f, "min_range");
   checkParamCond(max_range > min_range,
                  "'max_range' must be larger than 'min_range'.");
+  checkParamCond(!evaluate_ranges || evaluate_range_at_level == "point" ||
+                     evaluate_range_at_level == "object" ||
+                     evaluate_range_at_level == "cluster",
+                 "'evaluate_range_at_level' must be 'point', 'cluster', or "
+                 "'object', (is " +
+                     evaluate_range_at_level + ").");
   checkParamConfig(ground_truth_config);
 }
 
@@ -33,6 +39,7 @@ void Evaluator::Config::setupParamsAndPrinting() {
   setupParam("evaluate_cluster_level", &evaluate_cluster_level);
   setupParam("evaluate_object_level", &evaluate_object_level);
   setupParam("evaluate_ranges", &evaluate_ranges);
+  setupParam("evaluate_range_at_level", &evaluate_range_at_level);
   setupParam("ground_truth", &ground_truth_config, "ground_truth");
 }
 
@@ -134,13 +141,15 @@ void Evaluator::evaluateRanges(const CloudInfo& cloud_info) {
   std::ofstream writefile;
   writefile.open(output_directory_ + "/" + ranges_file_name_, std::ios::trunc);
 
+  std::function<bool(const PointInfo&)> check_level =
+      getCheckLevelFunction(config_.evaluate_range_at_level);
+
   // Add all new data to the database.
   for (const PointInfo& point : cloud_info.points) {
     if (!point.ready_for_evaluation) {
       continue;
     }
-    // TODO(schmluk): This could also be more general.
-    const bool is_dynamic = point.cluster_level_dynamic;
+    const bool is_dynamic = check_level(point);
     if (is_dynamic && point.ground_truth_dynamic) {
       ranges_[0].push_back(point.distance_to_sensor);
     } else if (is_dynamic && !point.ground_truth_dynamic) {
@@ -186,27 +195,26 @@ int Evaluator::filterEvaluatedPoints(CloudInfo& cloud_info) const {
   return number_of_points;
 }
 
+std::function<bool(const PointInfo&)> Evaluator::getCheckLevelFunction(
+    const std::string& level) {
+  if (level == "point") {
+    return [](const PointInfo& point) { return point.ever_free_level_dynamic; };
+  } else if (level == "cluster") {
+    return [](const PointInfo& point) { return point.cluster_level_dynamic; };
+  } else if (level == "object") {
+    return [](const PointInfo& point) { return point.object_level_dynamic; };
+  } else {
+    LOG(ERROR) << "Unknown evaluation level '" << level << "'!";
+    return [](const PointInfo& point) { return false; };
+  }
+}
+
 void Evaluator::evaluateCloudAtLevel(const CloudInfo& cloud_info,
                                      const std::string& level,
                                      std::ofstream& output_file) const {
   // Setup.
-  std::function<bool(const PointInfo&)> check_level;
-  if (level == "point") {
-    check_level = [](const PointInfo& point) {
-      return point.ever_free_level_dynamic;
-    };
-  } else if (level == "cluster") {
-    check_level = [](const PointInfo& point) {
-      return point.cluster_level_dynamic;
-    };
-  } else if (level == "object") {
-    check_level = [](const PointInfo& point) {
-      return point.object_level_dynamic;
-    };
-  } else {
-    LOG(ERROR) << "Unknown evaluation level '" << level << "'!";
-    return;
-  }
+  std::function<bool(const PointInfo&)> check_level =
+      getCheckLevelFunction(level);
 
   // Compute true/false positives/negatives.
   uint tp = 0u;

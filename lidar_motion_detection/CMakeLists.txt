@@ -9,6 +9,7 @@ add_definitions(-std=c++17 -Wall -Wextra)
 cs_add_library(${PROJECT_NAME}
         src/processing/preprocessing.cpp
         src/processing/clustering.cpp
+        src/processing/tracking.cpp
         src/processing/ever_free_integrator.cpp
         src/evaluation/evaluator.cpp
         src/evaluation/ground_truth_handler.cpp

@@ -34,6 +34,9 @@ class Evaluator {
     // If ranges are evaluated they are evaluated at cluster level.
     bool evaluate_ranges = true;
 
+    // At which detection level to evaluate the range [point, clsuter, object].
+    std::string evaluate_range_at_level = "cluster";
+
     // Config for the ground truth handler.
     GroundTruthHandler::Config ground_truth_config;
 
@@ -119,6 +122,10 @@ class Evaluator {
   std::vector<std::string> evaluated_levels_;
   int gt_frame_counter_ = 0;
   std::vector<std::vector<float>> ranges_;  // TP, FP, TN, FN
+
+  // Helper Functions.
+  static std::function<bool(const PointInfo&)> getCheckLevelFunction(
+      const std::string& level);
 
   // Names of the created files.
   static const std::string ranges_file_name_;

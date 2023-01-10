@@ -85,6 +85,11 @@ void MotionDetector::setupMembers() {
           ros::NodeHandle(nh_private_, "clustering")),
       tsdf_layer_);
 
+  // Tracking.
+  tracking_ = std::make_shared<Tracking>(
+      config_utilities::getConfigFromRos<Tracking::Config>(
+          ros::NodeHandle(nh_private_, "tracking")));
+
   // Ever-Free Integrator.
   ros::NodeHandle nh_ever_free(nh_private_, "ever_free_integrator");
   nh_ever_free.setParam("num_threads", config_.num_threads);
@@ -157,6 +162,11 @@ void MotionDetector::pointcloudCallback(
   Clusters clusters = clustering_->performClustering(
       point_map, occupied_ever_free_voxel_indices, frame_counter_, cloud_info);
   clustering_timer.Stop();
+
+  // Tracking.
+  Timer tracking_timer("motion_detection/tracking");
+  tracking_->track(cloud, clusters, cloud_info);
+  tracking_timer.Stop();
 
   // Integrate ever-free information.
   Timer update_ever_free_timer("motion_detection/update_ever_free");
