@@ -5,7 +5,7 @@ import numpy as np
 
 # doals_nodrift_inf, doals_nodrift_20m
 DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf"
-SCENES = ["hauptgebaeude", "niederdorf" , "shopville"]#, "station"]
+SCENES = ["hauptgebaeude", "niederdorf" , "shopville", "station"]
 SEQUENCES = [1, 2]
 
 
@@ -71,7 +71,7 @@ def table(data, names, metrics, key, print_by, print_names=True, print_std=True,
             return f"{np.max(results):.3f}"
         else:
             msg = f"{np.nanmean(results):.3f}"
-            if print_std:
+            if print_std and len(results)>1:
                 msg = msg + (" $\pm$ " if print_latex else " +- ") + \
                     f"{np.nanstd(results):.3f}"
             return msg

@@ -6,17 +6,20 @@ import csv
 from matplotlib import pyplot as plt
 
 DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf"
-SCENES = ["hauptgebaeude", "niederdorf", "shopville"]#, "station"]
+SCENES = ["hauptgebaeude", "niederdorf", "shopville" , "station"]
 SEQUENCES = [1, 2]
 OUTPUT_DIR = "/home/lukas/Documents/motion_detection/range_analysis"
 
 
 def main():
     # Plot config.
+    metrics = ['iou', 'precision', 'recall']
 
+    # Plot
     data, names = read_data()  # data [bag_id][TP/TN/FP/FN]
-    plot_range(data, names, True)
-    plot_range(data, names, False)
+    for m in metrics:
+        for summary in [True, False]:
+            plot_range(data, names, m, summary)
 
 
 def read_range_data(csv_file):
@@ -43,7 +46,8 @@ def read_data():
     return data, names
 
 
-def plot_range(data, names, summarize):
+def plot_range(data, names, metric, summarize):
+    print(f"Plotting '{metric}' {'for all' if summarize else 'individually'}.")
     # For each range compute the IoU and number of valid points.
     distances = np.linspace(0, 51)
 
@@ -55,7 +59,7 @@ def plot_range(data, names, summarize):
     points_std = []
     if summarize:
         for d in distances:
-            points, iou = compute_iou_and_points(data, d)
+            points, iou = compute_iou_and_points(data, d, metric)
             iou_m.append(np.mean(iou))
             iou_std.append(np.std(iou))
             points_m.append(np.mean(points))
@@ -72,7 +76,7 @@ def plot_range(data, names, summarize):
             iou_m = []
             points_m = []
             for d in distances:
-                points, iou = compute_iou_and_points([data[j]], d)
+                points, iou = compute_iou_and_points([data[j]], d, metric)
                 iou_m.append(np.mean(iou))
                 points_m.append(np.mean(points))
             plt.plot(distances, iou_m, color=colors[j], linestyle='-')
@@ -81,16 +85,17 @@ def plot_range(data, names, summarize):
     plt.ylim([0, 100])
     plt.xlabel("Distance [m]")
     if summarize:
-        plt.ylabel("IoU / Points [%]")
-        plt.legend(["Detection IoU", "GT Points considered"])
-        plt.savefig(os.path.join(OUTPUT_DIR, "distances_all.svg"))
+        plt.ylabel("Value [%]")
+        plt.legend([f"Detection {metric}", "GT Points considered"])
+        plt.savefig(os.path.join(OUTPUT_DIR, f"{metric}_all.svg"))
     else:
-        plt.ylabel("- IoU [%]    : Points [%]")
+        plt.title(f"- {metric}, : considered points")
+        plt.ylabel("Value [%]")
         plt.legend(names)
-        plt.savefig(os.path.join(OUTPUT_DIR, "distances_individual.svg"))
+        plt.savefig(os.path.join(OUTPUT_DIR, f"{metric}_individual.svg"))
 
 
-def compute_iou_and_points(data, distance):
+def compute_iou_and_points(data, distance, metric):
     num_points = []
     iou = []
     for d in data:
@@ -101,7 +106,22 @@ def compute_iou_and_points(data, distance):
         points = tp + fp + tn + fn
         total_points = np.sum([len(x) for x in d.values()])
         num_points.append(points/total_points * 100)
-        iou.append(tp/(tp+fp+fn)*100)
+        if metric == 'iou':
+            if tp+fp+fn == 0:
+                iou.append(100)
+            else:
+                iou.append(tp/(tp+fp+fn)*100)
+        elif metric == 'precision':
+            if tp+fp == 0:
+                iou.append(100)
+            else:
+                iou.append(tp/(tp+fp)*100)
+        else:   # recall
+            if tp+fn == 0:
+                iou.append(100)
+            else:
+                iou.append(tp/(tp+fn)*100)
+
     return np.array(num_points), np.array(iou)
 
 
