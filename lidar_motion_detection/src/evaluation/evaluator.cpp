@@ -205,7 +205,7 @@ std::function<bool(const PointInfo&)> Evaluator::getCheckLevelFunction(
     return [](const PointInfo& point) { return point.object_level_dynamic; };
   } else {
     LOG(ERROR) << "Unknown evaluation level '" << level << "'!";
-    return [](const PointInfo& point) { return false; };
+    return [](const PointInfo& /* point */) { return false; };
   }
 }
 
