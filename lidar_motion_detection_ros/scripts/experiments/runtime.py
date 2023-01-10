@@ -2,11 +2,13 @@
 
 import os
 import numpy as np
+from matplotlib import pyplot as plt
 
 # doals_nodrift_inf, doals_nodrift_20m
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf"
-SCENES = ["hauptgebaeude", "niederdorf" , "shopville", "station"]
+DATA_PATH = "/media/lukas/T7/data/doals_nodrift_20m"
+SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
+OUTPUT_DIR = "/home/lukas/Documents/motion_detection/runtime"
 
 
 def main():
@@ -19,12 +21,44 @@ def main():
     print_names = True
     print_std = True
     print_latex = False
+    plot = False  # True: Plot, False: 
 
     # Run.
     print_overall = print_by == 'sequence'
-    data, names = read_data()
-    table(data, names, metrics, key, print_by,  print_names, print_std,
-          print_latex, print_overall)
+    data, names = read_data()   # data[bag_id][timer][metric]
+    if plot:
+        plot_timings(data, names)
+    else:
+        table(data, names, metrics, key, print_by,  print_names, print_std,
+              print_latex, print_overall)
+
+
+def plot_timings(data, names):
+    plt.figure(figsize=(10, 5))
+    # Setup.
+    key_names = ['Preprocessing', 'Ever-Free Detection',
+                 'Clustering', 'TSDF Integration']
+    keys = [['motion_detection/indexing_setup', 'motion_detection/preprocessing', 'motion_detection/tf_lookup'],
+            ['motion_detection/update_ever_free'], ['motion_detection/clustering'], ['motion_detection/tsdf_integration']]
+    colors = ['tab:blue', 'tab:green', 'tab:orange', 'dimgray']
+
+    # Plot.
+    x = [f"{s}_{i}" for s in ['HG', 'Nied', 'Shop', 'Station']
+         for i in [1, 2]] + ['All']
+    y_sum = np.zeros((len(x),))
+    handles = []
+    for i, key in reversed(list(enumerate(keys))):
+        y_val = []
+        for d in data:
+            y_val.append(np.sum([d[j]['mean'] for j in key]))
+        y_val = np.array(y_val) * 1000
+        y_val = np.append(y_val, np.mean(y_val))
+        handles.append(plt.bar(x, y_val, color=colors[i], bottom=y_sum))
+        y_sum = y_sum + y_val
+    plt.legend(handles[::-1], key_names, loc='upper left')
+    plt.ylabel("Mean Execution Time [ms]")
+    plt.savefig(os.path.join(
+        OUTPUT_DIR, f"timings_{DATA_PATH.split('/')[-1]}.svg"))
 
 
 def read_time_data(file_name):
@@ -71,7 +105,7 @@ def table(data, names, metrics, key, print_by, print_names=True, print_std=True,
             return f"{np.max(results):.3f}"
         else:
             msg = f"{np.nanmean(results):.3f}"
-            if print_std and len(results)>1:
+            if print_std and len(results) > 1:
                 msg = msg + (" $\pm$ " if print_latex else " +- ") + \
                     f"{np.nanstd(results):.3f}"
             return msg
