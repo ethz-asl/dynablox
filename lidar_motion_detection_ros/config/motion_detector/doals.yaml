@@ -39,7 +39,7 @@ evaluation:
   evaluate_cluster_level: true
   evaluate_object_level: true
   evaluate_ranges: true
-  evaluate_range_at_level: object # point, cluster, object
+  evaluate_range_at_level: cluster # point, cluster, object
   
 # Visualization.
 visualization:

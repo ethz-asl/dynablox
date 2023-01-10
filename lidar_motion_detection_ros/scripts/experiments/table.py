@@ -5,8 +5,8 @@ import numpy as np
 from plotting_tools import read_plot_data_csv, verify_data, get_grid
 
 # doals_nodrift_20m, doals_nodrift_inf, doals_nodrift_20m_inf_eval
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift_20m"
-SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
+DATA_PATH = "/media/lukas/T7/data/doals_nodrift_tracking"
+SCENES = ["shopville"] #["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 
 
@@ -15,7 +15,7 @@ def main():
     # timestamp	point_IoU	point_Precision	point_Recall	point_TP	point_TN	point_FP	point_FN	cluster_IoU	cluster_Precision	cluster_Recall	cluster_TP	cluster_TN	cluster_FP	cluster_FN	object_IoU	object_Precision	object_Recall	object_TP	object_TN	object_FP	object_FN	EvaluatedPoints	TotalPoints
 
     # Metrics
-    metrics = ['cluster_IoU', 'cluster_Precision', 'cluster_Recall']
+    metrics = ['cluster_IoU', 'cluster_Precision', 'cluster_Recall', 'object_IoU', 'object_Precision', 'object_Recall']
 
     # Print configuration
     print_names = True

@@ -16,6 +16,7 @@
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/doals.yaml" />
+  <arg name="counter_to_reset" default="150" /> <!-- Drift dependent param -->
   <arg name="visualize" default="true" />
   
   
@@ -46,6 +47,7 @@
 
     <!-- config -->
     <rosparam command="load" file="$(find lidar_motion_detection_ros)/config/$(arg config_file)" />
+    <param name="ever_free_integrator/counter_to_reset" value="$(arg counter_to_reset)" />
     
     <!-- evaluation -->
     <param name="evaluation/ground_truth/file_path" value="$(arg ground_truth_file)" />
