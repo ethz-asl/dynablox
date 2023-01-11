@@ -58,6 +58,13 @@ roslaunch lidar_motion_detection_ros run.launch
 ```
 
 
+# Contributing
+Install pre-commit
+```
+pip install pre-commit
+
+```
+
 # Old
 
 This repository contains a ROS package that can be used for moving object detection and tracking.

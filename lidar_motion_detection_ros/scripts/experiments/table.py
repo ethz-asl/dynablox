@@ -15,7 +15,10 @@ def main():
     # timestamp	point_IoU	point_Precision	point_Recall	point_TP	point_TN	point_FP	point_FN	cluster_IoU	cluster_Precision	cluster_Recall	cluster_TP	cluster_TN	cluster_FP	cluster_FN	object_IoU	object_Precision	object_Recall	object_TP	object_TN	object_FP	object_FN	EvaluatedPoints	TotalPoints
 
     # Metrics
-    metrics = ['cluster_IoU', 'cluster_Precision', 'cluster_Recall', 'object_IoU', 'object_Precision', 'object_Recall']
+    metrics = [
+        'cluster_IoU', 'cluster_Precision', 'cluster_Recall', 'object_IoU',
+        'object_Precision', 'object_Recall'
+    ]
 
     # Print configuration
     print_names = True
@@ -25,8 +28,8 @@ def main():
     print_overall = True
 
     # Run.
-    table(metrics, print_names, print_std,
-          print_nan, print_latex, print_overall)
+    table(metrics, print_names, print_std, print_nan, print_latex,
+          print_overall)
 
 
 def read_data():
@@ -35,13 +38,19 @@ def read_data():
     for s in SCENES:
         for seq in SEQUENCES:
             name = f"{s}_{seq}_none"
-            data.append(read_plot_data_csv(os.path.join(
-                DATA_PATH, name, "scores.csv")))
+            data.append(
+                read_plot_data_csv(os.path.join(DATA_PATH, name,
+                                                "scores.csv")))
             names.append(name)
     return data, names
 
 
-def table(metrics, print_names=True, print_std=True, print_nan=True, print_latex=False, print_overall=True):
+def table(metrics,
+          print_names=True,
+          print_std=True,
+          print_nan=True,
+          print_latex=False,
+          print_overall=True):
     data, names = read_data()
     verify_data(data, names)
 

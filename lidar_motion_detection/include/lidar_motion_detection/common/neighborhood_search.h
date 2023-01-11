@@ -4,6 +4,7 @@
 #include <functional>
 
 #include <voxblox/utils/neighbor_tools.h>
+
 #include "lidar_motion_detection/common/types.h"
 
 namespace motion_detection {
@@ -22,13 +23,13 @@ class NeighborhoodSearch {
           voxblox::Connectivity::kTwentySix>::getFromBlockAndVoxelIndex;
     } else {
       LOG(ERROR) << "Neighborhood Search only supports connectivities of 6, "
-                    "18, and 26 (requested: " << connectivity <<").";
+                    "18, and 26 (requested: "
+                 << connectivity << ").";
     }
   }
 
   voxblox::AlignedVector<voxblox::VoxelKey> search(
-      const BlockIndex& block_index,
-      const VoxelIndex& voxel_index,
+      const BlockIndex& block_index, const VoxelIndex& voxel_index,
       const size_t voxels_per_side) const {
     voxblox::AlignedVector<voxblox::VoxelKey> neighbors;
     search_(block_index, voxel_index, voxels_per_side, &neighbors);
@@ -36,8 +37,8 @@ class NeighborhoodSearch {
   }
 
  private:
-  std::function<void(const BlockIndex&, const VoxelIndex&,
-                     const size_t, voxblox::AlignedVector<voxblox::VoxelKey>*)>
+  std::function<void(const BlockIndex&, const VoxelIndex&, const size_t,
+                     voxblox::AlignedVector<voxblox::VoxelKey>*)>
       search_;
 };
 

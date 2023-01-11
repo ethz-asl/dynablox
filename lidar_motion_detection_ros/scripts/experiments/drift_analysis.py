@@ -42,13 +42,18 @@ def read_data():
     for s in SCENES:
         for seq in SEQUENCES:
             name = f"{s}_{seq}"
-            d = {'none': read_drift_data(os.path.join(
-                DATA_PATH, s, f"sequence_{seq}", "none.csv"))}
+            d = {
+                'none':
+                read_drift_data(
+                    os.path.join(DATA_PATH, s, f"sequence_{seq}", "none.csv"))
+            }
             for i in INTENSITIES:
                 d[i] = []
                 for r in [1, 2, 3]:
-                    d[i].append(read_drift_data(os.path.join(
-                        DATA_PATH, s, f"sequence_{seq}", f"{i}_{r}.csv")))
+                    d[i].append(
+                        read_drift_data(
+                            os.path.join(DATA_PATH, s, f"sequence_{seq}",
+                                         f"{i}_{r}.csv")))
             names.append(name)
             data.append(d)
     return data, names
@@ -72,15 +77,18 @@ def plot_rollouts(data, names, id):
             values = d[intensity][j]
             num_x = np.minimum(len(values), len(gt))
             x = np.linspace(0, num_x, num_x) * 0.1
-            y = np.sqrt(np.power(values[:num_x, 0] - gt[:num_x, 0], 2) + np.power(
-                values[:num_x, 1] - gt[:num_x, 1], 2) + np.power(values[:num_x, 2] - gt[:num_x, 2], 2))
+            y = np.sqrt(
+                np.power(values[:num_x, 0] - gt[:num_x, 0], 2) +
+                np.power(values[:num_x, 1] - gt[:num_x, 1], 2) +
+                np.power(values[:num_x, 2] - gt[:num_x, 2], 2))
             X.append(x)
             Y.append(y)
             plt.plot(x, y, color=colors[i], linestyle=linestyles[j])
             drift.append(np.max(np.abs(y)))
             if j == 2:
                 max_values.append(
-                    np.max([drift[l * len(INTENSITIES) + i] for l in range(3)]))
+                    np.max([drift[l * len(INTENSITIES) + i]
+                            for l in range(3)]))
                 out_file.write(
                     f"Max. drift for '{intensity}': {max_values[-1]:.4f} m\n")
     plt.legend(INTENSITIES)
@@ -95,14 +103,16 @@ def plot_rollouts(data, names, id):
             y = Y[k]
             y2 = np.zeros_like(y)
             for l in range(1, len(y)):
-                y2[l] = (y[l]-y[l-1])/0.1
+                y2[l] = (y[l] - y[l - 1]) / 0.1
             plt.plot(x, y2, color=colors[i], linestyle=linestyles[j])
             rates.append(np.max(np.abs(y2)))
             if j == 2:
                 max_values.append(
-                    np.max([rates[l * len(INTENSITIES) + i] for l in range(3)]))
+                    np.max([rates[l * len(INTENSITIES) + i]
+                            for l in range(3)]))
                 out_file.write(
-                    f"Max. drift rate for '{intensity}': {max_values[-1]:.4f} m/s\n")
+                    f"Max. drift rate for '{intensity}': {max_values[-1]:.4f} m/s\n"
+                )
     plt.xlabel("Time [s]")
     plt.ylabel("Drift Rate [m/s]")
     plt.tight_layout()

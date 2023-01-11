@@ -62,8 +62,9 @@ class EverFreeIntegrator {
    * @param frame_counter Index of current lidar scan to compute age.
    * @return All voxels that fell outside the block and need clearing later.
    */
-  bool blockWiseUpdateEverFree(const BlockIndex& block_index,
-                               const int frame_counter, voxblox::AlignedVector<voxblox::VoxelKey>& voxels_to_remove) const;
+  bool blockWiseUpdateEverFree(
+      const BlockIndex& block_index, const int frame_counter,
+      voxblox::AlignedVector<voxblox::VoxelKey>& voxels_to_remove) const;
 
   /**
    * @brief If the voxel is currently static we leave it. If it was last static

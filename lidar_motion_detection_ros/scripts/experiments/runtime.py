@@ -14,38 +14,44 @@ OUTPUT_DIR = "/home/lukas/Documents/motion_detection/runtime"
 def main():
     # What to plot
     metrics = ['mean', 'std', 'min', 'max']  # 'calls', 'total',
-    key = 'motion_detection'    # evaluation, frame, motion_detection, motion_detection/clustering, motion_detection/indexing_setup, motion_detection/preprocessing, motion_detection/tf_lookup, motion_detection/tsdf_integration, motion_detection/update_ever_free, update_ever_free/label_free, update_ever_free/remove_occupied, visualizations
+    key = 'motion_detection'  # evaluation, frame, motion_detection, motion_detection/clustering, motion_detection/indexing_setup, motion_detection/preprocessing, motion_detection/tf_lookup, motion_detection/tsdf_integration, motion_detection/update_ever_free, update_ever_free/label_free, update_ever_free/remove_occupied, visualizations
 
     # Print configuration
-    print_by = 'key'    # sequence, key
+    print_by = 'key'  # sequence, key
     print_names = True
     print_std = True
     print_latex = False
-    plot = False  # True: Plot, False: 
+    plot = False  # True: Plot, False:
 
     # Run.
     print_overall = print_by == 'sequence'
-    data, names = read_data()   # data[bag_id][timer][metric]
+    data, names = read_data()  # data[bag_id][timer][metric]
     if plot:
         plot_timings(data, names)
     else:
-        table(data, names, metrics, key, print_by,  print_names, print_std,
+        table(data, names, metrics, key, print_by, print_names, print_std,
               print_latex, print_overall)
 
 
 def plot_timings(data, names):
     plt.figure(figsize=(10, 5))
     # Setup.
-    key_names = ['Preprocessing', 'Ever-Free Detection',
-                 'Clustering', 'TSDF Integration']
-    keys = [['motion_detection/indexing_setup', 'motion_detection/preprocessing', 'motion_detection/tf_lookup'],
-            ['motion_detection/update_ever_free'], ['motion_detection/clustering'], ['motion_detection/tsdf_integration']]
+    key_names = [
+        'Preprocessing', 'Ever-Free Detection', 'Clustering',
+        'TSDF Integration'
+    ]
+    keys = [[
+        'motion_detection/indexing_setup', 'motion_detection/preprocessing',
+        'motion_detection/tf_lookup'
+    ], ['motion_detection/update_ever_free'], ['motion_detection/clustering'],
+            ['motion_detection/tsdf_integration']]
     colors = ['tab:blue', 'tab:green', 'tab:orange', 'dimgray']
 
     # Plot.
-    x = [f"{s}_{i}" for s in ['HG', 'Nied', 'Shop', 'Station']
-         for i in [1, 2]] + ['All']
-    y_sum = np.zeros((len(x),))
+    x = [
+        f"{s}_{i}" for s in ['HG', 'Nied', 'Shop', 'Station'] for i in [1, 2]
+    ] + ['All']
+    y_sum = np.zeros((len(x), ))
     handles = []
     for i, key in reversed(list(enumerate(keys))):
         y_val = []
@@ -57,8 +63,8 @@ def plot_timings(data, names):
         y_sum = y_sum + y_val
     plt.legend(handles[::-1], key_names, loc='upper left')
     plt.ylabel("Mean Execution Time [ms]")
-    plt.savefig(os.path.join(
-        OUTPUT_DIR, f"timings_{DATA_PATH.split('/')[-1]}.svg"))
+    plt.savefig(
+        os.path.join(OUTPUT_DIR, f"timings_{DATA_PATH.split('/')[-1]}.svg"))
 
 
 def read_time_data(file_name):
@@ -74,8 +80,14 @@ def read_time_data(file_name):
         std = float(entries[3].partition(" +- ")[2][:-1])
         min = float(entries[4].partition(",")[0][1:])
         max = float(entries[4].partition(",")[2][:-2])
-        data[key] = {'calls': calls, 'total': total,
-                     'mean': mean, 'std': std, 'min': min, 'max': max}
+        data[key] = {
+            'calls': calls,
+            'total': total,
+            'mean': mean,
+            'std': std,
+            'min': min,
+            'max': max
+        }
     return data
 
 
@@ -85,13 +97,21 @@ def read_data():
     for s in SCENES:
         for seq in SEQUENCES:
             name = f"{s}_{seq}_none"
-            data.append(read_time_data(os.path.join(
-                DATA_PATH, name, "timings.txt")))
+            data.append(
+                read_time_data(os.path.join(DATA_PATH, name, "timings.txt")))
             names.append(name)
     return data, names
 
 
-def table(data, names, metrics, key, print_by, print_names=True, print_std=True, print_latex=False, print_overall=True):
+def table(data,
+          names,
+          metrics,
+          key,
+          print_by,
+          print_names=True,
+          print_std=True,
+          print_latex=False,
+          print_overall=True):
     def print_row(entries):
         if print_latex:
             print(("".join('%-25s & ' % x for x in entries))[:-2] + "\\\\")
@@ -124,21 +144,21 @@ def table(data, names, metrics, key, print_by, print_names=True, print_std=True,
                 all_data[m] = np.append(all_data[m], results)
                 entries.append(evaluate_row(results, m))
             print_row(entries)
-    else:   # by keys
+    else:  # by keys
         print_row((['%-35s' % "Data"] + metrics) if print_names else metrics)
         keys = data[0].keys()
         for k in keys:
             entries = ['%-35s' % k] if print_names else []
             for m in metrics:
-                results = np.array([data[i][k][m]
-                                    for i, _ in enumerate(names)])
+                results = np.array(
+                    [data[i][k][m] for i, _ in enumerate(names)])
                 all_data[m] = np.append(all_data[m], results)
                 entries.append(evaluate_row(results, m))
             print_row(entries)
 
     if print_overall:
-        entries = [('%-35s' % "All" if print_by ==
-                    'key' else "All")] if print_names else []
+        entries = [('%-35s' % "All" if print_by == 'key' else "All")
+                   ] if print_names else []
         for m in metrics:
             entries.append(evaluate_row(all_data[m], m))
         print_row(entries)

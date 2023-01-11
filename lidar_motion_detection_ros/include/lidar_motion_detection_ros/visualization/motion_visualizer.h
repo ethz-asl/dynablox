@@ -39,7 +39,7 @@ class MotionVisualizer {
     // dynamic.
     bool color_clusters = true;
 
-  // Maximum distance for which tracks are considered [m].
+    // Maximum distance for which tracks are considered [m].
     float max_tracking_distance = 1.f;
 
     Config() { setConfigName("MotionVisualizer"); }

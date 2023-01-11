@@ -38,7 +38,8 @@ def analyze_distances(data, considered_range):
             distances = np.append(distances, d[m])
     print(f"Max Dist: {np.max(distances)}.")
     print(
-        f"Points within {considered_range}: {np.sum(distances<=considered_range)/len(distances)*100:.2f}.")
+        f"Points within {considered_range}: {np.sum(distances<=considered_range)/len(distances)*100:.2f}."
+    )
 
 
 def read_range_data(csv_file):
@@ -59,8 +60,8 @@ def read_data():
     for s in SCENES:
         for seq in SEQUENCES:
             name = f"{s}_{seq}_none"
-            data.append(read_range_data(os.path.join(
-                DATA_PATH, name, "ranges.csv")))
+            data.append(
+                read_range_data(os.path.join(DATA_PATH, name, "ranges.csv")))
             names.append(name)
     return data, names
 
@@ -85,10 +86,16 @@ def plot_range(data, names, metric, summarize, max_range):
             points_std.append(np.std(points))
         plt.plot(distances, iou_m, 'b-')
         plt.plot(distances, points_m, 'k-')
-        plt.fill_between(distances, np.array(iou_m)-np.array(iou_std),
-                         np.array(iou_m) + np.array(iou_std), facecolor='b', alpha=.2)
-        plt.fill_between(distances, np.array(points_m)-np.array(points_std),
-                         np.array(points_m) + np.array(points_std), facecolor='k', alpha=.2)
+        plt.fill_between(distances,
+                         np.array(iou_m) - np.array(iou_std),
+                         np.array(iou_m) + np.array(iou_std),
+                         facecolor='b',
+                         alpha=.2)
+        plt.fill_between(distances,
+                         np.array(points_m) - np.array(points_std),
+                         np.array(points_m) + np.array(points_std),
+                         facecolor='k',
+                         alpha=.2)
     else:
         colors = ['b', 'r', 'g', 'k', 'm', 'c', 'y', 'orange']
         for j, _ in enumerate(names):
@@ -99,8 +106,11 @@ def plot_range(data, names, metric, summarize, max_range):
                 iou_m.append(np.mean(iou))
                 points_m.append(np.mean(points))
             plt.plot(distances, iou_m, color=colors[j], linestyle='-')
-            plt.plot(distances, points_m,
-                     color=colors[j], linestyle=':',  label='_nolegend_')
+            plt.plot(distances,
+                     points_m,
+                     color=colors[j],
+                     linestyle=':',
+                     label='_nolegend_')
     plt.ylim([0, 100])
     plt.xlabel("Distance [m]")
     if summarize:
@@ -124,22 +134,22 @@ def compute_iou_and_points(data, distance, metric):
         fn = np.sum(d['FN'] <= distance)
         points = tp + fp + tn + fn
         total_points = np.sum([len(x) for x in d.values()])
-        num_points.append(points/total_points * 100)
+        num_points.append(points / total_points * 100)
         if metric == 'iou':
-            if tp+fp+fn == 0:
+            if tp + fp + fn == 0:
                 iou.append(100)
             else:
-                iou.append(tp/(tp+fp+fn)*100)
+                iou.append(tp / (tp + fp + fn) * 100)
         elif metric == 'precision':
-            if tp+fp == 0:
+            if tp + fp == 0:
                 iou.append(100)
             else:
-                iou.append(tp/(tp+fp)*100)
-        else:   # recall
-            if tp+fn == 0:
+                iou.append(tp / (tp + fp) * 100)
+        else:  # recall
+            if tp + fn == 0:
                 iou.append(100)
             else:
-                iou.append(tp/(tp+fn)*100)
+                iou.append(tp / (tp + fn) * 100)
 
     return np.array(num_points), np.array(iou)
 

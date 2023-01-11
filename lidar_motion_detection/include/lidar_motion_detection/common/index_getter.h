@@ -2,6 +2,7 @@
 #define LIDAR_MOTION_DETECTION_COMMON_INDEX_GETTER_H_
 
 #include <mutex>
+#include <utility>
 #include <vector>
 
 namespace motion_detection {
