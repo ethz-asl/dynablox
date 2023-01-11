@@ -33,7 +33,7 @@ function run_experiments() {
 
           # Run experiment.
           echo "Started running experiment: $scene, sequence_$seq, drift: $int, rollout: $r."
-            roslaunch lidar_motion_detection_ros run.launch sequence:=sequence_$seq bag_file:=$data_path/$scene/sequence_$seq/bag.bag player_rate:=$player_rate drift_simulation_rollout:=$rollout evaluate:=true ground_truth_file:=$data_path/$scene/sequence_$seq/indices.csv config_file:=$config_file visualize:=false eval_output_path:=$output_path/$nametag
+            roslaunch lidar_motion_detection_ros run.launch sequence:=sequence_$seq bag_file:=$data_path/$scene/sequence_$seq/bag.bag player_rate:=$player_rate drift_simulation_rollout:=$rollout evaluate:=true ground_truth_file:=$data_path/$scene/sequence_$seq/indices.csv config_file:=$config_file visualize:=false eval_output_path:=$output_path/$nametag counter_to_reset:=$counter_to_reset
           echo "Finished running experiment: $scene, sequence_$seq, drift: $int, rollout: $r."
         done
       done
@@ -45,17 +45,25 @@ function run_experiments() {
 
 # General params.
 data_path="/home/voliro/data"
-player_rate="0.2"
+player_rate="1"
 
 # Data to run.
-scenes=(hauptgebaeude niederdorf shopville station) # hauptgebaeude niederdorf station shopville
-sequences=(1 2)
-drift_intensities=(none) # none light moderate strong severe)
-drift_rollouts=(1 2 3)
+scenes=(hauptgebaeude niederdorf station shopville) # hauptgebaeude niederdorf station shopville
+sequences=(1 2) # 1 2
+drift_intensities=(none light moderate strong severe)
+drift_rollouts=(1 2 3)  # 1 2 3
 
 # Method to run.
 config_file="motion_detector/doals.yaml"
-output_path="/media/lukas/T7/data/doals_nodrift_inf"
+counter_to_reset=150  # 10000, 150, 50, 40, 15
+output_path="/media/lukas/T7/data/doals_nodrift_tracking"
 
 # ====== Run Experiments ======
-run_experiments
+vals=(10000 150 50 40 15)
+for v in "${vals[@]}" 
+do
+  output_path="/media/lukas/T7/data/doasl_drift/$v"
+  counter_to_reset=$v
+  run_experiments
+done
+
