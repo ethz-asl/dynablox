@@ -2,10 +2,9 @@
 
 import os
 import numpy as np
-from torch import roll
-from plotting_tools import read_plot_data_csv, verify_data, get_grid
+from plotting_tools import read_plot_data_csv
 
-DATA_PATH = "/media/lukas/T7/data/doasl_drift"
+DATA_PATH = "/media/lukas/T7/data/doals_drift"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 PARAMS = [10000, 150, 50, 40, 15]
 DRIFT = ["none", "light", "moderate", "strong", "severe"]

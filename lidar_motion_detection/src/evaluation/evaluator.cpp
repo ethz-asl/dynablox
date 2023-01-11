@@ -171,11 +171,11 @@ void Evaluator::evaluateRanges(const CloudInfo& cloud_info) {
     writefile << "," << fp;
   }
   writefile << "\nTN";
-  for (float tn : ranges_[1]) {
+  for (float tn : ranges_[2]) {
     writefile << "," << tn;
   }
   writefile << "\nFN";
-  for (float fn : ranges_[1]) {
+  for (float fn : ranges_[3]) {
     writefile << "," << fn;
   }
   writefile << "\n";

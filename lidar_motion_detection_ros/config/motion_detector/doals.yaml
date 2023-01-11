@@ -8,8 +8,8 @@ shutdown_after: 10  # num evaluations.
   
 # Preprocessing.
 preprocessing:
-  min_range: &min_range 0.5  # m
-  max_range: &max_range 200000  # m
+  min_range: &min_range 1  # m
+  max_range: &max_range 20  # m
 
 # Ever-Free Integration.
 ever_free_integrator:
