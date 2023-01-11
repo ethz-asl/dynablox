@@ -13,7 +13,7 @@ preprocessing:
 
 # Ever-Free Integration.
 ever_free_integrator:
-  counter_to_reset: 120 # Observations to un-free an ever-free voxel [frames]
+  counter_to_reset: 150 # Observations to un-free an ever-free voxel [frames]
   temporal_buffer: 2   # To compensate sparsity [frames].
   burn_in_period: 5   # Burn in before becoming ever-free [frames].
   tsdf_occupancy_threshold: 0.3 # 1.5 voxel sizes.
