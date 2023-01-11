@@ -2,7 +2,6 @@
 
 <launch>
   <!-- Dataset -->
-  <arg name="sequence" default="sequence_1" />  <!-- sequence_1, sequence_2 -->
   <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/shopville/sequence_1/bag.bag" />
   <arg name="player_rate" default="0.5" /> <!-- 0.3 -->
   

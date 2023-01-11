@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <!-- Dataset -->
+  <arg name="bag_file" default="/media/lukas/T7/Datasets/LMO/2021-07-28-17-19-57_fastlio.bag" />
+  <arg name="player_rate" default="0.5" /> <!-- 0.3 -->
+  
+  <!-- Motion Detector -->
+  <arg name="config_file" default="motion_detector/lmo.yaml" />
+  
+  
+  
+  <!-- Run Nodes -->
+  <param name="use_sim_time" value="true" />
+
+  <!-- Play the bag -->
+  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg bag_file) -d 1" /> 
+   
+  <!-- Lidar Undistortion -->
+  <node name="lidar_undistortion" pkg="lidar_undistortion" type="lidar_undistortion_node">
+    <remap from="pointcloud" to="/os_cloud_node/points" />
+    <param name="odom_frame_id" value="map" />
+    <param name="lidar_frame_id" value="os_lidar" />
+  </node>
+
+  <!-- Motion Detection -->
+  <node name="motion_detector" pkg="lidar_motion_detection_ros" type="motion_detector" output="screen" args="--alsologtostderr" required="true">
+    <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected" />
+    <rosparam command="load" file="$(find lidar_motion_detection_ros)/config/$(arg config_file)" />
+  </node>
+  
+  <!-- Visualize -->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find lidar_motion_detection_ros)/config/rviz/lmo.rviz"/>
+
+</launch>
