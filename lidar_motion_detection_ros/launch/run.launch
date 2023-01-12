@@ -12,7 +12,7 @@
   <!-- Evaluation -->
   <arg name="evaluate" default="true" />
   <arg name="eval_output_path" default="/media/lukas/T7/data/tmp" />
-  <arg name="ground_truth_file" default="/media/lukas/T7/Datasets/DOALS/shopville/sequence_1/indices.csv" />
+  <arg name="ground_truth_file" default="/media/lukas/T7/Datasets/DOALS/niederdorf/sequence_1/indices.csv" />
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/doals.yaml" />

@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
-OUTPUT_DIR = "/home/lukas/Documents/motion_detection/runtime"
+OUTPUT_DIR = "/home/lukas/Documents/motion_detection/doals_cluster_twice"
 
 
 def main():

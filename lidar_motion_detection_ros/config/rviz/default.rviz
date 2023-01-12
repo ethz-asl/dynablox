@@ -8,6 +8,7 @@ Panels:
         - /Visualization1
         - /Visualization1/Slice1
         - /Detection1
+        - /Evaluation1
       Splitter Ratio: 0.9548872113227844
     Tree Height: 631
   - Class: rviz/Selection
@@ -305,6 +306,34 @@ Visualization Manager:
           Name: Objects
       Enabled: true
       Name: Detection
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Marker
+          Enabled: false
+          Marker Topic: /motion_detector/visualization/ground_truth/point
+          Name: Point
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: false
+        - Class: rviz/Marker
+          Enabled: false
+          Marker Topic: /motion_detector/visualization/ground_truth/cluster
+          Name: Cluster
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: false
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /motion_detector/visualization/ground_truth/object
+          Name: Object
+          Namespaces:
+            "": true
+          Queue Size: 100
+          Value: true
+      Enabled: true
+      Name: Evaluation
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255

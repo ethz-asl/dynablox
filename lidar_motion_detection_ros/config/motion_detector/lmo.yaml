@@ -24,7 +24,7 @@ clustering:
   min_cluster_size: 20
   max_cluster_size: 20000
   neighbor_connectivity: 6
-  grow_clusters_twice: true
+  grow_clusters_twice: false
   
 # Tracking.
 tracking:

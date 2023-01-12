@@ -1,11 +1,15 @@
 #ifndef LIDAR_MOTION_DETECTION_ROS_VISUALIZATION_MOTION_VISUALIZER_H_
 #define LIDAR_MOTION_DETECTION_ROS_VISUALIZATION_MOTION_VISUALIZER_H_
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/Vector3.h>
+#include <std_msgs/ColorRGBA.h>
 #include <visualization_msgs/Marker.h>
 #include <voxblox/mesh/mesh_integrator.h>
 #include <voxblox/utils/color_maps.h>
@@ -26,6 +30,11 @@ class MotionVisualizer {
     std::vector<float> static_point_color = {0.f, 0.f, 0.f, 1.f};
     std::vector<float> dynamic_point_color = {1.f, 0.f, 0.5f, 1.f};
     std::vector<float> sensor_color = {1.f, 0.f, 0.f, 1.f};
+    std::vector<float> true_positive_color = {0.f, 1.f, 0.f, 1.f};
+    std::vector<float> false_positive_color = {1.f, 0.f, 0.f, 1.f};
+    std::vector<float> true_negative_color = {0.f, 0.f, 0.f, 1.f};
+    std::vector<float> false_negative_color = {0.f, 0.f, 1.f, 1.f};
+    std::vector<float> out_of_bounds_color = {.7f, .7f, .7f, 1.f};
 
     // Scales of pointcloud [m].
     float static_point_scale = 0.1f;
@@ -44,6 +53,8 @@ class MotionVisualizer {
    protected:
     void setupParamsAndPrinting() override;
     void checkParams() const override;
+    void checkColor(const std::vector<float>& color,
+                    const std::string& name) const;
   };
 
   // Setup.
@@ -54,18 +65,26 @@ class MotionVisualizer {
 
   // Visualization.
   void visualizeAll(const Cloud& cloud, const CloudInfo& cloud_info,
-                    const Clusters& clusters);
-  void visualizeLidarPose(const CloudInfo& cloud_info);
-  void visualizeLidarPoints(const Cloud& cloud);
+                    const Clusters& clusters) const;
+  void visualizeLidarPose(const CloudInfo& cloud_info) const;
+  void visualizeLidarPoints(const Cloud& cloud) const;
   void visualizePointDetections(const Cloud& cloud,
-                                const CloudInfo& cloud_info);
+                                const CloudInfo& cloud_info) const;
   void visualizeClusterDetections(const Cloud& cloud,
                                   const CloudInfo& cloud_info,
-                                  const Clusters& clusters);
+                                  const Clusters& clusters) const;
   void visualizeObjectDetections(const Cloud& cloud,
                                  const CloudInfo& cloud_info,
-                                 const Clusters& clusters);
-  void visualizeMesh();
+                                 const Clusters& clusters) const;
+  void visualizeGroundTruth(const Cloud& cloud,
+                            const CloudInfo& cloud_info) const;
+  void visualizeMesh() const;
+
+  // ROS msg helper tools.
+  static geometry_msgs::Vector3 setScale(const float scale);
+  static std_msgs::ColorRGBA setColor(const std::vector<float>& color);
+  static std_msgs::ColorRGBA setColor(const voxblox::Color& color);
+  static geometry_msgs::Point setPoint(const pcl::PointXYZ& point);
 
  private:
   const Config config_;
@@ -84,9 +103,18 @@ class MotionVisualizer {
   ros::Publisher detection_cluster_comp_pub_;
   ros::Publisher detection_object_pub_;
   ros::Publisher detection_object_comp_pub_;
+  ros::Publisher gt_point_pub_;
+  ros::Publisher gt_cluster_pub_;
+  ros::Publisher gt_object_pub_;
   ros::Publisher ever_free_pub_;
   ros::Publisher never_free_pub_;
   ros::Publisher mesh_pub_;
+
+  // Helper functions.
+  void visualizeGroundTruthAtLevel(
+      const Cloud& cloud, const CloudInfo& cloud_info,
+      const std::function<bool(const PointInfo&)>& check_level,
+      const ros::Publisher& pub) const;
 };
 
 }  // namespace motion_detection

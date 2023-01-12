@@ -68,6 +68,7 @@ bool GroundTruthHandler::labelCloudInfoIfAvailable(
   }
 
   // label the cloud.
+  cloud_info.has_labels = true;
   for (const auto& index : it->second) {
     cloud_info.points[index].ground_truth_dynamic = true;
   }
