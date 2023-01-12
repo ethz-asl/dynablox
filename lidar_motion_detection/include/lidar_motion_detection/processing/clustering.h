@@ -33,6 +33,9 @@ class Clustering {
     // Connectivity used when clustering voxels. (6, 18, 26)
     int neighbor_connectivity = 6;
 
+    // Grow ever free detections by 1 (false) or 2 (true) voxels.
+    bool grow_clusters_twice = false;
+
     Config() { setConfigName("Clustering"); }
 
    protected:

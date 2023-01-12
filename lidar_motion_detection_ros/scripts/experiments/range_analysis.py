@@ -5,7 +5,7 @@ import numpy as np
 import csv
 from matplotlib import pyplot as plt
 
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf"
+DATA_PATH = "/media/lukas/T7/data/doals_nodrift_20m"    # doals_nodrift_inf
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 OUTPUT_DIR = "/home/lukas/Documents/motion_detection/range_analysis"
@@ -14,7 +14,7 @@ OUTPUT_DIR = "/home/lukas/Documents/motion_detection/range_analysis"
 def main():
     # Plot config.
     metrics = ['iou', 'precision', 'recall']
-    max_range = 50  # m, Max Distance: 172.732, 82.48% within 20m, 93.30% in 30
+    max_range = 20  # m, Max Distance: 172.732, 82.48% within 20m, 93.30% in 30
 
     # Data
     data, names = read_data()  # data [bag_id][TP/TN/FP/FN]

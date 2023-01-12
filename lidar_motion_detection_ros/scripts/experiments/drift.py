@@ -60,12 +60,7 @@ def read_data():
     return data
 
 
-def table(data,
-          sequences,
-          metric,
-          print_std=True,
-          print_nan=True,
-          print_mode='read'):
+def table(data, sequences, metric, print_std=True, print_nan=True, print_mode='read'):
     def print_row(entries):
         if print_mode == 'latex':
             print(("".join('%-15s & ' % x for x in entries))[:-2] + "\\\\")
@@ -78,7 +73,7 @@ def table(data,
         nans = np.sum(np.isnan(results))
         msg = (f"{np.nanmean(results):.1f}" if nans == 0 else "-")
         if print_std and nans == 0:
-            msg = msg + (" $\pm$ " if print_mode=='latex' else " +- ") + \
+            msg = msg + (" $\pm$ " if print_mode == 'latex' else " +- ") + \
                 f"{np.nanstd(results):.1f}"
         if print_nan and nans > 0:
             msg = msg + f" ({nans})"

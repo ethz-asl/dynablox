@@ -29,7 +29,6 @@ void MotionVisualizer::Config::setupParamsAndPrinting() {
   setupParam("sensor_scale", &sensor_scale, "m");
   setupParam("color_wheel_num_colors", &color_wheel_num_colors);
   setupParam("color_clusters", &color_clusters);
-  setupParam("max_tracking_distance", &max_tracking_distance, "m");
 }
 
 MotionVisualizer::MotionVisualizer(

@@ -4,8 +4,8 @@ import os
 import numpy as np
 from plotting_tools import read_plot_data_csv, verify_data, get_grid
 
-# doals_nodrift_20m, doals_nodrift_inf, doals_nodrift_20m_inf_eval
-DATA_PATH = "/media/lukas/T7/data/old/doals_nodrift_20m_old"
+# doals_nodrift_20m, doals_nodrift_inf
+DATA_PATH = "/media/lukas/T7/data/doals_drift/10000"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 
@@ -24,12 +24,12 @@ def main():
     print_names = True
     print_std = True
     print_nan = True
-    print_latex = False
+    print_mode = 'csv'
     print_overall = True
 
 
     # Run.
-    table(metrics, print_names, print_std, print_nan, print_latex,
+    table(metrics, print_names, print_std, print_nan, print_mode,
           print_overall)
 
 
@@ -50,23 +50,30 @@ def table(metrics,
           print_names=True,
           print_std=True,
           print_nan=True,
-          print_latex=False,
+          print_mode=False,
           print_overall=True):
     data, names = read_data()
     verify_data(data, names)
 
     def print_row(entries):
-        if print_latex:
-            print(("".join('%-25s & ' % x for x in entries))[:-2] + "\\\\")
+        if print_mode == 'latex':
+            print(("".join('%-15s & ' % x for x in entries))[:-2] + "\\\\")
+        elif print_mode == 'csv':
+            print(("".join('%s,' % x for x in entries))[:-1])
         else:
-            print("".join('%-25s' % x for x in entries))
+            print("".join('%-15s' % x for x in entries))
 
     def evaluate_row(results):
         nans = np.sum(np.isnan(results))
         msg = (f"{np.nanmean(results):.1f}" if nans == 0 else "-")
         if print_std and nans == 0:
-            msg = msg + (" $\pm$ " if print_latex else " +- ") + \
-                f"{np.nanstd(results):.1f}"
+            if print_mode == 'latex':
+                msg = msg + f" $\pm$ {np.nanstd(results):.1f}"
+            elif print_mode == 'csv':
+                msg = msg + f",{np.nanstd(results):.1f}"
+            else:
+                msg = msg + f" +- {np.nanstd(results):.1f}"
+            
         if print_nan and nans > 0:
             msg = msg + f" ({nans})"
         return msg

@@ -27,7 +27,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: Lidar Output Points
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -95,22 +95,22 @@ Visualization Manager:
           Value: false
         - Alpha: 1
           Class: rviz/Axes
-          Enabled: true
+          Enabled: false
           Length: 1
           Name: Map Origin
           Radius: 0.10000000149011612
           Reference Frame: <Fixed Frame>
           Show Trail: false
-          Value: true
+          Value: false
         - Alpha: 1
           Class: rviz/Axes
-          Enabled: true
+          Enabled: false
           Length: 0.6000000238418579
           Name: Sensor GT
           Radius: 0.05000000074505806
           Reference Frame: os_lidar
           Show Trail: false
-          Value: true
+          Value: false
       Enabled: true
       Name: Input Data
     - Class: rviz/Group
@@ -340,9 +340,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3047979176044464
+      Pitch: 0.5497977137565613
       Target Frame: map
-      Yaw: 0.20361179113388062
+      Yaw: 0.1336122751235962
     Saved: ~
 Window Geometry:
   Displays:

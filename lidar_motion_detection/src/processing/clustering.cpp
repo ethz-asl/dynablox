@@ -16,6 +16,7 @@ void Clustering::Config::checkParams() const {
 void Clustering::Config::setupParamsAndPrinting() {
   setupParam("min_cluster_size", &min_cluster_size);
   setupParam("max_cluster_size", &max_cluster_size);
+  setupParam("grow_clusters_twice", &grow_clusters_twice);
   setupParam("neighbor_connectivity", &neighbor_connectivity);
 }
 
@@ -105,7 +106,8 @@ bool Clustering::growCluster(const voxblox::VoxelKey& seed,
       // growing if it is ever-free.
       if (!neighbor_voxel.clustering_processed &&
           neighbor_voxel.last_lidar_occupied == frame_counter) {
-        if (neighbor_voxel.ever_free) {
+        if (neighbor_voxel.ever_free ||
+            (tsdf_voxel.ever_free && config_.grow_clusters_twice)) {
           stack.push_back(neighbor_key);
         } else {
           // Add voxel to cluster.
