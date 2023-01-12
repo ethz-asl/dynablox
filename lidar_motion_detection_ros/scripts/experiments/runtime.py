@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 # doals_nodrift_inf, doals_nodrift_20m
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift_tracking"
+DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 OUTPUT_DIR = "/home/lukas/Documents/motion_detection/runtime"
@@ -21,19 +21,19 @@ def main():
     print_names = True
     print_std = True
     print_latex = False
-    plot = False  # True: Plot, False:
+    plot = True  # True: Plot, False:
 
     # Run.
     print_overall = print_by == 'sequence'
     data, names = read_data()  # data[bag_id][timer][metric]
     if plot:
-        plot_timings(data, names)
+        plot_timings(data)
     else:
         table(data, names, metrics, key, print_by, print_names, print_std,
               print_latex, print_overall)
 
 
-def plot_timings(data, names):
+def plot_timings(data):
     plt.figure(figsize=(10, 5))
     # Setup.
     key_names = [

@@ -14,14 +14,14 @@ OUTPUT_DIR = "/home/lukas/Documents/motion_detection/range_analysis"
 def main():
     # Plot config.
     metrics = ['iou', 'precision', 'recall']
-    max_range = 20  # m, Max Distance: 33.28m, 95.61% within 20m
+    max_range = 50  # m, Max Distance: 172.732, 82.48% within 20m, 93.30% in 30
 
     # Data
     data, names = read_data()  # data [bag_id][TP/TN/FP/FN]
 
     # Analysis if needed.
     if False:
-        considered_range = 20  # m,
+        considered_range = 25  # m,
         analyze_distances(data, considered_range)
         return
 

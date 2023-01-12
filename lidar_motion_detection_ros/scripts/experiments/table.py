@@ -5,7 +5,7 @@ import numpy as np
 from plotting_tools import read_plot_data_csv, verify_data, get_grid
 
 # doals_nodrift_20m, doals_nodrift_inf, doals_nodrift_20m_inf_eval
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift_20m"
+DATA_PATH = "/media/lukas/T7/data/old/doals_nodrift_20m_old"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 
@@ -26,6 +26,7 @@ def main():
     print_nan = True
     print_latex = False
     print_overall = True
+
 
     # Run.
     table(metrics, print_names, print_std, print_nan, print_latex,

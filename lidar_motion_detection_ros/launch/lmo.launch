@@ -2,7 +2,7 @@
 
 <launch>
   <!-- Dataset -->
-  <arg name="bag_file" default="/media/lukas/T7/Datasets/LMO/2021-07-28-17-19-57_fastlio.bag" />
+  <arg name="bag_file" default="/media/lukas/T7/Datasets/LMO/2021-07-28-17-31-52-001.bag" />
   <arg name="player_rate" default="0.5" /> <!-- 0.3 -->
   
   <!-- Motion Detector -->
