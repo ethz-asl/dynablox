@@ -77,7 +77,7 @@ Visualization Manager:
           Color: 0; 0; 0
           Color Transformer: FlatColor
           Decay Time: 0
-          Enabled: true
+          Enabled: false
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Min Color: 0; 0; 0
@@ -88,11 +88,11 @@ Visualization Manager:
           Size (Pixels): 1
           Size (m): 0.009999999776482582
           Style: Points
-          Topic: /os_cloud_node/points
+          Topic: /lidar_undistortion/pointcloud_corrected
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
-          Value: true
+          Value: false
         - Alpha: 1
           Class: rviz/Axes
           Enabled: true
@@ -217,7 +217,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/lidar_pose
               Name: Lidar Pose
               Namespaces:
-                {}
+                "": true
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -281,7 +281,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/object/dynamic
               Name: Dynamic
               Namespaces:
-                {}
+                "": true
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -289,7 +289,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/object/static
               Name: Static
               Namespaces:
-                {}
+                "": true
               Queue Size: 100
               Value: true
           Enabled: true
@@ -340,9 +340,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3797977566719055
+      Pitch: 0.3047979176044464
       Target Frame: map
-      Yaw: 6.121796131134033
+      Yaw: 0.20361179113388062
     Saved: ~
 Window Geometry:
   Displays:

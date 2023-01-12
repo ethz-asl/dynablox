@@ -28,7 +28,7 @@ clustering:
 # Tracking.
 tracking:
   use_tracking: true
-  min_track_duration: 2 # frames
+  min_track_duration: 0 # frames
   max_tracking_distance: 1  # m
   
 # Evaluation.

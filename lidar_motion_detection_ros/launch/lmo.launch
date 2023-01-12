@@ -2,19 +2,19 @@
 
 <launch>
   <!-- Dataset -->
-  <arg name="bag_file" default="/media/lukas/T7/Datasets/LMO/2021-07-28-17-31-52-001.bag" />
+  <arg name="bag_file" default="/media/lukas/T7/Datasets/LMO/ramp_3.bag" />
+  <!-- hg_1, hg_2, indoor_1, ramp_1, ramp_2, ramp_3, ramp_4, stairs_1 -->
   <arg name="player_rate" default="0.5" /> <!-- 0.3 -->
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/lmo.yaml" />
   
   
-  
   <!-- Run Nodes -->
   <param name="use_sim_time" value="true" />
 
   <!-- Play the bag -->
-  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg bag_file) -d 1" /> 
+  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg bag_file) -d 1 -s 1.5" /> 
    
   <!-- Lidar Undistortion -->
   <node name="lidar_undistortion" pkg="lidar_undistortion" type="lidar_undistortion_node">
