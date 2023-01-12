@@ -24,12 +24,11 @@ clustering:
   min_cluster_size: 20
   max_cluster_size: 20000
   neighbor_connectivity: 6
-  grow_clusters_twice: false
+  grow_clusters_twice: true
   
 # Tracking.
 tracking:
-  use_tracking: true
-  min_track_duration: 2 # frames
+  min_track_duration: 0 # frames
   max_tracking_distance: 1  # m
   
 # Evaluation.
@@ -46,6 +45,7 @@ evaluation:
 visualization:
   static_point_color: [0,0,0,1]
   dynamic_point_color: [1,0,0.5,1]
+  out_of_bounds_color: [0,0,0,0.1]
   static_point_scale: 0.03
   dynamic_point_scale: 0.08
   sensor_scale: 0.5

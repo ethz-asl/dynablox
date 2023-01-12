@@ -10,11 +10,8 @@ class Tracking {
  public:
   // Config.
   struct Config : public config_utilities::Config<Config> {
-    // If false just skip this step.
-    bool use_tracking = true;
-
     // Numbers of frames a cluster needs to be tracked to be considered dynamic.
-    int min_track_duration = 3;
+    int min_track_duration = 0;
 
     // Maximum distance a cluster may have moved to be considered a track [m].
     float max_tracking_distance = 1.f;

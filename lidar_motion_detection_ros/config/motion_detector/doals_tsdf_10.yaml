@@ -14,9 +14,9 @@ preprocessing:
 # Ever-Free Integration.
 ever_free_integrator:
   counter_to_reset: 150 # Observations to un-free an ever-free voxel [frames]
-  temporal_buffer: 0   # To compensate sparsity [frames].
+  temporal_buffer: 2   # To compensate sparsity [frames].
   burn_in_period: 5   # Burn in before becoming ever-free [frames].
-  tsdf_occupancy_threshold: 0.3 # 1.5 voxel sizes.
+  tsdf_occupancy_threshold: 0.15 # 1.5 voxel sizes.
   neighbor_connectivity: 18
   
 # Clustering.
@@ -24,11 +24,11 @@ clustering:
   min_cluster_size: 20
   max_cluster_size: 20000
   neighbor_connectivity: 6
+  grow_clusters_twice: false
   
 # Tracking.
 tracking:
-  use_tracking: true
-  min_track_duration: 2 # frames
+  min_track_duration: 0 # frames
   max_tracking_distance: 1  # m
   
 # Evaluation.
@@ -45,6 +45,7 @@ evaluation:
 visualization:
   static_point_color: [0,0,0,1]
   dynamic_point_color: [1,0,0.5,1]
+  out_of_bounds_color: [0,0,0,0.1]
   static_point_scale: 0.03
   dynamic_point_scale: 0.08
   sensor_scale: 0.5
@@ -54,8 +55,8 @@ visualization:
 # Voxblox parameters.
 voxblox:
   # SDF.
-  tsdf_voxel_size: 0.2
-  truncation_distance: 0.4
+  tsdf_voxel_size: 0.1
+  truncation_distance: 0.2
   tsdf_voxels_per_side: 16
   max_weight: 1000
   
