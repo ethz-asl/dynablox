@@ -125,7 +125,7 @@ class MotionDetector {
       CloudInfo& cloud_info) const;
 
   /**
-   * @brief Currently simply marks dynamic points as
+   * @brief Currently simply marks dynamic points as filtered_out. TODO: why?
    *
    * @param cloud_info Cloud info to be processed.
    */

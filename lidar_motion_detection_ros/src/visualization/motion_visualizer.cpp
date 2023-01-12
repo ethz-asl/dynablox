@@ -195,8 +195,12 @@ void MotionVisualizer::visualizePointDetections(const Cloud& cloud,
   }
 
   // Get all points.
-  size_t i = 0;
+  int i = -1;
   for (const auto& point : cloud.points) {
+    ++i;
+    if (cloud_info.points[i].filtered_out) {
+      continue;
+    }
     if (cloud_info.points[i].ever_free_level_dynamic) {
       if (!dynamic) {
         continue;
@@ -216,7 +220,6 @@ void MotionVisualizer::visualizePointDetections(const Cloud& cloud,
       point_msg.z = point.z;
       result_comp.points.push_back(point_msg);
     }
-    ++i;
   }
   if (!result.points.empty()) {
     detection_points_pub_.publish(result);
@@ -290,6 +293,9 @@ void MotionVisualizer::visualizeClusterDetections(const Cloud& cloud,
     }
     ++i;
     for (int index : cluster.points) {
+      if (cloud_info.points[index].filtered_out) {
+        continue;
+      }
       const pcl::PointXYZ& point = cloud[index];
       geometry_msgs::Point point_msg;
       point_msg.x = point.x;
@@ -304,7 +310,8 @@ void MotionVisualizer::visualizeClusterDetections(const Cloud& cloud,
   if (comp) {
     size_t i = 0;
     for (const auto& point : cloud.points) {
-      if (!cloud_info.points[i].cluster_level_dynamic) {
+      if (!cloud_info.points[i].cluster_level_dynamic ||
+          cloud_info.points[i].filtered_out) {
         geometry_msgs::Point point_msg;
         point_msg.x = point.x;
         point_msg.y = point.y;
@@ -355,7 +362,6 @@ void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
 
   if (comp) {
     result_comp.points.reserve(cloud.points.size());
-
     // Common properties.
     result_comp.action = visualization_msgs::Marker::ADD;
     result_comp.id = 0;
@@ -373,8 +379,6 @@ void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
 
   // Get all cluster points.
   int i = 0;
-  if (config_.color_clusters) {
-  }
   for (const Cluster& cluster : clusters) {
     if (!cluster.valid) {
       continue;
@@ -395,6 +399,9 @@ void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
     ++i;
 
     for (int index : cluster.points) {
+      if (cloud_info.points[index].filtered_out) {
+        continue;
+      }
       const pcl::PointXYZ& point = cloud[index];
       geometry_msgs::Point point_msg;
       point_msg.x = point.x;
@@ -409,7 +416,8 @@ void MotionVisualizer::visualizeObjectDetections(const Cloud& cloud,
   if (comp) {
     size_t i = 0;
     for (const auto& point : cloud.points) {
-      if (!cloud_info.points[i].cluster_level_dynamic) {
+      if (!cloud_info.points[i].object_level_dynamic ||
+          cloud_info.points[i].filtered_out) {
         geometry_msgs::Point point_msg;
         point_msg.x = point.x;
         point_msg.y = point.y;

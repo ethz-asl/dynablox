@@ -226,11 +226,11 @@ bool MotionDetector::lookupTransform(const std::string& target_frame,
 }
 
 void MotionDetector::postprocessPointcloud(CloudInfo& cloud_info) {
-  for (auto& point : cloud_info.points) {
-    if (point.cluster_level_dynamic) {
-      point.filtered_out = true;
-    }
-  }
+  // for (auto& point : cloud_info.points) {
+  //   if (point.cluster_level_dynamic) {
+  //     point.filtered_out = true;
+  //   }
+  // }
 }
 
 void MotionDetector::setUpPointMap(
