@@ -8,7 +8,7 @@ shutdown_after: 10  # num evaluations.
   
 # Preprocessing.
 preprocessing:
-  min_range: &min_range 1  # m
+  min_range: &min_range 0.5  # m
   max_range: &max_range 20  # m
 
 # Ever-Free Integration.
@@ -17,14 +17,14 @@ ever_free_integrator:
   temporal_buffer: 2   # To compensate sparsity [frames].
   burn_in_period: 5   # Burn in before becoming ever-free [frames].
   tsdf_occupancy_threshold: 0.3 # 1.5 voxel sizes.
-  neighbor_connectivity: 18
+  neighbor_connectivity: 6
   
 # Clustering.
 clustering:
   min_cluster_size: 20
   max_cluster_size: 20000
   neighbor_connectivity: 6
-  grow_clusters_twice: true
+  grow_clusters_twice: false
   
 # Tracking.
 tracking:
@@ -38,8 +38,7 @@ evaluation:
   evaluate_point_level: true
   evaluate_cluster_level: true
   evaluate_object_level: true
-  evaluate_ranges: true
-  evaluate_range_at_level: cluster # point, cluster, object
+  save_clouds: true
   
 # Visualization.
 visualization:

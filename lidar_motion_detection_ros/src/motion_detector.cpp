@@ -183,7 +183,7 @@ void MotionDetector::pointcloudCallback(
   // Evaluation if requested.
   if (config_.evaluate) {
     Timer eval_timer("evaluation");
-    evaluator_->evaluateFrame(cloud_info);
+    evaluator_->evaluateFrame(cloud, cloud_info);
     eval_timer.Stop();
     if (config_.shutdown_after > 0 &&
         evaluator_->getNumberOfEvaluatedFrames() >= config_.shutdown_after) {

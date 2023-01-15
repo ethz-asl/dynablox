@@ -39,15 +39,15 @@ void GroundTruthHandler::createLookupFromCSV() {
     if (line.empty()) {
       continue;
     }
-    bool first_row = true;
+    bool first_column = true;
     std::uint64_t timestamp;
     std::istringstream iss(line);
     std::string linestream;
     std::vector<int> row;
     while (std::getline(iss, linestream, ',')) {
-      if (first_row) {
+      if (first_column) {
         timestamp = static_cast<uint64_t>(std::stoul(linestream));
-        first_row = false;
+        first_column = false;
       } else {
         row.push_back(std::stoi(linestream));
       }

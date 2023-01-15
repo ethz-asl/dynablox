@@ -358,7 +358,8 @@ void MotionVisualizer::visualizeSlicePoints(const Cloud& cloud,
 }
 
 void MotionVisualizer::visualizeGroundTruth(const Cloud& cloud,
-                                            const CloudInfo& cloud_info) const {
+                                            const CloudInfo& cloud_info,
+                                            const std::string& ns) const {
   if (!cloud_info.has_labels) {
     return;
   }
@@ -367,30 +368,31 @@ void MotionVisualizer::visualizeGroundTruth(const Cloud& cloud,
     visualizeGroundTruthAtLevel(
         cloud, cloud_info,
         [](const PointInfo& point) { return point.ever_free_level_dynamic; },
-        gt_point_pub_);
+        gt_point_pub_, ns);
   }
   if (gt_cluster_pub_.getNumSubscribers() > 0) {
     visualizeGroundTruthAtLevel(
         cloud, cloud_info,
         [](const PointInfo& point) { return point.cluster_level_dynamic; },
-        gt_cluster_pub_);
+        gt_cluster_pub_, ns);
   }
   if (gt_object_pub_.getNumSubscribers() > 0) {
     visualizeGroundTruthAtLevel(
         cloud, cloud_info,
         [](const PointInfo& point) { return point.object_level_dynamic; },
-        gt_object_pub_);
+        gt_object_pub_, ns);
   }
 }
 
 void MotionVisualizer::visualizeGroundTruthAtLevel(
     const Cloud& cloud, const CloudInfo& cloud_info,
     const std::function<bool(const PointInfo&)>& check_level,
-    const ros::Publisher& pub) const {
+    const ros::Publisher& pub, const std::string& ns) const {
   // Common properties.
   visualization_msgs::Marker result;
   result.action = visualization_msgs::Marker::ADD;
   result.id = 0;
+  result.ns = ns;
   result.header.stamp = ros::Time::now();
   result.header.frame_id = config_.global_frame_name;
   result.type = visualization_msgs::Marker::POINTS;
@@ -403,11 +405,11 @@ void MotionVisualizer::visualizeGroundTruthAtLevel(
   // Get all points.
   size_t i = 0;
   for (const auto& point : cloud.points) {
+    const PointInfo& info = cloud_info.points[i];
     ++i;
     if (point.z > config_.visualization_max_z) {
       continue;
     }
-    const PointInfo& info = cloud_info.points[i];
     if (!info.ready_for_evaluation) {
       comp.points.push_back(setPoint(point));
       comp.colors.push_back(setColor(config_.out_of_bounds_color));
@@ -580,10 +582,10 @@ void MotionVisualizer::visualizeClusterDetections(
     std_msgs::ColorRGBA color;
     if (config_.color_clusters) {
       color = setColor(color_map_.colorLookup(i));
+      ++i;
     } else {
       color = setColor(config_.dynamic_point_color);
     }
-    ++i;
     for (int index : cluster.points) {
       if (cloud_info.points[index].filtered_out ||
           cloud[index].z > config_.visualization_max_z) {

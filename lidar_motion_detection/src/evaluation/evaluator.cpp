@@ -13,7 +13,7 @@
 
 namespace motion_detection {
 
-const std::string Evaluator::ranges_file_name_ = "ranges.csv";
+const std::string Evaluator::clouds_file_name_ = "eval_clouds.csv";
 const std::string Evaluator::scores_file_name_ = "scores.csv";
 const std::string Evaluator::timings_file_name_ = "timings.txt";
 
@@ -22,12 +22,6 @@ void Evaluator::Config::checkParams() const {
   checkParamGE(min_range, 0.f, "min_range");
   checkParamCond(max_range > min_range,
                  "'max_range' must be larger than 'min_range'.");
-  checkParamCond(!evaluate_ranges || evaluate_range_at_level == "point" ||
-                     evaluate_range_at_level == "object" ||
-                     evaluate_range_at_level == "cluster",
-                 "'evaluate_range_at_level' must be 'point', 'cluster', or "
-                 "'object', (is " +
-                     evaluate_range_at_level + ").");
   checkParamConfig(ground_truth_config);
 }
 
@@ -38,8 +32,7 @@ void Evaluator::Config::setupParamsAndPrinting() {
   setupParam("evaluate_point_level", &evaluate_point_level);
   setupParam("evaluate_cluster_level", &evaluate_cluster_level);
   setupParam("evaluate_object_level", &evaluate_object_level);
-  setupParam("evaluate_ranges", &evaluate_ranges);
-  setupParam("evaluate_range_at_level", &evaluate_range_at_level);
+  setupParam("save_clouds", &save_clouds);
   setupParam("ground_truth", &ground_truth_config, "ground_truth");
 }
 
@@ -87,18 +80,26 @@ void Evaluator::setupFiles() {
   writefile.close();
 
   // Initialize ranges.
-  if (config_.evaluate_ranges) {
-    ranges_ = std::vector<std::vector<float>>(4);
+  if (config_.save_clouds) {
+    writefile.open(output_directory_ + "/" + clouds_file_name_,
+                   std::ios::trunc);
+    writefile << "CloudNo,X,Y,Z,Distance,PointDynamic,ClusterDynamic,"
+                 "ObjectDynamic,GTDynamic,ReadyForEvaluation" << std::endl;
+    writefile.close();
   }
 }
 
-void Evaluator::evaluateFrame(CloudInfo& cloud_info) {
+void Evaluator::evaluateFrame(const Cloud& cloud, CloudInfo& cloud_info) {
   // Update the timings every frame.
   writeTimingsToFile();
 
   // If ground truth available, label the cloud and compute the metrics.
   if (ground_truth_handler.labelCloudInfoIfAvailable(cloud_info)) {
     writeScoresToFile(cloud_info);
+     // Evalaute ranges.
+  if (config_.save_clouds) {
+    saveCloud(cloud, cloud_info);
+  }
     gt_frame_counter_++;
     LOG(INFO) << "Evaluated cloud " << gt_frame_counter_ << " with timestamp "
               << cloud_info.timestamp << ".";
@@ -129,57 +130,21 @@ void Evaluator::writeScoresToFile(CloudInfo& cloud_info) {
   // Number of evaluated points.
   writefile << "," << evaluated_points << "," << cloud_info.points.size()
             << std::endl;
-
-  // Evalaute ranges.
-  if (config_.evaluate_ranges) {
-    evaluateRanges(cloud_info);
-  }
 }
 
-void Evaluator::evaluateRanges(const CloudInfo& cloud_info) {
+void Evaluator::saveCloud(const Cloud& cloud, const CloudInfo& cloud_info) {
   // Overwrite all ranges at each iteration with the collected data.
   std::ofstream writefile;
-  writefile.open(output_directory_ + "/" + ranges_file_name_, std::ios::trunc);
-
-  std::function<bool(const PointInfo&)> check_level =
-      getCheckLevelFunction(config_.evaluate_range_at_level);
+  writefile.open(output_directory_ + "/" + clouds_file_name_, std::ios::app);
 
   // Add all new data to the database.
-  for (const PointInfo& point : cloud_info.points) {
-    if (!point.ready_for_evaluation) {
-      continue;
-    }
-    const bool is_dynamic = check_level(point);
-    if (is_dynamic && point.ground_truth_dynamic) {
-      ranges_[0].push_back(point.distance_to_sensor);
-    } else if (is_dynamic && !point.ground_truth_dynamic) {
-      ranges_[1].push_back(point.distance_to_sensor);
-    } else if (!is_dynamic && !point.ground_truth_dynamic) {
-      ranges_[2].push_back(point.distance_to_sensor);
-    } else if (!is_dynamic && point.ground_truth_dynamic) {
-      ranges_[3].push_back(point.distance_to_sensor);
-    }
-  }
+  size_t i = 0;
+  for (const pcl::PointXYZ& point : cloud) {
+    const PointInfo& info = cloud_info.points.at(i);
+    ++i;
 
-  // Write to file.
-  writefile << "TP";
-  for (float tp : ranges_[0]) {
-    writefile << "," << tp;
+    writefile << gt_frame_counter_ << "," << point.x << "," << point.y << "," << point.z << "," << info.distance_to_sensor << "," << info.ever_free_level_dynamic << "," << info.cluster_level_dynamic << "," << info.object_level_dynamic << "," << info.ground_truth_dynamic << "," << info.ready_for_evaluation << std::endl;
   }
-  writefile << "\nFP";
-  for (float fp : ranges_[1]) {
-    writefile << "," << fp;
-  }
-  writefile << "\nTN";
-  for (float tn : ranges_[2]) {
-    writefile << "," << tn;
-  }
-  writefile << "\nFN";
-  for (float fn : ranges_[3]) {
-    writefile << "," << fn;
-  }
-  writefile << "\n";
-
   writefile.close();
 }
 

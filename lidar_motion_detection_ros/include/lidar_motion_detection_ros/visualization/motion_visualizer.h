@@ -85,8 +85,8 @@ class MotionVisualizer {
   void visualizeObjectDetections(const Cloud& cloud,
                                  const CloudInfo& cloud_info,
                                  const Clusters& clusters) const;
-  void visualizeGroundTruth(const Cloud& cloud,
-                            const CloudInfo& cloud_info) const;
+  void visualizeGroundTruth(const Cloud& cloud, const CloudInfo& cloud_info,
+                            const std::string& ns = "") const;
   void visualizeMesh() const;
   void visualizeEverFree() const;
   void visualizeEverFreeSlice() const;
@@ -133,7 +133,7 @@ class MotionVisualizer {
   void visualizeGroundTruthAtLevel(
       const Cloud& cloud, const CloudInfo& cloud_info,
       const std::function<bool(const PointInfo&)>& check_level,
-      const ros::Publisher& pub) const;
+      const ros::Publisher& pub, const std::string& ns) const;
 };
 
 }  // namespace motion_detection

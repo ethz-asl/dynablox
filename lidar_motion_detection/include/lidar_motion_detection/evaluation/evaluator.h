@@ -31,11 +31,8 @@ class Evaluator {
     bool evaluate_cluster_level = true;
     bool evaluate_object_level = true;
 
-    // If ranges are evaluated they are evaluated at cluster level.
-    bool evaluate_ranges = true;
-
-    // At which detection level to evaluate the range [point, clsuter, object].
-    std::string evaluate_range_at_level = "cluster";
+    // Save the data of all evaluated clouds. Off by default to save space.
+    bool save_clouds = false;
 
     // Config for the ground truth handler.
     GroundTruthHandler::Config ground_truth_config;
@@ -60,9 +57,10 @@ class Evaluator {
    * @brief If ground truth is available, lable the cloud, compute metrics, and
    * write them to the output. Always update the timing infomation.
    *
+   * @param cloud Point cloud to be evaluated.
    * @param cloud_info Cloud info to be evaluated.
    */
-  void evaluateFrame(CloudInfo& cloud_info);
+  void evaluateFrame(const Cloud& cloud, CloudInfo& cloud_info);
 
   /**
    * @brief Update the timing information by overwriting the output file with
@@ -79,11 +77,13 @@ class Evaluator {
   void writeScoresToFile(CloudInfo& cloud_info);
 
   /**
-   * @brief Note down the ranges of true and false positives or negatives.
+   * @brief Save the coordinates and additional info of the evaluated cloud to
+   * file.
    *
-   * @param cloud_info Cloud info to be evaluated.
+   * @param cloud Point cloud to be saved.
+   * @param cloud_info Corresponding cloud info for evaluation.
    */
-  void evaluateRanges(const CloudInfo& cloud_info);
+  void saveCloud(const Cloud& cloud, const CloudInfo& cloud_info);
 
   /**
    * @brief Mark only relevant points for evaluation.
@@ -121,14 +121,13 @@ class Evaluator {
   std::string output_directory_;
   std::vector<std::string> evaluated_levels_;
   int gt_frame_counter_ = 0;
-  std::vector<std::vector<float>> ranges_;  // TP, FP, TN, FN
 
   // Helper Functions.
   static std::function<bool(const PointInfo&)> getCheckLevelFunction(
       const std::string& level);
 
   // Names of the created files.
-  static const std::string ranges_file_name_;
+  static const std::string clouds_file_name_;
   static const std::string scores_file_name_;
   static const std::string timings_file_name_;
 };

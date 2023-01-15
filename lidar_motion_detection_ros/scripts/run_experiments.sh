@@ -44,26 +44,27 @@ function run_experiments() {
 
 
 # General params.
-data_path="/home/voliro/data"
-player_rate="1"
+data_path="/media/lukas/T7/Datasets/DOALS"
+player_rate="0.5"
 
 # Data to run.
 scenes=(hauptgebaeude niederdorf station shopville) # hauptgebaeude niederdorf station shopville
 sequences=(1 2) # 1 2
-drift_intensities=(none light moderate strong severe)
+drift_intensities=(none) # none light moderate strong severe)
 drift_rollouts=(1 2 3)  # 1 2 3
 
 # Method to run.
 config_file="motion_detector/doals.yaml"
 counter_to_reset=150  # 10000, 150, 50, 40, 15
-output_path="/media/lukas/T7/data/doals_nodrift_tracking"
+output_path="/media/lukas/T7/data/clouds_20m"
 
 # ====== Run Experiments ======
-vals=(10000 150 50 40 15)
-for v in "${vals[@]}" 
-do
-  output_path="/media/lukas/T7/data/doasl_drift/$v"
-  counter_to_reset=$v
-  run_experiments
-done
+run_experiments
+#vals=(10000 150 50 40 15)
+#for v in "${vals[@]}" 
+#do
+#  output_path="/media/lukas/T7/data/doasl_drift/$v"
+#  counter_to_reset=$v
+#  run_experiments
+#done
 

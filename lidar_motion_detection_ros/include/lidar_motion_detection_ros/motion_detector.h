@@ -71,7 +71,6 @@ class MotionDetector {
 
   // Callbacks.
   void pointcloudCallback(const sensor_msgs::PointCloud2::Ptr& msg);
-  void shutdownTimerCallback(const ros::WallTimerEvent& /** e */);
 
   // Motion detection pipeline.
   bool lookupTransform(const std::string& target_frame,

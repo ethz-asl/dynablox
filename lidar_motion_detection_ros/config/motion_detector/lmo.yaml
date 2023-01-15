@@ -1,7 +1,6 @@
 # ----------- Motion detector parameters --------
 # General.
-#evaluate: true # Set by launch file
-#visualize: true
+evaluate: false
 #num_threads: 1  # uses hardware concurrency if left empty.
 queue_size: 10
 shutdown_after: 10  # num evaluations.
@@ -31,16 +30,6 @@ tracking:
   use_tracking: true
   min_track_duration: 0 # frames
   max_tracking_distance: 1  # m
-  
-# Evaluation.
-evaluation:
-  min_range: *min_range  # m
-  max_range: *max_range  # m
-  evaluate_point_level: true
-  evaluate_cluster_level: true
-  evaluate_object_level: true
-  evaluate_ranges: true
-  evaluate_range_at_level: cluster # point, cluster, object
   
 # Visualization.
 visualization:
