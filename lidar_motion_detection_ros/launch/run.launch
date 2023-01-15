@@ -2,7 +2,7 @@
 
 <launch>
   <!-- Dataset -->
-  <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/niederdorf/sequence_1/bag.bag" />
+  <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/bag.bag" />  <!-- hauptgebaeude niederdorf station shopville -->
   <arg name="player_rate" default="0.3" /> <!-- 0.3 -->
   <arg name="lidar_name" default="os1" /> <!-- doals: os1, lmo: os -->
   

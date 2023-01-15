@@ -146,10 +146,9 @@ void MotionDetector::pointcloudCallback(
   preprocessing_timer.Stop();
 
   // Build a mapping of all blocks to voxels to points for the scan.
+  Timer setup_timer("motion_detection/indexing_setup");
   BlockToPointMap point_map;
   std::vector<voxblox::VoxelKey> occupied_ever_free_voxel_indices;
-
-  Timer setup_timer("motion_detection/indexing_setup");
   setUpPointMap(cloud, point_map, occupied_ever_free_voxel_indices, cloud_info);
   setup_timer.Stop();
 
