@@ -35,6 +35,10 @@ class MotionVisualizer {
     std::vector<float> true_negative_color = {0.f, 0.f, 0.f, 1.f};
     std::vector<float> false_negative_color = {0.f, 0.f, 1.f, 1.f};
     std::vector<float> out_of_bounds_color = {.7f, .7f, .7f, 1.f};
+    std::vector<float> ever_free_color = {1.f, 0.f, 1.f, .1f};
+    std::vector<float> never_free_color = {0.f, 1.f, 1.f, .1f};
+    std::vector<float> point_level_slice_color = {1.f, 0.f, 1.f, 1.f};
+    std::vector<float> cluster_level_slice_color = {0.f, 1.f, 1.f, 1.f};
 
     // Scales of pointcloud [m].
     float static_point_scale = 0.1f;
@@ -48,6 +52,12 @@ class MotionVisualizer {
     // dynamic.
     bool color_clusters = true;
 
+    // Height in map frame of the slice being visualized [m].
+    float slice_height = 1;
+
+    // Crop all visualizations at this height for better visibility.
+    float visualization_max_z = 10000.f;
+
     Config() { setConfigName("MotionVisualizer"); }
 
    protected:
@@ -58,8 +68,7 @@ class MotionVisualizer {
   };
 
   // Setup.
-  MotionVisualizer(ros::NodeHandle nh,
-                   std::shared_ptr<voxblox::TsdfServer> tsdf_server);
+  MotionVisualizer(ros::NodeHandle nh, std::shared_ptr<TsdfLayer> tsdf_layer);
 
   void setupRos();
 
@@ -79,18 +88,24 @@ class MotionVisualizer {
   void visualizeGroundTruth(const Cloud& cloud,
                             const CloudInfo& cloud_info) const;
   void visualizeMesh() const;
+  void visualizeEverFree() const;
+  void visualizeEverFreeSlice() const;
+  void visualizeTsdfSlice() const;
+  void visualizeSlicePoints(const Cloud& cloud,
+                            const CloudInfo& cloud_info) const;
 
   // ROS msg helper tools.
   static geometry_msgs::Vector3 setScale(const float scale);
   static std_msgs::ColorRGBA setColor(const std::vector<float>& color);
   static std_msgs::ColorRGBA setColor(const voxblox::Color& color);
   static geometry_msgs::Point setPoint(const pcl::PointXYZ& point);
+  static geometry_msgs::Point setPoint(const voxblox::Point& point);
 
  private:
   const Config config_;
   voxblox::ExponentialOffsetIdColorMap color_map_;
   ros::NodeHandle nh_;
-  std::shared_ptr<voxblox::TsdfServer> tsdf_server_;
+  std::shared_ptr<TsdfLayer> tsdf_layer_;
   std::shared_ptr<voxblox::MeshIntegrator<TsdfVoxel>> mesh_integrator_;
   std::shared_ptr<voxblox::MeshLayer> mesh_layer_;
 
@@ -108,6 +123,10 @@ class MotionVisualizer {
   ros::Publisher gt_object_pub_;
   ros::Publisher ever_free_pub_;
   ros::Publisher never_free_pub_;
+  ros::Publisher ever_free_slice_pub_;
+  ros::Publisher never_free_slice_pub_;
+  ros::Publisher tsdf_slice_pub_;
+  ros::Publisher point_slice_pub_;
   ros::Publisher mesh_pub_;
 
   // Helper functions.

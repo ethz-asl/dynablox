@@ -32,7 +32,7 @@ Clusters Clustering::performClustering(
     const ClusterIndices& occupied_ever_free_voxel_indices,
     const int frame_counter, CloudInfo& cloud_info) const {
   // Cluster all occupied voxels.
-  std::vector<ClusterIndices> voxel_cluster_indices =
+  const std::vector<ClusterIndices> voxel_cluster_indices =
       voxelClustering(occupied_ever_free_voxel_indices, frame_counter);
 
   // Group points into clusters.

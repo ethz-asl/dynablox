@@ -8,7 +8,7 @@ shutdown_after: 10  # num evaluations.
   
 # Preprocessing.
 preprocessing:
-  min_range: &min_range 1  # m
+  min_range: &min_range 0.5  # m
   max_range: &max_range 20  # m
 
 # Ever-Free Integration.
@@ -46,11 +46,15 @@ evaluation:
 visualization:
   static_point_color: [0,0,0,1]
   dynamic_point_color: [1,0,0.5,1]
+  ever_free_color: [1, 0, 1, 0.25]
+  never_free_color: [0, 1, 1, 0.25]
   static_point_scale: 0.02
   dynamic_point_scale: 0.05
   sensor_scale: 0.5
   color_clusters: true
   color_wheel_num_colors: 20
+  slice_height: -1
+  visualization_max_z: 100
   
 # Voxblox parameters.
 voxblox:

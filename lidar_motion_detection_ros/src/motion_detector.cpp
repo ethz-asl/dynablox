@@ -109,16 +109,12 @@ void MotionDetector::setupMembers() {
 
   // Visualization.
   visualizer_ = std::make_shared<MotionVisualizer>(
-      ros::NodeHandle(nh_private_, "visualization"), tsdf_server_);
+      ros::NodeHandle(nh_private_, "visualization"), tsdf_layer_);
 }
 
 void MotionDetector::setupRos() {
   lidar_pcl_sub_ = nh_.subscribe("pointcloud", config_.queue_size,
                                  &MotionDetector::pointcloudCallback, this);
-
-  pointcloud_without_detections_pub_ =
-      nh_private_.advertise<sensor_msgs::PointCloud2>(
-          "pointcloud_without_detections", 1, true);
 }
 
 void MotionDetector::pointcloudCallback(

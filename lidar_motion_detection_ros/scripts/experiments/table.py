@@ -5,7 +5,7 @@ import numpy as np
 from plotting_tools import read_plot_data_csv, verify_data, get_grid
 
 # doals_nodrift_20m, doals_nodrift_inf
-DATA_PATH = "/media/lukas/T7/data/doals_cluster_twice_inf"
+DATA_PATH = "/media/lukas/T7/data/ablations/doals_26neighbors"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 
@@ -15,10 +15,7 @@ def main():
     # timestamp	point_IoU	point_Precision	point_Recall	point_TP	point_TN	point_FP	point_FN	cluster_IoU	cluster_Precision	cluster_Recall	cluster_TP	cluster_TN	cluster_FP	cluster_FN	object_IoU	object_Precision	object_Recall	object_TP	object_TN	object_FP	object_FN	EvaluatedPoints	TotalPoints
 
     # Metrics
-    metrics = [
-        'cluster_IoU', 'cluster_Precision', 'cluster_Recall', 'object_IoU',
-        'object_Precision', 'object_Recall'
-    ]
+    metrics = ['cluster_IoU', 'cluster_Precision', 'cluster_Recall']
 
     # Print configuration
     print_names = True
@@ -26,7 +23,6 @@ def main():
     print_nan = True
     print_mode = 'csv'
     print_overall = True
-
 
     # Run.
     table(metrics, print_names, print_std, print_nan, print_mode,
@@ -73,7 +69,7 @@ def table(metrics,
                 msg = msg + f",{np.nanstd(results):.1f}"
             else:
                 msg = msg + f" +- {np.nanstd(results):.1f}"
-            
+
         if print_nan and nans > 0:
             msg = msg + f" ({nans})"
         return msg
