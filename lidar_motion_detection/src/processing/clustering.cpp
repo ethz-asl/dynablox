@@ -153,15 +153,17 @@ Clusters Clustering::inducePointClusters(
 }
 
 void Clustering::applyClusterLevelFilters(Clusters& candidates) const {
-  candidates.erase(
-      std::remove_if(candidates.begin(), candidates.end(),
-                     [this](const Cluster& cluster) {
-                       const int cluster_size =
-                           static_cast<int>(cluster.points.size());
-                       return cluster_size < config_.min_cluster_size ||
-                              cluster_size > config_.max_cluster_size;
-                     }),
-      candidates.end());
+  candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
+                                  [this](const Cluster& cluster) {
+                                    return filterCluster(cluster);
+                                  }),
+                   candidates.end());
+}
+
+bool Clustering::filterCluster(const Cluster& cluster) const {
+  const int cluster_size = static_cast<int>(cluster.points.size());
+  return cluster_size < config_.min_cluster_size ||
+         cluster_size > config_.max_cluster_size;
 }
 
 void Clustering::setClusterLevelDynamicFlagOfallPoints(

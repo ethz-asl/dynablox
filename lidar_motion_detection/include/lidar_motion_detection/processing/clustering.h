@@ -26,9 +26,9 @@ class Clustering {
  public:
   // Config.
   struct Config : public config_utilities::Config<Config> {
-    // Filter out smaller or larger clusters than specified.
+    // Filter out clusters with too few or many points.
     int min_cluster_size = 20;
-    int max_cluster_size = 20000;
+    int max_cluster_size = 2000;
 
     // Connectivity used when clustering voxels. (6, 18, 26)
     int neighbor_connectivity = 6;
@@ -108,6 +108,14 @@ class Clustering {
    * @param candidates list of clusters that will be filtered.
    */
   void applyClusterLevelFilters(Clusters& candidates) const;
+
+/**
+ * @brief Check filters for an inidividual cluster.
+ * 
+ * @param cluster Cluster to check.
+ * @return True if the cluster was filtered out.
+ */
+  bool filterCluster(const Cluster& cluster) const;
 
   /**
    * @brief Sets dynamic flag on point level (includes points belonging to
