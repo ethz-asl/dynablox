@@ -143,7 +143,7 @@ void Evaluator::saveCloud(const Cloud& cloud, const CloudInfo& cloud_info) {
     const PointInfo& info = cloud_info.points.at(i);
     ++i;
 
-    writefile << gt_frame_counter_ << "," << point.x << "," << point.y << "," << point.z << "," << info.distance_to_sensor << "," << info.ever_free_level_dynamic << "," << info.cluster_level_dynamic << "," << info.object_level_dynamic << "," << info.ground_truth_dynamic << "," << info.ready_for_evaluation << std::endl;
+    writefile << gt_frame_counter_ << "," << point.x << "," << point.y << "," << point.z << "," << info.distance_to_sensor << "," << info.ever_free_level_dynamic << "," << info.cluster_level_dynamic << "," << info.object_level_dynamic << "," << info.ground_truth_dynamic << "," << info.ready_for_evaluation << "\n";
   }
   writefile.close();
 }
