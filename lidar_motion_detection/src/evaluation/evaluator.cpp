@@ -139,7 +139,7 @@ void Evaluator::saveCloud(const Cloud& cloud, const CloudInfo& cloud_info) {
 
   // Add all new data to the database.
   size_t i = 0;
-  for (const pcl::PointXYZ& point : cloud) {
+  for (const Point& point : cloud) {
     const PointInfo& info = cloud_info.points.at(i);
     ++i;
 

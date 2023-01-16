@@ -1,6 +1,7 @@
 #ifndef LIDAR_MOTION_DETECTION_COMMON_TYPES_H_
 #define LIDAR_MOTION_DETECTION_COMMON_TYPES_H_
 
+#include <utility>
 #include <vector>
 
 #include <pcl_ros/point_cloud.h>
@@ -11,7 +12,8 @@
 
 namespace motion_detection {
 
-using Cloud = pcl::PointCloud<pcl::PointXYZ>;
+using Point = pcl::PointXYZ;
+using Cloud = pcl::PointCloud<Point>;
 
 using VoxelIndex = voxblox::VoxelIndex;
 using BlockIndex = voxblox::BlockIndex;
@@ -47,7 +49,7 @@ struct PointInfo {
 struct CloudInfo {
   bool has_labels = false;
   std::uint64_t timestamp;
-  pcl::PointXYZ sensor_position;
+  Point sensor_position;
   std::vector<PointInfo> points;
 };
 
@@ -62,8 +64,10 @@ struct Cluster {
   int id = -1;           // ID of the cluster set during tracking.
   int track_length = 0;  // Frames this cluster has been tracked.
   bool valid = false;
+  std::pair<Point, Point> aabb;  // Axis-aligned bounding box of the cluster
+                                 // (min corner, max corner).
   std::vector<int>
-      points;  // indices of points in cloud belonging to this cluster.
+      points;  // Indices of points in cloud belonging to this cluster.
 };
 
 using Clusters = std::vector<Cluster>;

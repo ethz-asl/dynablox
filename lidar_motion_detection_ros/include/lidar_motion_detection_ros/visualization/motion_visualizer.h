@@ -98,7 +98,7 @@ class MotionVisualizer {
   static geometry_msgs::Vector3 setScale(const float scale);
   static std_msgs::ColorRGBA setColor(const std::vector<float>& color);
   static std_msgs::ColorRGBA setColor(const voxblox::Color& color);
-  static geometry_msgs::Point setPoint(const pcl::PointXYZ& point);
+  static geometry_msgs::Point setPoint(const Point& point);
   static geometry_msgs::Point setPoint(const voxblox::Point& point);
 
  private:

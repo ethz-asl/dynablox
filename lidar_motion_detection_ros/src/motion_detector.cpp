@@ -266,7 +266,7 @@ void MotionDetector::setUpPointMap(
       }
 
       // After processing is done add data to the output map.
-      std::lock_guard lock(aggregate_results_mutex);
+      std::lock_guard<std::mutex> lock(aggregate_results_mutex);
       occupied_ever_free_voxel_indices.insert(
           occupied_ever_free_voxel_indices.end(),
           local_occupied_indices.begin(), local_occupied_indices.end());
@@ -284,7 +284,7 @@ voxblox::HierarchicalIndexIntMap MotionDetector::buildBlockToPointsMap(
   voxblox::HierarchicalIndexIntMap result;
 
   int i = 0;
-  for (const pcl::PointXYZ& point : cloud) {
+  for (const Point& point : cloud) {
     voxblox::Point coord(point.x, point.y, point.z);
     const BlockIndex blockindex =
         tsdf_layer_->computeBlockIndexFromCoordinates(coord);
@@ -308,7 +308,7 @@ void MotionDetector::blockwiseBuildPointMap(
 
   // Create a mapping of each voxel index to the points it contains.
   for (size_t i : points_in_block) {
-    const pcl::PointXYZ& point = cloud[i];
+    const Point& point = cloud[i];
     const voxblox::Point coords(point.x, point.y, point.z);
     const VoxelIndex voxel_index =
         tsdf_block->computeVoxelIndexFromCoordinates(coords);

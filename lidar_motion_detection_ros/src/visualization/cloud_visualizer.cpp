@@ -56,7 +56,7 @@ void CloudVisualizer::readClouds() {
     std::istringstream iss(line);
     std::string linestream;
     size_t item_counter = 0;
-    pcl::PointXYZ* point;
+    Point* point;
     PointInfo* info;
     while (std::getline(iss, linestream, ',')) {
       switch (item_counter) {
@@ -68,7 +68,7 @@ void CloudVisualizer::readClouds() {
             cloud_infos_.back().has_labels = true;
             cloud_counter++;
           }
-          clouds_.back().push_back(pcl::PointXYZ());
+          clouds_.back().push_back(Point());
           point = &clouds_.back().back();
           cloud_infos_.back().points.push_back(PointInfo());
           info = &cloud_infos_.back().points.back();

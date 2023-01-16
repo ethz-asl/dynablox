@@ -738,7 +738,7 @@ std_msgs::ColorRGBA MotionVisualizer::setColor(const voxblox::Color& color) {
   return msg;
 }
 
-geometry_msgs::Point MotionVisualizer::setPoint(const pcl::PointXYZ& point) {
+geometry_msgs::Point MotionVisualizer::setPoint(const Point& point) {
   geometry_msgs::Point msg;
   msg.x = point.x;
   msg.y = point.y;

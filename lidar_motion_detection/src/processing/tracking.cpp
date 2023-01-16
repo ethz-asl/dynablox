@@ -36,7 +36,7 @@ void Tracking::trackClusterIDs(const Cloud& cloud, Clusters& clusters) {
   for (const Cluster& cluster : clusters) {
     voxblox::Point centroid = {0, 0, 0};
     for (int index : cluster.points) {
-      const pcl::PointXYZ& point = cloud[index];
+      const Point& point = cloud[index];
       centroid = centroid + voxblox::Point(point.x, point.y, point.z);
     }
     centroids[i] = centroid / cluster.points.size();

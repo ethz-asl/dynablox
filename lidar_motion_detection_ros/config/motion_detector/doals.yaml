@@ -23,6 +23,7 @@ ever_free_integrator:
 clustering:
   min_cluster_size: 20
   max_cluster_size: 2000
+  max_extent: 5   # m
   neighbor_connectivity: 6
   grow_clusters_twice: true
   

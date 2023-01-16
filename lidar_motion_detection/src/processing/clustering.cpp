@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <pcl/common/distances.h>
+
 namespace motion_detection {
 
 void Clustering::Config::checkParams() const {
@@ -11,11 +13,16 @@ void Clustering::Config::checkParams() const {
   checkParamCond(neighbor_connectivity == 6 || neighbor_connectivity == 18 ||
                      neighbor_connectivity == 26,
                  "'neighbor_connectivity' must be 6, 18, or 26.");
+  checkParamGT(max_extent, 0.f, "max_extent");
+  checkParamCond(max_extent > min_extent,
+                 "'max_extent' must be larger than 'min_extent'.");
 }
 
 void Clustering::Config::setupParamsAndPrinting() {
   setupParam("min_cluster_size", &min_cluster_size);
   setupParam("max_cluster_size", &max_cluster_size);
+  setupParam("min_extent", &min_extent);
+  setupParam("max_extent", &max_extent);
   setupParam("grow_clusters_twice", &grow_clusters_twice);
   setupParam("neighbor_connectivity", &neighbor_connectivity);
 }
@@ -39,6 +46,7 @@ Clusters Clustering::performClustering(
   Clusters clusters = inducePointClusters(point_map, voxel_cluster_indices);
 
   // Apply filters to remove spurious clusters.
+
   applyClusterLevelFilters(clusters);
 
   // Label all remaining points as dynamic.
@@ -152,6 +160,25 @@ Clusters Clustering::inducePointClusters(
   return candidates;
 }
 
+void Clustering::computeAABB(const Cloud& cloud, Cluster& cluster) const {
+  if (cluster.points.empty()) {
+    return;
+  }
+  Point& min = cluster.aabb.first;
+  Point& max = cluster.aabb.second;
+  min = cloud[cluster.points[0]];
+  max = cloud[cluster.points[0]];
+  for (size_t i = 1; i < cluster.points.size(); ++i) {
+    const Point& point = cloud[cluster.points[i]];
+    min.x = std::min(min.x, point.x);
+    min.y = std::min(min.y, point.y);
+    min.z = std::min(min.z, point.z);
+    max.x = std::max(max.x, point.x);
+    max.y = std::max(max.y, point.y);
+    max.z = std::max(max.z, point.z);
+  }
+}
+
 void Clustering::applyClusterLevelFilters(Clusters& candidates) const {
   candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
                                   [this](const Cluster& cluster) {
@@ -161,9 +188,21 @@ void Clustering::applyClusterLevelFilters(Clusters& candidates) const {
 }
 
 bool Clustering::filterCluster(const Cluster& cluster) const {
+  // Check point count.
   const int cluster_size = static_cast<int>(cluster.points.size());
-  return cluster_size < config_.min_cluster_size ||
-         cluster_size > config_.max_cluster_size;
+  if (cluster_size < config_.min_cluster_size ||
+      cluster_size > config_.max_cluster_size) {
+    return true;
+  }
+
+  // Check extent.
+  const float extent = (cluster.aabb.first.getVector3fMap() -
+                        cluster.aabb.second.getVector3fMap())
+                           .norm();
+  if (extent < config_.min_extent || extent > config_.max_extent) {
+    return true;
+  }
+  return false;
 }
 
 void Clustering::setClusterLevelDynamicFlagOfallPoints(

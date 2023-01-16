@@ -30,6 +30,10 @@ class Clustering {
     int min_cluster_size = 20;
     int max_cluster_size = 2000;
 
+    // filter out clusters whose AABB is larger or smaller than this [m].
+    float min_extent = 0.f;
+    float max_extent = 5.f;
+
     // Connectivity used when clustering voxels. (6, 18, 26)
     int neighbor_connectivity = 6;
 
@@ -109,12 +113,12 @@ class Clustering {
    */
   void applyClusterLevelFilters(Clusters& candidates) const;
 
-/**
- * @brief Check filters for an inidividual cluster.
- * 
- * @param cluster Cluster to check.
- * @return True if the cluster was filtered out.
- */
+  /**
+   * @brief Check filters for an inidividual cluster.
+   *
+   * @param cluster Cluster to check.
+   * @return True if the cluster was filtered out.
+   */
   bool filterCluster(const Cluster& cluster) const;
 
   /**
@@ -126,6 +130,14 @@ class Clustering {
    */
   void setClusterLevelDynamicFlagOfallPoints(const Clusters& clusters,
                                              CloudInfo& cloud_info) const;
+
+  /**
+   * @brief Compute the axis-aligned bounding box for a cluster.
+   *
+   * @param cloud Pointcloud to look up the positions.
+   * @param cluster Clsuter to evaluate.
+   */
+  void computeAABB(const Cloud& cloud, Cluster& cluster) const;
 
  private:
   const Config config_;
