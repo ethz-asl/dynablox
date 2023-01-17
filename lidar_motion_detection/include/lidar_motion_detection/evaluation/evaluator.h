@@ -10,7 +10,6 @@
 
 #include "lidar_motion_detection/common/types.h"
 #include "lidar_motion_detection/evaluation/ground_truth_handler.h"
-// #include "lidar_motion_detection/processing/preprocessing.h"
 
 namespace motion_detection {
 
@@ -33,6 +32,9 @@ class Evaluator {
 
     // Save the data of all evaluated clouds. Off by default to save space.
     bool save_clouds = false;
+
+    // If true store the parameters of all modules.
+    bool save_config = true;
 
     // Config for the ground truth handler.
     GroundTruthHandler::Config ground_truth_config;
@@ -60,7 +62,8 @@ class Evaluator {
    * @param cloud Point cloud to be evaluated.
    * @param cloud_info Cloud info to be evaluated.
    */
-  void evaluateFrame(const Cloud& cloud, CloudInfo& cloud_info);
+  void evaluateFrame(const Cloud& cloud, CloudInfo& cloud_info,
+                     const Clusters& clusters);
 
   /**
    * @brief Update the timing information by overwriting the output file with
@@ -82,8 +85,15 @@ class Evaluator {
    *
    * @param cloud Point cloud to be saved.
    * @param cloud_info Corresponding cloud info for evaluation.
+   * @param clusters Current clustering to get cluster IDs.
    */
-  void saveCloud(const Cloud& cloud, const CloudInfo& cloud_info);
+  void saveCloud(const Cloud& cloud, const CloudInfo& cloud_info,
+                 const Clusters& clusters);
+
+  /**
+   * @brief Store all parameters used by the motion detector.
+   */
+  void saveConfig();
 
   /**
    * @brief Mark only relevant points for evaluation.
@@ -121,12 +131,14 @@ class Evaluator {
   std::string output_directory_;
   std::vector<std::string> evaluated_levels_;
   int gt_frame_counter_ = 0;
+  bool config_saved_ = false;
 
   // Helper Functions.
   static std::function<bool(const PointInfo&)> getCheckLevelFunction(
       const std::string& level);
 
   // Names of the created files.
+  static const std::string config_file_name_;
   static const std::string clouds_file_name_;
   static const std::string scores_file_name_;
   static const std::string timings_file_name_;

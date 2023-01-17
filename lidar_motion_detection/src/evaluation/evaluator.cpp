@@ -13,6 +13,7 @@
 
 namespace motion_detection {
 
+const std::string Evaluator::config_file_name_ = "config.txt";
 const std::string Evaluator::clouds_file_name_ = "eval_clouds.csv";
 const std::string Evaluator::scores_file_name_ = "scores.csv";
 const std::string Evaluator::timings_file_name_ = "timings.txt";
@@ -83,22 +84,25 @@ void Evaluator::setupFiles() {
     writefile.open(output_directory_ + "/" + clouds_file_name_,
                    std::ios::trunc);
     writefile << "CloudNo,X,Y,Z,Distance,PointDynamic,ClusterDynamic,"
-                 "ObjectDynamic,GTDynamic,ReadyForEvaluation" << std::endl;
+                 "ObjectDynamic,GTDynamic,ReadyForEvaluation,ClusterID"
+              << std::endl;
     writefile.close();
   }
 }
 
-void Evaluator::evaluateFrame(const Cloud& cloud, CloudInfo& cloud_info) {
+void Evaluator::evaluateFrame(const Cloud& cloud, CloudInfo& cloud_info,
+                              const Clusters& clusters) {
   // Update the timings every frame.
   writeTimingsToFile();
+  saveConfig();
 
   // If ground truth available, label the cloud and compute the metrics.
   if (ground_truth_handler.labelCloudInfoIfAvailable(cloud_info)) {
     writeScoresToFile(cloud_info);
-     // Evalaute ranges.
-  if (config_.save_clouds) {
-    saveCloud(cloud, cloud_info);
-  }
+    // Evalaute ranges.
+    if (config_.save_clouds) {
+      saveCloud(cloud, cloud_info, clusters);
+    }
     gt_frame_counter_++;
     LOG(INFO) << "Evaluated cloud " << gt_frame_counter_ << " with timestamp "
               << cloud_info.timestamp << ".";
@@ -131,7 +135,8 @@ void Evaluator::writeScoresToFile(CloudInfo& cloud_info) {
             << std::endl;
 }
 
-void Evaluator::saveCloud(const Cloud& cloud, const CloudInfo& cloud_info) {
+void Evaluator::saveCloud(const Cloud& cloud, const CloudInfo& cloud_info,
+                          const Clusters& clusters) {
   // Overwrite all ranges at each iteration with the collected data.
   std::ofstream writefile;
   writefile.open(output_directory_ + "/" + clouds_file_name_, std::ios::app);
@@ -140,9 +145,24 @@ void Evaluator::saveCloud(const Cloud& cloud, const CloudInfo& cloud_info) {
   size_t i = 0;
   for (const Point& point : cloud) {
     const PointInfo& info = cloud_info.points.at(i);
+    int cluster_id = -1;
+    if (info.cluster_level_dynamic) {
+      for (const Cluster& cluster : clusters) {
+        if (std::find(cluster.points.begin(), cluster.points.end(), i) !=
+            cluster.points.end()) {
+          cluster_id = cluster.id;
+          break;
+        }
+      }
+    }
     ++i;
 
-    writefile << gt_frame_counter_ << "," << point.x << "," << point.y << "," << point.z << "," << info.distance_to_sensor << "," << info.ever_free_level_dynamic << "," << info.cluster_level_dynamic << "," << info.object_level_dynamic << "," << info.ground_truth_dynamic << "," << info.ready_for_evaluation << "\n";
+    writefile << gt_frame_counter_ << "," << point.x << "," << point.y << ","
+              << point.z << "," << info.distance_to_sensor << ","
+              << info.ever_free_level_dynamic << ","
+              << info.cluster_level_dynamic << "," << info.object_level_dynamic
+              << "," << info.ground_truth_dynamic << ","
+              << info.ready_for_evaluation << "," << cluster_id << "\n";
   }
   writefile.close();
 }
@@ -205,6 +225,19 @@ void Evaluator::evaluateCloudAtLevel(const CloudInfo& cloud_info,
   output_file << "," << computeIntersectionOverUnion(tp, fp, fn) << ","
               << computePrecision(tp, fp) << "," << computeRecall(tp, fn) << ","
               << tp << "," << tn << "," << fp << "," << fn;
+}
+
+void Evaluator::saveConfig() {
+  if (!config_.save_config || config_saved_) {
+    return;
+  }
+
+  // Write config to file.
+  std::ofstream writefile;
+  writefile.open(output_directory_ + "/" + config_file_name_, std::ios::trunc);
+  writefile << config_utilities::Global::printAllConfigs();
+  writefile.close();
+  config_saved_ = true;
 }
 
 float Evaluator::computePrecision(const uint tp, const uint fp) {

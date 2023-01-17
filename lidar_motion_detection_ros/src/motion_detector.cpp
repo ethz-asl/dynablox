@@ -58,7 +58,8 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
   setupRos();
 
   // Print current configuration of all components.
-  LOG_IF(INFO, config_.verbose) << "Configuration:\n" << config_utilities::Global::printAllConfigs();
+  LOG_IF(INFO, config_.verbose) << "Configuration:\n"
+                                << config_utilities::Global::printAllConfigs();
 }
 
 void MotionDetector::setupMembers() {
@@ -184,7 +185,7 @@ void MotionDetector::pointcloudCallback(
   // Evaluation if requested.
   if (config_.evaluate) {
     Timer eval_timer("evaluation");
-    evaluator_->evaluateFrame(cloud, cloud_info);
+    evaluator_->evaluateFrame(cloud, cloud_info, clusters);
     eval_timer.Stop();
     if (config_.shutdown_after > 0 &&
         evaluator_->getNumberOfEvaluatedFrames() >= config_.shutdown_after) {
