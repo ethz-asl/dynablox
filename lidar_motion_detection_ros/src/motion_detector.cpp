@@ -48,8 +48,6 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
               .checkValid()),
       nh_(nh),
       nh_private_(nh_private) {
-  LOG(INFO) << "\n" << config_.toString();
-
   setupMembers();
 
   // Cache frequently used constants.
@@ -58,6 +56,9 @@ MotionDetector::MotionDetector(const ros::NodeHandle& nh,
 
   // Advertise and subscribe to topics.
   setupRos();
+
+  // Print current configuration of all components.
+  LOG_IF(INFO, config_.verbose) << "Configuration:\n" << config_utilities::Global::printAllConfigs();
 }
 
 void MotionDetector::setupMembers() {

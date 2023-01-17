@@ -18,9 +18,7 @@ void Preprocessing::Config::setupParamsAndPrinting() {
 }
 
 Preprocessing::Preprocessing(const Config& config)
-    : config_(config.checkValid()) {
-  LOG(INFO) << "\n" << config_.toString();
-}
+    : config_(config.checkValid()) {}
 
 bool Preprocessing::processPointcloud(const sensor_msgs::PointCloud2::Ptr& msg,
                                       const tf::StampedTransform T_M_S,

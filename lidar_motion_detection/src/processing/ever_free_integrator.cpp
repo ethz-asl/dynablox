@@ -39,7 +39,6 @@ EverFreeIntegrator::EverFreeIntegrator(const EverFreeIntegrator::Config& config,
       voxels_per_side_(tsdf_layer_->voxels_per_side()),
       voxels_per_block_(voxels_per_side_ * voxels_per_side_ *
                         voxels_per_side_) {
-  LOG(INFO) << "\n" << config_.toString();
 }
 
 void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {

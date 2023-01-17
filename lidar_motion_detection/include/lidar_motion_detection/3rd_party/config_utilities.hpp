@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.2.3
+VERSION:      1.3.1
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Raises a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010203
+#define CONFIG_UTILITIES_VERSION 010301
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -64,6 +64,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iomanip>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -79,7 +80,9 @@ namespace config_utilities {
 /**
  * ==================== Settings ====================
  */
-namespace internal {
+// Forward declaration of access to all global tools.
+struct Global;
+
 /**
  * @brief Global Settings for how config_utilities based configs behave. These
  * can be dynamically set and changed throughout a project.
@@ -111,12 +114,6 @@ struct GlobalSettings {
  private:
   GlobalSettings() = default;
 };
-}  // namespace internal
-
-// Access.
-inline internal::GlobalSettings& GlobalSettings() {
-  return internal::GlobalSettings::instance();
-}
 
 /**
  * ==================== Utilities ====================
@@ -178,6 +175,7 @@ class RequiredArguments {
  * ==================== Internal Utilities ====================
  */
 namespace internal {
+
 // Printing utilities.
 inline std::string printCenter(const std::string& text, int width,
                                char symbol) {
@@ -432,6 +430,60 @@ struct VariableConfigInternal : public VariableConfigVerificator {
 
   virtual void createConfig(const ParamMap& params, bool optional) = 0;
 };
+
+/**
+ * ==================== Global Tracking of Configs ====================
+ */
+
+// Class to globally track all configs (or other things). Register the object in
+// the global tracking databaseand remove it upon tracker destruction. This
+// incurrs that the tracker should have the same lifespan as the tracked object.
+// NOTE(schmluk): This is currently not thread safe.
+template <typename T>
+struct GlobalTracker {
+ public:
+  // Tracking via constructor and destructor. Objects are tracked in temporal
+  // order of creation.
+  explicit GlobalTracker(T* object) : object_(object) {
+    index_ = objects_.size();
+    objects_.push_back(this);
+  }
+
+  virtual ~GlobalTracker() {
+    objects_.erase(objects_.begin() + index_);
+    for (size_t i = index_; i < objects_.size(); ++i) {
+      objects_[i]->index_ = i;
+    }
+  }
+
+  GlobalTracker(const GlobalTracker& other) = delete;
+
+  GlobalTracker& operator=(const GlobalTracker& other) = delete;
+
+  GlobalTracker(GlobalTracker&& other) = delete;
+
+  GlobalTracker& operator=(GlobalTracker&& other) = delete;
+
+  // Access by copying the object pointers. NOTE(schmluk): Objects may seize to
+  // exist afterward. Maybe use ownership (shared_ptr) or so in the future?
+  static std::vector<T*> getObjects() {
+    std::vector<T*> result;
+    result.reserve(objects_.size());
+    for (GlobalTracker<T>* tracker : objects_) {
+      result.push_back(tracker->object_);
+    }
+    return result;
+  }
+
+ private:
+  T* object_;
+  size_t index_;
+  static std::vector<GlobalTracker<T>*> objects_;
+};
+
+template <typename T>
+std::vector<GlobalTracker<T>*> GlobalTracker<T>::objects_;
+
 }  // namespace internal
 
 /**
@@ -447,7 +499,7 @@ class ConfigChecker {
  public:
   explicit ConfigChecker(std::string module_name)
       : name_(std::move(module_name)),
-        print_width_(GlobalSettings().print_width) {}
+        print_width_(GlobalSettings::instance().print_width) {}
 
   /**
    * @brief Return whether the config checker is valid, i.e. whether none of the
@@ -634,10 +686,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
  public:
   // Constructors.
   explicit ConfigInternal(std::string name)
-      : name_(std::move(name)), meta_data_(new MetaData()) {}
+      : name_(std::move(name)), meta_data_(new MetaData()), tracker_(this) {}
 
   ConfigInternal(const ConfigInternal& other)
-      : name_(other.name_), meta_data_(new MetaData(*(other.meta_data_))) {}
+      : name_(other.name_),
+        meta_data_(new MetaData(*(other.meta_data_))),
+        tracker_(this) {}
 
   ConfigInternal& operator=(const ConfigInternal& other) {
     name_ = other.name_;
@@ -646,7 +700,9 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   ConfigInternal(ConfigInternal&& other)
-      : name_(other.name_), meta_data_(std::move(other.meta_data_)) {}
+      : name_(other.name_),
+        meta_data_(std::move(other.meta_data_)),
+        tracker_(this) {}
 
   ConfigInternal& operator=(ConfigInternal&& other) {
     if (&other != this) {
@@ -655,6 +711,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     return *this;
   }
+
+  // NOTE(schmluk): It's important the destructor is explicitly defined,
+  // otherwise trackers won't be destructed properly?
+  virtual ~ConfigInternal() = default;
 
   // Public interaction with configs.
 
@@ -1019,6 +1079,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
  private:
   friend std::unordered_map<std::string, std::string> getValues(
       const ConfigInternal& config);
+  friend Global;
 
   std::unordered_map<std::string, std::string> getValues() const {
     // This is only used within printing, so meta data exists.
@@ -1162,7 +1223,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->default_values.reset(nullptr);
     meta_data_->indent = indent_prev;
     meta_data_->merged_setup_currently_active = false;
-
+    meta_data_->global_printing_processed = true;
     return result;
   };
 
@@ -1616,6 +1677,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     bool merged_setup_set_params = false;
     bool merged_setup_currently_active = false;
     bool use_printing_to_get_values = false;
+    bool global_printing_processed = false;
 
     MetaData() = default;
     MetaData(const MetaData& other) { indent = other.indent; }
@@ -1624,7 +1686,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
   std::string name_;
   std::string param_namespace_ = "~";
   std::unique_ptr<MetaData> meta_data_;
-};  // namespace internal
+  GlobalTracker<ConfigInternal> tracker_;
+};
 
 // This is a dummy operator, configs provide toString().
 inline std::ostream& operator<<(std::ostream& os, const ConfigInternal&) {
@@ -1635,10 +1698,46 @@ inline std::ostream& operator<<(std::ostream& os,
                                 const VariableConfigVerificator&) {
   return os;
 }
+}  // namespace internal
+
+/**
+ * ==================== Global Tools ====================
+ */
+
+// Access to global functionalities.
+struct Global {
+  // Access to settings.
+  static GlobalSettings& Settings() { return GlobalSettings::instance(); }
+
+  // Print all configs in temporal order. NOTE(schmluk): VariableConfigs are not
+  // tracked by global trackers, since they always contain a standard config if
+  // setup.
+  static std::string printAllConfigs() {
+    std::string result;
+    for (internal::ConfigInternal* config :
+         internal::GlobalTracker<internal::ConfigInternal>::getObjects()) {
+      // Prime all configs for printing.
+      config->meta_data_->global_printing_processed = false;
+    }
+    for (internal::ConfigInternal* config :
+         internal::GlobalTracker<internal::ConfigInternal>::getObjects()) {
+      // Only print every config once, e.g. in case of member configs.
+      if (config->meta_data_->global_printing_processed) {
+        continue;
+      }
+      const std::string msg = config->toString();
+      result = result + msg.substr(0, msg.find_last_of("\n")) + "\n";
+    }
+    result = result + std::string(GlobalSettings::instance().print_width, '=');
+    return result;
+  }
+};
 
 /**
  * ==================== Exposure Utilities ===================
  */
+
+namespace internal {
 
 inline void setupConfigFromParamMap(const ParamMap& params,
                                     ConfigInternal* config) {

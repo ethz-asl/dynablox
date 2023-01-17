@@ -10,8 +10,6 @@ int main(int argc, char** argv) {
       &argc, &argv, {"--logtostderr", "--colorlogtostderr"});
 
   // Setup logging.
-  config_utilities::GlobalSettings().indicate_default_values = true;
-  config_utilities::GlobalSettings().indicate_units = true;
   google::InitGoogleLogging(argv[0]);
   google::InstallFailureSignalHandler();
   google::ParseCommandLineFlags(&argc, &argv, false);

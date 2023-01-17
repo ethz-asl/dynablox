@@ -9,9 +9,7 @@ void Tracking::Config::setupParamsAndPrinting() {
   setupParam("max_tracking_distance", &max_tracking_distance, "m");
 }
 
-Tracking::Tracking(const Config& config) : config_(config.checkValid()) {
-  LOG(INFO) << "\n" << config_.toString();
-}
+Tracking::Tracking(const Config& config) : config_(config.checkValid()) {}
 
 void Tracking::track(const Cloud& cloud, Clusters& clusters,
                      CloudInfo& cloud_info) {

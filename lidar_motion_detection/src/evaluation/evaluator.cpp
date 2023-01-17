@@ -39,7 +39,6 @@ void Evaluator::Config::setupParamsAndPrinting() {
 Evaluator::Evaluator(const Config& config)
     : config_(config.checkValid()),
       ground_truth_handler(config_.ground_truth_config) {
-  LOG(INFO) << "\n" << config_.toString();
   setupFiles();
 }
 

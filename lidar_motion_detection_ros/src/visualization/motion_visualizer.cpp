@@ -65,7 +65,6 @@ MotionVisualizer::MotionVisualizer(ros::NodeHandle nh,
       nh_(std::move(nh)),
       tsdf_layer_(std::move(tsdf_layer)) {
   color_map_.setItemsPerRevolution(config_.color_wheel_num_colors);
-  LOG(INFO) << "\n" << config_.toString();
   // Setup mesh integrator.
   mesh_layer_ = std::make_shared<voxblox::MeshLayer>(tsdf_layer_->block_size());
   voxblox::MeshIntegratorConfig mesh_config;

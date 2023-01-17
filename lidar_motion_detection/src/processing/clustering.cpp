@@ -31,7 +31,6 @@ Clustering::Clustering(const Config& config, TsdfLayer::Ptr tsdf_layer)
     : config_(config.checkValid()),
       tsdf_layer_(std::move(tsdf_layer)),
       neighborhood_search_(config.neighbor_connectivity) {
-  LOG(INFO) << "\n" << config_.toString();
 }
 
 Clusters Clustering::performClustering(
