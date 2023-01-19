@@ -44,13 +44,12 @@ Clusters Clustering::performClustering(
 
   // Group points into clusters.
   Clusters clusters = inducePointClusters(point_map, voxel_cluster_indices);
-
-  // Merge close Clusters.
-  mergeClusters(cloud, clusters);
-
   for (Cluster& cluster : clusters) {
     computeAABB(cloud, cluster);
   }
+
+  // Merge close Clusters.
+  mergeClusters(cloud, clusters);
 
   // Apply filters to remove spurious clusters.
   applyClusterLevelFilters(clusters);
@@ -192,12 +191,32 @@ void Clustering::mergeClusters(const Cloud& cloud, Clusters& clusters) const {
   // Check all clusters versus all others.
   size_t first_id = 0u;
   while (first_id < (clusters.size() - 1u)) {
+    Cluster& first_cluster = clusters[first_id];
     size_t second_id = first_id + 1u;
     while (second_id < clusters.size()) {
+      Cluster& second_cluster = clusters[second_id];
+
+      // Ignore clusters that are far apart.
+      if (first_cluster.aabb.first.x >
+              second_cluster.aabb.second.x + config_.min_cluster_separation ||
+          first_cluster.aabb.second.x <
+              second_cluster.aabb.first.x - config_.min_cluster_separation ||
+          first_cluster.aabb.first.y >
+              second_cluster.aabb.second.y + config_.min_cluster_separation ||
+          first_cluster.aabb.second.y <
+              second_cluster.aabb.first.y - config_.min_cluster_separation ||
+          first_cluster.aabb.first.z >
+              second_cluster.aabb.second.z + config_.min_cluster_separation ||
+          first_cluster.aabb.second.z <
+              second_cluster.aabb.first.z - config_.min_cluster_separation) {
+        ++second_id;
+        continue;
+      }
+
       // Compute minimum distance between all points in both clusters.
       bool distance_met = false;
-      for (const int point_1 : clusters[first_id].points) {
-        for (const int point_2 : clusters[second_id].points) {
+      for (const int point_1 : first_cluster.points) {
+        for (const int point_2 : second_cluster.points) {
           const float distance = (cloud[point_1].getVector3fMap() -
                                   cloud[point_2].getVector3fMap())
                                      .norm();
@@ -213,10 +232,11 @@ void Clustering::mergeClusters(const Cloud& cloud, Clusters& clusters) const {
 
       // Merge clusters if necessary.
       if (distance_met) {
-        clusters[first_id].points.insert(clusters[first_id].points.end(),
-                                         clusters[second_id].points.begin(),
-                                         clusters[second_id].points.end());
+        first_cluster.points.insert(first_cluster.points.end(),
+                                    second_cluster.points.begin(),
+                                    second_cluster.points.end());
         clusters.erase(clusters.begin() + second_id);
+        computeAABB(cloud, first_cluster);
       } else {
         second_id++;
       }
