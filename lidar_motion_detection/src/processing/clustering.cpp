@@ -1,6 +1,7 @@
 #include "lidar_motion_detection/processing/clustering.h"
 
 #include <algorithm>
+#include <limits>
 #include <vector>
 
 #include <pcl/common/distances.h>
@@ -21,22 +22,22 @@ void Clustering::Config::checkParams() const {
 void Clustering::Config::setupParamsAndPrinting() {
   setupParam("min_cluster_size", &min_cluster_size);
   setupParam("max_cluster_size", &max_cluster_size);
-  setupParam("min_extent", &min_extent);
-  setupParam("max_extent", &max_extent);
+  setupParam("min_extent", &min_extent, "m");
+  setupParam("max_extent", &max_extent, "m");
   setupParam("grow_clusters_twice", &grow_clusters_twice);
+  setupParam("min_cluster_separation", &min_cluster_separation, "m");
   setupParam("neighbor_connectivity", &neighbor_connectivity);
 }
 
 Clustering::Clustering(const Config& config, TsdfLayer::Ptr tsdf_layer)
     : config_(config.checkValid()),
       tsdf_layer_(std::move(tsdf_layer)),
-      neighborhood_search_(config.neighbor_connectivity) {
-}
+      neighborhood_search_(config.neighbor_connectivity) {}
 
 Clusters Clustering::performClustering(
     const BlockToPointMap& point_map,
     const ClusterIndices& occupied_ever_free_voxel_indices,
-    const int frame_counter, CloudInfo& cloud_info) const {
+    const int frame_counter, const Cloud&cloud,CloudInfo& cloud_info) const {
   // Cluster all occupied voxels.
   const std::vector<ClusterIndices> voxel_cluster_indices =
       voxelClustering(occupied_ever_free_voxel_indices, frame_counter);
@@ -44,8 +45,10 @@ Clusters Clustering::performClustering(
   // Group points into clusters.
   Clusters clusters = inducePointClusters(point_map, voxel_cluster_indices);
 
-  // Apply filters to remove spurious clusters.
+  // Merge close Clusters.
+  mergeClusters(cloud, clusters);
 
+  // Apply filters to remove spurious clusters.
   applyClusterLevelFilters(clusters);
 
   // Label all remaining points as dynamic.
@@ -178,6 +181,46 @@ void Clustering::computeAABB(const Cloud& cloud, Cluster& cluster) {
   }
 }
 
+void Clustering::mergeClusters(const Cloud& cloud, Clusters& clusters) const {
+  if (config_.min_cluster_separation <= 0.f) {
+    return;
+  }
+  // Check all clusters versus all others.
+  size_t first_id = 0;
+  while (first_id < clusters.size() - 1u) {
+    size_t second_id = first_id + 1;
+    while (second_id < clusters.size()) {
+      // Compute minimum distance between all points in both clusters.
+      bool distance_met = false;
+      for (const int point_1 : clusters[first_id].points) {
+        for (const int point_2 : clusters[second_id].points) {
+          const float distance = (cloud[point_1].getVector3fMap() -
+                                  cloud[point_2].getVector3fMap())
+                                     .norm();
+          if (distance < config_.min_cluster_separation) {
+            distance_met = true;
+            break;
+          }
+        }
+        if (distance_met) {
+          break;
+        }
+      }
+
+      // Merge clusters if necessary.
+      if (distance_met) {
+        clusters[first_id].points.insert(clusters[first_id].points.end(),
+                                         clusters[second_id].points.begin(),
+                                         clusters[second_id].points.end());
+        clusters.erase(clusters.begin() + second_id);
+      } else {
+        second_id++;
+      }
+    }
+    first_id++;
+  }
+}
+
 void Clustering::applyClusterLevelFilters(Clusters& candidates) const {
   candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
                                   [this](const Cluster& cluster) {
@@ -212,4 +255,5 @@ void Clustering::setClusterLevelDynamicFlagOfallPoints(
     }
   }
 }
+
 }  // namespace motion_detection

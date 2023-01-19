@@ -27,18 +27,21 @@ class Clustering {
   // Config.
   struct Config : public config_utilities::Config<Config> {
     // Filter out clusters with too few or many points.
-    int min_cluster_size = 20;
-    int max_cluster_size = 2000;
+    int min_cluster_size = 25;
+    int max_cluster_size = 2500;
 
     // filter out clusters whose AABB is larger or smaller than this [m].
-    float min_extent = 0.f;
-    float max_extent = 5.f;
+    float min_extent = 0.25f;
+    float max_extent = 2.5f;
 
     // Connectivity used when clustering voxels. (6, 18, 26)
     int neighbor_connectivity = 6;
 
     // Grow ever free detections by 1 (false) or 2 (true) voxels.
-    bool grow_clusters_twice = false;
+    bool grow_clusters_twice = true;
+
+    // merge clusters whose points are closer than the minimum separation [m].
+    float min_cluster_separation = 0.2;
 
     Config() { setConfigName("Clustering"); }
 
@@ -54,18 +57,20 @@ class Clustering {
   using ClusterIndices = std::vector<voxblox::VoxelKey>;
 
   /**
-   * @brief
+   * @brief Cluster all currently occupied voxels that are next to an ever-free
+   * voxel. Merge nearby clusters and apply cluster level filters.
    *
-   * @param point_map
-   * @param occupied_ever_free_voxel_indices
-   * @param frame_counter
-   * @param cloud_info
-   * @return Clusters
+   * @param point_map Map of points to voxels.
+   * @param occupied_ever_free_voxel_indices Occupied voxels to seed cluster
+   * growing.
+   * @param frame_counter Current frame number.
+   * @param cloud_info Info to store which points are cluster-level dynamic.
+   * @return The identified clusters.
    */
   Clusters performClustering(
       const BlockToPointMap& point_map,
       const ClusterIndices& occupied_ever_free_voxel_indices,
-      const int frame_counter, CloudInfo& cloud_info) const;
+      const int frame_counter, const Cloud& cloud, CloudInfo& cloud_info) const;
 
   /**
    * @brief Cluster all currently occupied voxels that are next to an ever-free
@@ -105,6 +110,14 @@ class Clustering {
   Clusters inducePointClusters(
       const BlockToPointMap& point_map,
       const std::vector<ClusterIndices>& voxel_cluster_indices) const;
+
+  /**
+   * @brief Merge clusters together whose points are clsoe together.
+   *
+   * @param cloud Pointcloud to lookup cluster points poses.
+   * @param clusters Clsuters to be checked and merged.
+   */
+  void mergeClusters(const Cloud& cloud, Clusters& clusters) const;
 
   /**
    * @brief Removes all clusters that don't meet the filtering criteria.

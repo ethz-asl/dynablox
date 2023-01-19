@@ -21,12 +21,13 @@ ever_free_integrator:
   
 # Clustering.
 clustering:
-  min_cluster_size: 20
-  max_cluster_size: 2000
-  min_extent: 0   # m
-  max_extent: 5   # m
+  min_cluster_size: 25
+  max_cluster_size: 2500
+  min_extent: 0.25   # m
+  max_extent: 2.5   # m
   neighbor_connectivity: 6
   grow_clusters_twice: true
+  min_cluster_separation: 0.2
   
 # Tracking.
 tracking:

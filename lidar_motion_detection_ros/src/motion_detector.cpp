@@ -158,7 +158,8 @@ void MotionDetector::pointcloudCallback(
   // Clustering.
   Timer clustering_timer("motion_detection/clustering");
   Clusters clusters = clustering_->performClustering(
-      point_map, occupied_ever_free_voxel_indices, frame_counter_, cloud_info);
+      point_map, occupied_ever_free_voxel_indices, frame_counter_, cloud,
+      cloud_info);
   clustering_timer.Stop();
 
   // Tracking.
