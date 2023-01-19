@@ -329,10 +329,10 @@ Visualization Manager:
           Marker Topic: /motion_detector/visualization/ground_truth/object
           Name: Object
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
-      Enabled: true
+      Enabled: false
       Name: Evaluation
   Enabled: true
   Global Options:
@@ -362,7 +362,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 47.08028793334961
+      Distance: 36.4589729309082
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -370,17 +370,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -21.17776870727539
-        Y: 5.9905314445495605
-        Z: -4.832289218902588
+        X: -1.5262489318847656
+        Y: 3.221604824066162
+        Z: -3.836296796798706
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.189797043800354
+      Pitch: 0.804797351360321
       Target Frame: map
-      Yaw: 4.44679069519043
+      Yaw: 3.881791114807129
     Saved: ~
 Window Geometry:
   Displays:

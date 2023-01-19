@@ -11,6 +11,7 @@ void MotionVisualizer::Config::checkParams() const {
   checkParamGT(static_point_scale, 0.f, "static_point_scale");
   checkParamGT(dynamic_point_scale, 0.f, "dynamic_point_scale");
   checkParamGT(sensor_scale, 0.f, "sensor_scale");
+  checkParamGT(cluster_line_width, 0.f, "cluster_line_width");
   checkParamGT(color_wheel_num_colors, 0, "color_wheel_num_colors");
   checkColor(static_point_color, "static_point_color");
   checkColor(dynamic_point_color, "dynamic_point_color");
@@ -34,6 +35,7 @@ void MotionVisualizer::Config::setupParamsAndPrinting() {
   setupParam("static_point_scale", &static_point_scale, "m");
   setupParam("dynamic_point_scale", &dynamic_point_scale, "m");
   setupParam("sensor_scale", &sensor_scale, "m");
+  setupParam("cluster_line_width", &cluster_line_width, "m");
   setupParam("color_wheel_num_colors", &color_wheel_num_colors);
   setupParam("color_clusters", &color_clusters);
   setupParam("true_positive_color", &true_positive_color);
@@ -113,11 +115,15 @@ void MotionVisualizer::setupRos() {
       nh_.advertise<pcl::PointCloud<pcl::PointXYZI>>("slice/tsdf", queue_size);
   point_slice_pub_ =
       nh_.advertise<visualization_msgs::Marker>("slice/points", queue_size);
+  cluster_vis_pub_ =
+      nh_.advertise<visualization_msgs::MarkerArray>("clusters", queue_size);
 }
 
 void MotionVisualizer::visualizeAll(const Cloud& cloud,
                                     const CloudInfo& cloud_info,
-                                    const Clusters& clusters) const {
+                                    const Clusters& clusters) {
+  current_stamp_.fromNSec(cloud_info.timestamp);
+  time_stamp_set_ = true;
   visualizeLidarPose(cloud_info);
   visualizeLidarPoints(cloud);
   visualizePointDetections(cloud, cloud_info);
@@ -129,6 +135,90 @@ void MotionVisualizer::visualizeAll(const Cloud& cloud,
   visualizeEverFreeSlice();
   visualizeTsdfSlice();
   visualizeSlicePoints(cloud, cloud_info);
+  visualizeClusters(clusters);
+  time_stamp_set_ = false;
+}
+
+void MotionVisualizer::visualizeClusters(const Clusters& clusters,
+                                         const std::string& ns) const {
+  if (cluster_vis_pub_.getNumSubscribers() == 0u) {
+    return;
+  }
+
+  // Visualize Bbox.
+  visualization_msgs::MarkerArray array_msg;
+
+  size_t id = 0;
+  for (const Cluster& cluster : clusters) {
+    if (cluster.points.size() > 1u) {
+      visualization_msgs::Marker msg;
+      msg.action = visualization_msgs::Marker::ADD;
+      msg.id = id++;
+      msg.ns = ns;
+      msg.header.stamp = getStamp();
+      msg.header.frame_id = config_.global_frame_name;
+      msg.type = visualization_msgs::Marker::LINE_LIST;
+      msg.color = setColor(color_map_.colorLookup(cluster.id));
+      msg.scale.x = config_.cluster_line_width;
+      msg.pose.orientation.w = 1.f;
+      const Eigen::Vector3f base = cluster.aabb.first.getVector3fMap();
+      const Eigen::Vector3f delta = cluster.aabb.second.getVector3fMap() - base;
+      const Eigen::Vector3f dx = delta.cwiseProduct(Eigen::Vector3f::UnitX());
+      const Eigen::Vector3f dy = delta.cwiseProduct(Eigen::Vector3f::UnitY());
+      const Eigen::Vector3f dz = delta.cwiseProduct(Eigen::Vector3f::UnitZ());
+
+      // All points of the box.
+      msg.points.push_back(setPoint(base));
+      msg.points.push_back(setPoint(base + dx));
+      msg.points.push_back(setPoint(base));
+      msg.points.push_back(setPoint(base + dy));
+      msg.points.push_back(setPoint(base + dx));
+      msg.points.push_back(setPoint(base + dx + dy));
+      msg.points.push_back(setPoint(base + dy));
+      msg.points.push_back(setPoint(base + dx + dy));
+
+      msg.points.push_back(setPoint(base + dz));
+      msg.points.push_back(setPoint(base + dx + dz));
+      msg.points.push_back(setPoint(base + dz));
+      msg.points.push_back(setPoint(base + dy + dz));
+      msg.points.push_back(setPoint(base + dx + dz));
+      msg.points.push_back(setPoint(base + dx + dy + dz));
+      msg.points.push_back(setPoint(base + dy + dz));
+      msg.points.push_back(setPoint(base + dx + dy + dz));
+
+      msg.points.push_back(setPoint(base));
+      msg.points.push_back(setPoint(base + dz));
+      msg.points.push_back(setPoint(base + dx));
+      msg.points.push_back(setPoint(base + dx + dz));
+      msg.points.push_back(setPoint(base + dy));
+      msg.points.push_back(setPoint(base + dy + dz));
+      msg.points.push_back(setPoint(base + dx + dy));
+      msg.points.push_back(setPoint(base + dx + dy + dz));
+      array_msg.markers.push_back(msg);
+    }
+    visualization_msgs::Marker msg;
+    msg.action = visualization_msgs::Marker::ADD;
+    msg.id = id++;
+    msg.ns = ns;
+    msg.header.stamp = getStamp();
+    msg.header.frame_id = config_.global_frame_name;
+    msg.color = setColor(color_map_.colorLookup(cluster.id));
+    msg.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    msg.scale.z = 0.5;
+    msg.pose.position = setPoint(cluster.aabb.second);
+    msg.pose.orientation.w = 1.f;
+    const float extent = (cluster.aabb.first.getVector3fMap() -
+                          cluster.aabb.second.getVector3fMap())
+                             .norm();
+    std::stringstream stream;
+    stream << cluster.points.size() << "pts - " << std::fixed
+           << std::setprecision(1) << extent << "m";
+    msg.text = stream.str();
+    array_msg.markers.push_back(msg);
+  }
+  if (!array_msg.markers.empty()) {
+    cluster_vis_pub_.publish(array_msg);
+  }
 }
 
 void MotionVisualizer::visualizeEverFree() const {
@@ -146,7 +236,7 @@ void MotionVisualizer::visualizeEverFree() const {
     // Common properties.
     result.action = visualization_msgs::Marker::ADD;
     result.id = 0;
-    result.header.stamp = ros::Time::now();
+    result.header.stamp = getStamp();
     result.header.frame_id = config_.global_frame_name;
     result.type = visualization_msgs::Marker::CUBE_LIST;
     result.color = setColor(config_.ever_free_color);
@@ -157,7 +247,7 @@ void MotionVisualizer::visualizeEverFree() const {
   if (never_free) {
     result_never.action = visualization_msgs::Marker::ADD;
     result_never.id = 0;
-    result_never.header.stamp = ros::Time::now();
+    result_never.header.stamp = getStamp();
     result_never.header.frame_id = config_.global_frame_name;
     result_never.type = visualization_msgs::Marker::CUBE_LIST;
     result_never.color = setColor(config_.never_free_color);
@@ -215,7 +305,7 @@ void MotionVisualizer::visualizeEverFreeSlice() const {
     // Common properties.
     result.action = visualization_msgs::Marker::ADD;
     result.id = 0;
-    result.header.stamp = ros::Time::now();
+    result.header.stamp = getStamp();
     result.header.frame_id = config_.global_frame_name;
     result.type = visualization_msgs::Marker::CUBE_LIST;
     result.color = setColor(config_.ever_free_color);
@@ -227,7 +317,7 @@ void MotionVisualizer::visualizeEverFreeSlice() const {
   if (never_free) {
     result_never.action = visualization_msgs::Marker::ADD;
     result_never.id = 0;
-    result_never.header.stamp = ros::Time::now();
+    result_never.header.stamp = getStamp();
     result_never.header.frame_id = config_.global_frame_name;
     result_never.type = visualization_msgs::Marker::CUBE_LIST;
     result_never.color = setColor(config_.never_free_color);
@@ -295,7 +385,7 @@ void MotionVisualizer::visualizeTsdfSlice() const {
       *tsdf_layer_, 2u, config_.slice_height, &pointcloud);
 
   pointcloud.header.frame_id = config_.global_frame_name;
-  pointcloud.header.stamp = ros::Time::now().toNSec();
+  pointcloud.header.stamp = getStamp().toNSec();
   tsdf_slice_pub_.publish(pointcloud);
 }
 
@@ -308,7 +398,7 @@ void MotionVisualizer::visualizeSlicePoints(const Cloud& cloud,
   visualization_msgs::Marker result;
   result.action = visualization_msgs::Marker::ADD;
   result.id = 0;
-  result.header.stamp = ros::Time::now();
+  result.header.stamp = getStamp();
   result.header.frame_id = config_.global_frame_name;
   result.type = visualization_msgs::Marker::POINTS;
   result.scale = setScale(config_.dynamic_point_scale);
@@ -316,7 +406,7 @@ void MotionVisualizer::visualizeSlicePoints(const Cloud& cloud,
   visualization_msgs::Marker result_comp;
   result_comp.action = visualization_msgs::Marker::ADD;
   result_comp.id = 1;
-  result_comp.header.stamp = ros::Time::now();
+  result_comp.header.stamp = getStamp();
   result_comp.header.frame_id = config_.global_frame_name;
   result_comp.type = visualization_msgs::Marker::POINTS;
   result_comp.color = setColor(config_.static_point_color);
@@ -392,7 +482,7 @@ void MotionVisualizer::visualizeGroundTruthAtLevel(
   result.action = visualization_msgs::Marker::ADD;
   result.id = 0;
   result.ns = ns;
-  result.header.stamp = ros::Time::now();
+  result.header.stamp = getStamp();
   result.header.frame_id = config_.global_frame_name;
   result.type = visualization_msgs::Marker::POINTS;
   result.scale = setScale(config_.dynamic_point_scale);
@@ -437,7 +527,7 @@ void MotionVisualizer::visualizeLidarPose(const CloudInfo& cloud_info) const {
   visualization_msgs::Marker result;
   result.action = visualization_msgs::Marker::ADD;
   result.id = 0;
-  result.header.stamp = ros::Time::now();
+  result.header.stamp = getStamp();
   result.header.frame_id = config_.global_frame_name;
   result.type = visualization_msgs::Marker::SPHERE;
   result.color = setColor(config_.sensor_color);
@@ -457,7 +547,7 @@ void MotionVisualizer::visualizeLidarPoints(const Cloud& cloud) const {
   // Common properties.
   result.action = visualization_msgs::Marker::ADD;
   result.id = 0;
-  result.header.stamp = ros::Time::now();
+  result.header.stamp = getStamp();
   result.header.frame_id = config_.global_frame_name;
   result.type = visualization_msgs::Marker::POINTS;
   result.color = setColor(config_.static_point_color);
@@ -492,7 +582,7 @@ void MotionVisualizer::visualizePointDetections(
     result.points.reserve(cloud.points.size());
     result.action = visualization_msgs::Marker::ADD;
     result.id = 0;
-    result.header.stamp = ros::Time::now();
+    result.header.stamp = getStamp();
     result.header.frame_id = config_.global_frame_name;
     result.type = visualization_msgs::Marker::POINTS;
     result.color = setColor(config_.dynamic_point_color);
@@ -503,7 +593,7 @@ void MotionVisualizer::visualizePointDetections(
     result_comp.points.reserve(cloud.points.size());
     result_comp.action = visualization_msgs::Marker::ADD;
     result_comp.id = 0;
-    result_comp.header.stamp = ros::Time::now();
+    result_comp.header.stamp = getStamp();
     result_comp.header.frame_id = config_.global_frame_name;
     result_comp.type = visualization_msgs::Marker::POINTS;
     result_comp.color = setColor(config_.static_point_color);
@@ -558,7 +648,7 @@ void MotionVisualizer::visualizeClusterDetections(
     result.points.reserve(cloud.points.size());
     result.action = visualization_msgs::Marker::ADD;
     result.id = 0;
-    result.header.stamp = ros::Time::now();
+    result.header.stamp = getStamp();
     result.header.frame_id = config_.global_frame_name;
     result.type = visualization_msgs::Marker::POINTS;
     result.scale = setScale(config_.dynamic_point_scale);
@@ -568,7 +658,7 @@ void MotionVisualizer::visualizeClusterDetections(
     result_comp.points.reserve(cloud.points.size());
     result_comp.action = visualization_msgs::Marker::ADD;
     result_comp.id = 0;
-    result_comp.header.stamp = ros::Time::now();
+    result_comp.header.stamp = getStamp();
     result_comp.header.frame_id = config_.global_frame_name;
     result_comp.type = visualization_msgs::Marker::POINTS;
     result_comp.color = setColor(config_.static_point_color);
@@ -639,7 +729,7 @@ void MotionVisualizer::visualizeObjectDetections(
     result.points.reserve(cloud.points.size());
     result.action = visualization_msgs::Marker::ADD;
     result.id = 0;
-    result.header.stamp = ros::Time::now();
+    result.header.stamp = getStamp();
     result.header.frame_id = config_.global_frame_name;
     result.type = visualization_msgs::Marker::POINTS;
     result.scale = setScale(config_.dynamic_point_scale);
@@ -706,7 +796,7 @@ void MotionVisualizer::visualizeMesh() const {
   voxblox::generateVoxbloxMeshMsg(mesh_layer_, voxblox::ColorMode::kLambert,
                                   &mesh_msg);
   mesh_msg.header.frame_id = config_.global_frame_name;
-  mesh_msg.header.stamp = ros::Time::now();
+  mesh_msg.header.stamp = getStamp();
   mesh_pub_.publish(mesh_msg);
 }
 
@@ -751,6 +841,14 @@ geometry_msgs::Point MotionVisualizer::setPoint(const voxblox::Point& point) {
   msg.y = point.y();
   msg.z = point.z();
   return msg;
+}
+
+ros::Time MotionVisualizer::getStamp() const {
+  if (time_stamp_set_) {
+    return current_stamp_;
+  } else {
+    return ros::Time::now();
+  }
 }
 
 }  // namespace motion_detection

@@ -6,15 +6,20 @@
 #include <string>
 #include <vector>
 
+#include "lidar_motion_detection/evaluation/io_tools.h"
+#include "lidar_motion_detection/processing/clustering.h"
+
 namespace motion_detection {
 
 void CloudVisualizer::Config::checkParams() const {
   checkParamCond(std::filesystem::exists(file_path),
                  "Target file '" + file_path + "' does not exist.");
+  checkParamGT(refresh_rate, 0.f, "refresh_rate");
 }
 
 void CloudVisualizer::Config::setupParamsAndPrinting() {
   setupParam("file_path", &file_path);
+  setupParam("refresh_rate", &refresh_rate, "s");
 }
 
 CloudVisualizer::CloudVisualizer(ros::NodeHandle nh)
@@ -22,112 +27,39 @@ CloudVisualizer::CloudVisualizer(ros::NodeHandle nh)
                   .checkValid()),
       visualizer_(nh, std::make_shared<TsdfLayer>(0.2, 16)),
       nh_(nh) {
-  // NOTE(schmluk): The Tsdf Layer is a dummy since it's not going to be used.
-  LOG(INFO) << "\n" << config_.toString();
-  readClouds();
+  // NOTE(schmluk): The Tsdf Layer is a dummy and is not going to be used.
+  LOG(INFO) << "Configuration:\n"
+            << config_utilities::Global::printAllConfigs();
+
+  // Load the data.
+  if (!loadCloudFromCsv(config_.file_path, clouds_, cloud_infos_, clusters_)) {
+    LOG(FATAL) << "Failed to read clouds from '" << config_.file_path << "'.";
+  }
+  LOG(INFO) << "Read " << clouds_.size() << " clouds from '"
+            << config_.file_path << "'.";
+
+  // Recompute the cluster aabbs.
+  for (size_t i = 0; i < clusters_.size(); ++i) {
+    const Cloud& cloud = clouds_[i];
+    for (Cluster& cluster : clusters_[i]) {
+      Clustering::computeAABB(cloud, cluster);
+    }
+  }
 
   // Visualize periodically just in case.
-  timer_ =
-      nh_.createTimer(ros::Duration(0.1), &CloudVisualizer::timerCalback, this);
+  timer_ = nh_.createTimer(ros::Duration(config_.refresh_rate),
+                           &CloudVisualizer::timerCalback, this);
 }
 
 void CloudVisualizer::timerCalback(const ros::TimerEvent& /** e */) {
   visualizeClouds();
 }
 
-void CloudVisualizer::readClouds() {
-  // Open file.
-  std::ifstream readfile;
-  readfile.open(config_.file_path);
-
-  // Read data.
-  std::string line;
-  size_t point_counter = 0;
-  int cloud_counter = -2;
-  while (getline(readfile, line)) {
-    if (line.empty()) {
-      continue;
-    }
-    if (cloud_counter == -2) {
-      // Skip headers.
-      cloud_counter++;
-      continue;
-    }
-    std::istringstream iss(line);
-    std::string linestream;
-    size_t item_counter = 0;
-    Point* point;
-    PointInfo* info;
-    while (std::getline(iss, linestream, ',')) {
-      switch (item_counter) {
-        case 0u: {
-          const int cloud_id = std::stoi(linestream);
-          if (cloud_id != cloud_counter) {
-            clouds_.push_back(Cloud());
-            cloud_infos_.push_back(CloudInfo());
-            cloud_infos_.back().has_labels = true;
-            cloud_counter++;
-          }
-          clouds_.back().push_back(Point());
-          point = &clouds_.back().back();
-          cloud_infos_.back().points.push_back(PointInfo());
-          info = &cloud_infos_.back().points.back();
-          break;
-        }
-        case 1u: {
-          point->x = std::stof(linestream);
-          break;
-        }
-        case 2u: {
-          point->y = std::stof(linestream);
-          break;
-        }
-        case 3u: {
-          point->z = std::stof(linestream);
-          break;
-        }
-        case 4u: {
-          info->distance_to_sensor = std::stof(linestream);
-          break;
-        }
-        case 5u: {
-          info->ever_free_level_dynamic =
-              static_cast<bool>(std::stoi(linestream));
-          break;
-        }
-        case 6u: {
-          info->cluster_level_dynamic =
-              static_cast<bool>(std::stoi(linestream));
-          break;
-        }
-        case 7u: {
-          info->object_level_dynamic = static_cast<bool>(std::stoi(linestream));
-          break;
-        }
-        case 8u: {
-          info->ground_truth_dynamic = static_cast<bool>(std::stoi(linestream));
-          break;
-        }
-        case 9u: {
-          info->ready_for_evaluation = static_cast<bool>(std::stoi(linestream));
-          break;
-        }
-
-        default:
-          break;
-      }
-      item_counter++;
-    }
-    point_counter++;
-  }
-  LOG(INFO) << "Read " << (cloud_counter + 1) << " clouds (" << point_counter
-            << " points) from '" << config_.file_path << "'.";
-}
-
 void CloudVisualizer::visualizeClouds() {
   for (size_t i = 0; i < clouds_.size(); ++i) {
-    visualizer_.visualizeGroundTruth(clouds_[i], cloud_infos_[i],
-                                     "cloud_" + std::to_string(i));
+    const std::string ns = "cloud_" + std::to_string(i);
+    visualizer_.visualizeGroundTruth(clouds_[i], cloud_infos_[i], ns);
+    visualizer_.visualizeClusters(clusters_[i], ns);
   }
 }
 

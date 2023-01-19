@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Object1
         - /Object1/Namespaces1
+        - /MarkerArray1
+        - /MarkerArray1/Namespaces1
       Splitter Ratio: 0.5382353067398071
     Tree Height: 631
   - Class: rviz/Selection
@@ -62,6 +64,23 @@ Visualization Manager:
       Enabled: true
       Marker Topic: /cloud_visualizer/ground_truth/object
       Name: Object
+      Namespaces:
+        cloud_0: true
+        cloud_1: false
+        cloud_2: false
+        cloud_3: false
+        cloud_4: false
+        cloud_5: false
+        cloud_6: false
+        cloud_7: false
+        cloud_8: false
+        cloud_9: false
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /cloud_visualizer/clusters
+      Name: MarkerArray
       Namespaces:
         cloud_0: true
         cloud_1: false

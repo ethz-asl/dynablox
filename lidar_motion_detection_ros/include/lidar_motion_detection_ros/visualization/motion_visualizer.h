@@ -40,10 +40,11 @@ class MotionVisualizer {
     std::vector<float> point_level_slice_color = {1.f, 0.f, 1.f, 1.f};
     std::vector<float> cluster_level_slice_color = {0.f, 1.f, 1.f, 1.f};
 
-    // Scales of pointcloud [m].
+    // Scales of visualizations [m].
     float static_point_scale = 0.1f;
     float dynamic_point_scale = 0.1f;
     float sensor_scale = 0.3f;
+    float cluster_line_width = 0.05f;
 
     // Number of colors for the a full color wheel revolution.
     int color_wheel_num_colors = 20;
@@ -74,7 +75,7 @@ class MotionVisualizer {
 
   // Visualization.
   void visualizeAll(const Cloud& cloud, const CloudInfo& cloud_info,
-                    const Clusters& clusters) const;
+                    const Clusters& clusters);
   void visualizeLidarPose(const CloudInfo& cloud_info) const;
   void visualizeLidarPoints(const Cloud& cloud) const;
   void visualizePointDetections(const Cloud& cloud,
@@ -93,6 +94,8 @@ class MotionVisualizer {
   void visualizeTsdfSlice() const;
   void visualizeSlicePoints(const Cloud& cloud,
                             const CloudInfo& cloud_info) const;
+  void visualizeClusters(const Clusters& clusters,
+                         const std::string& ns = "") const;
 
   // ROS msg helper tools.
   static geometry_msgs::Vector3 setScale(const float scale);
@@ -128,12 +131,19 @@ class MotionVisualizer {
   ros::Publisher tsdf_slice_pub_;
   ros::Publisher point_slice_pub_;
   ros::Publisher mesh_pub_;
+  ros::Publisher cluster_vis_pub_;
+
+  // Variables.
+  ros::Time current_stamp_;
+  bool time_stamp_set_ = false;
 
   // Helper functions.
   void visualizeGroundTruthAtLevel(
       const Cloud& cloud, const CloudInfo& cloud_info,
       const std::function<bool(const PointInfo&)>& check_level,
       const ros::Publisher& pub, const std::string& ns) const;
+
+  ros::Time getStamp() const;
 };
 
 }  // namespace motion_detection

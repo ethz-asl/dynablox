@@ -2,16 +2,18 @@
 
 <launch>
   <!-- Dataset -->
-  <arg name="data_path" default="/media/lukas/T7/data/clouds_20m/shopville_2_none/eval_clouds.csv" />  <!-- hauptgebaeude niederdorf station shopville -->
-
+  <arg name="data_path" default="/media/lukas/T7/data/new/all_clusters" /> 
+  <arg name="scene" default="shopville" />  <!-- hauptgebaeude niederdorf station shopville -->
+  <arg name="sequence" default="2" />  <!-- 1, 2 -->
+  <arg name="file_name" default="eval_clouds" />  <!-- clouds, eval_clouds -->
 
 
   <!-- Cloud Visualizer -->
   <node name="cloud_visualizer" pkg="lidar_motion_detection_ros" type="cloud_visualizer" output="screen" args="--alsologtostderr" required="true">
-    <param name="file_path" value="$(arg data_path)" />
+    <param name="file_path" value="$(arg data_path)/$(arg scene)_$(arg sequence)_none/$(arg file_name).csv" />
     <param name="static_point_scale" value="0.05" />
     <param name="dynamic_point_scale" value="0.1" />
-    <param name="out_of_bounds_color" value="[0.8,0.8,0.8,1]" />
+    <rosparam param="out_of_bounds_color">[0.8,0.8,0.8,1]</rosparam>
   </node>
   
   <!-- Visualize -->

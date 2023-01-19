@@ -17,6 +17,9 @@ class CloudVisualizer {
     // File to load cloud data from.
     std::string file_path;
 
+    // How frequently visualizations should be republished [s].
+    float refresh_rate = 0.25;
+
     Config() { setConfigName("CloudVisualizer"); }
 
    protected:
@@ -44,6 +47,7 @@ class CloudVisualizer {
   // Data to visualize.
   std::vector<Cloud> clouds_;
   std::vector<CloudInfo> cloud_infos_;
+  std::vector<Clusters> clusters_;
 };
 
 }  // namespace motion_detection
