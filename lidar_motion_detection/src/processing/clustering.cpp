@@ -159,7 +159,7 @@ Clusters Clustering::inducePointClusters(
   return candidates;
 }
 
-void Clustering::computeAABB(const Cloud& cloud, Cluster& cluster) const {
+void Clustering::computeAABB(const Cloud& cloud, Cluster& cluster) {
   if (cluster.points.empty()) {
     return;
   }

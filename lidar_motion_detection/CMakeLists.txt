@@ -13,6 +13,7 @@ cs_add_library(${PROJECT_NAME}
         src/processing/ever_free_integrator.cpp
         src/evaluation/evaluator.cpp
         src/evaluation/ground_truth_handler.cpp
+        src/evaluation/io_tools.cpp
         )
 
 cs_install()

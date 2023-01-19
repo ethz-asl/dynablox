@@ -137,7 +137,7 @@ class Clustering {
    * @param cloud Pointcloud to look up the positions.
    * @param cluster Clsuter to evaluate.
    */
-  void computeAABB(const Cloud& cloud, Cluster& cluster) const;
+  static void computeAABB(const Cloud& cloud, Cluster& cluster);
 
  private:
   const Config config_;
