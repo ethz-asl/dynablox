@@ -37,7 +37,7 @@ Clustering::Clustering(const Config& config, TsdfLayer::Ptr tsdf_layer)
 Clusters Clustering::performClustering(
     const BlockToPointMap& point_map,
     const ClusterIndices& occupied_ever_free_voxel_indices,
-    const int frame_counter, const Cloud&cloud,CloudInfo& cloud_info) const {
+    const int frame_counter, const Cloud& cloud, CloudInfo& cloud_info) const {
   // Cluster all occupied voxels.
   const std::vector<ClusterIndices> voxel_cluster_indices =
       voxelClustering(occupied_ever_free_voxel_indices, frame_counter);
@@ -47,6 +47,10 @@ Clusters Clustering::performClustering(
 
   // Merge close Clusters.
   mergeClusters(cloud, clusters);
+
+  for (Cluster& cluster : clusters) {
+    computeAABB(cloud, cluster);
+  }
 
   // Apply filters to remove spurious clusters.
   applyClusterLevelFilters(clusters);
@@ -182,13 +186,13 @@ void Clustering::computeAABB(const Cloud& cloud, Cluster& cluster) {
 }
 
 void Clustering::mergeClusters(const Cloud& cloud, Clusters& clusters) const {
-  if (config_.min_cluster_separation <= 0.f) {
+  if (config_.min_cluster_separation <= 0.f || clusters.size() < 2u) {
     return;
   }
   // Check all clusters versus all others.
-  size_t first_id = 0;
-  while (first_id < clusters.size() - 1u) {
-    size_t second_id = first_id + 1;
+  size_t first_id = 0u;
+  while (first_id < (clusters.size() - 1u)) {
+    size_t second_id = first_id + 1u;
     while (second_id < clusters.size()) {
       // Compute minimum distance between all points in both clusters.
       bool distance_met = false;
