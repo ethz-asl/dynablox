@@ -3,7 +3,7 @@
 #evaluate: true # Set by launch file
 #visualize: true
 #num_threads: 1  # uses hardware concurrency if left empty.
-queue_size: 100
+queue_size: 10
 shutdown_after: 10  # num evaluations.
   
 # Preprocessing.
@@ -22,11 +22,12 @@ ever_free_integrator:
 # Clustering.
 clustering:
   min_cluster_size: 20
-  max_cluster_size: 2000
+  max_cluster_size: 200000
   min_extent: 0   # m
-  max_extent: 5   # m
+  max_extent: 3   # m
   neighbor_connectivity: 6
-  grow_clusters_twice: false
+  grow_clusters_twice: true
+  min_cluster_separation: 0.2
   
 # Tracking.
 tracking:

@@ -21,7 +21,7 @@ def main():
     print_names = True
     print_std = True
     print_nan = True
-    print_mode = 'csv'
+    print_mode = 'csv'  # 'csv', 'latex', 'read'
     print_overall = True
 
     # Run.
@@ -57,7 +57,7 @@ def table(metrics,
         elif print_mode == 'csv':
             print(("".join('%s,' % x for x in entries))[:-1])
         else:
-            print("".join('%-15s' % x for x in entries))
+            print("".join('%-40s' % x for x in entries))
 
     def evaluate_row(results):
         nans = np.sum(np.isnan(results))

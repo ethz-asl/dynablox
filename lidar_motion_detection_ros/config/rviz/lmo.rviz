@@ -9,7 +9,6 @@ Panels:
         - /Visualization1/Slice1
         - /Visualization1/Volume1
         - /Detection1
-        - /Detection1/Objects1
       Splitter Ratio: 0.9548872113227844
     Tree Height: 631
   - Class: rviz/Selection
@@ -29,7 +28,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: TSDF
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -144,7 +143,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/slice/ever_free
               Name: Ever Free
               Namespaces:
-                "": true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -152,7 +151,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/slice/never_free
               Name: Never Free
               Namespaces:
-                "": true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -160,7 +159,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/slice/points
               Name: Points
               Namespaces:
-                "": true
+                {}
               Queue Size: 100
               Value: true
             - Alpha: 0.5
@@ -191,7 +190,7 @@ Visualization Manager:
               Use Fixed Frame: true
               Use rainbow: true
               Value: false
-          Enabled: true
+          Enabled: false
           Name: Slice
         - Class: rviz/Group
           Displays:
@@ -271,7 +270,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/object/dynamic
               Name: Dynamic
               Namespaces:
-                {}
+                "": true
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -279,12 +278,12 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/object/static
               Name: Static
               Namespaces:
-                {}
+                "": true
               Queue Size: 100
               Value: true
           Enabled: true
           Name: Objects
-      Enabled: false
+      Enabled: true
       Name: Detection
   Enabled: true
   Global Options:
@@ -314,7 +313,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 61.81515121459961
+      Distance: 37.07025909423828
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -330,9 +329,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1997969150543213
+      Pitch: 1.3247967958450317
       Target Frame: map
-      Yaw: 5.491844654083252
+      Yaw: 5.111839294433594
     Saved: ~
 Window Geometry:
   Displays:
