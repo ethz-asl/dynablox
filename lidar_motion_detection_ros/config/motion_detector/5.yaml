@@ -24,9 +24,9 @@ clustering:
   min_cluster_size: 20
   max_cluster_size: 200000
   min_extent: 0   # m
-  max_extent: 20000   # m
+  max_extent: 2000   # m
   neighbor_connectivity: 6
-  grow_clusters_twice: true
+  grow_clusters_twice: false
   min_cluster_separation: 0.2
   
 # Tracking.
