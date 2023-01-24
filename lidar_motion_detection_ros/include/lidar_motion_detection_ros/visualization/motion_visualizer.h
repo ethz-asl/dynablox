@@ -34,7 +34,7 @@ class MotionVisualizer {
     std::vector<float> false_positive_color = {1.f, 0.f, 0.f, 1.f};
     std::vector<float> true_negative_color = {0.f, 0.f, 0.f, 1.f};
     std::vector<float> false_negative_color = {0.f, 0.f, 1.f, 1.f};
-    std::vector<float> out_of_bounds_color = {.7f, .7f, .7f 1.f};
+    std::vector<float> out_of_bounds_color = {.7f, .7f, .7f, 1.f};
     std::vector<float> ever_free_color = {1.f, 0.f, 1.f, .5f};
     std::vector<float> never_free_color = {0.f, 1.f, 1.f, .5f};
     std::vector<float> point_level_slice_color = {1.f, 0.f, 1.f, 1.f};
