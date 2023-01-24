@@ -9,7 +9,7 @@ shutdown_after: 10  # num evaluations.
 # Preprocessing.
 preprocessing:
   min_range: &min_range 0.5  # m
-  max_range: &max_range 20  # m
+  max_range: &max_range 20000  # m
 
 # Ever-Free Integration.
 ever_free_integrator:
@@ -24,7 +24,7 @@ clustering:
   min_cluster_size: 20
   max_cluster_size: 200000
   min_extent: 0   # m
-  max_extent: 2000   # m
+  max_extent: 20000   # m
   neighbor_connectivity: 6
   grow_clusters_twice: false
   min_cluster_separation: 0.2

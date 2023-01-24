@@ -48,6 +48,7 @@ void MotionVisualizer::Config::setupParamsAndPrinting() {
   setupParam("point_level_slice_color", &point_level_slice_color);
   setupParam("cluster_level_slice_color", &cluster_level_slice_color);
   setupParam("slice_height", &slice_height, "m");
+  setupParam("slice_relative_to_sensor", &slice_relative_to_sensor);
   setupParam("visualization_max_z", &visualization_max_z, "m");
 }
 
@@ -132,8 +133,12 @@ void MotionVisualizer::visualizeAll(const Cloud& cloud,
   visualizeGroundTruth(cloud, cloud_info);
   visualizeMesh();
   visualizeEverFree();
-  visualizeEverFreeSlice();
-  visualizeTsdfSlice();
+  const float slice_height =
+      config_.slice_relative_to_sensor
+          ? config_.slice_height + cloud_info.sensor_position.z
+          : config_.slice_height;
+  visualizeEverFreeSlice(slice_height);
+  visualizeTsdfSlice(slice_height);
   visualizeSlicePoints(cloud, cloud_info);
   visualizeClusters(clusters);
   time_stamp_set_ = false;
@@ -290,7 +295,7 @@ void MotionVisualizer::visualizeEverFree() const {
   }
 }
 
-void MotionVisualizer::visualizeEverFreeSlice() const {
+void MotionVisualizer::visualizeEverFreeSlice(const float slice_height) const {
   const bool ever_free = ever_free_slice_pub_.getNumSubscribers() > 0u;
   const bool never_free = never_free_slice_pub_.getNumSubscribers() > 0u;
 
@@ -327,7 +332,7 @@ void MotionVisualizer::visualizeEverFreeSlice() const {
   }
 
   // Setup the slice.
-  const voxblox::Point slice_coords(0, 0, config_.slice_height);
+  const voxblox::Point slice_coords(0, 0, slice_height);
   const BlockIndex slice_block_index =
       tsdf_layer_->computeBlockIndexFromCoordinates(slice_coords);
   const VoxelIndex slice_voxel_index =
@@ -375,14 +380,14 @@ void MotionVisualizer::visualizeEverFreeSlice() const {
   }
 }
 
-void MotionVisualizer::visualizeTsdfSlice() const {
+void MotionVisualizer::visualizeTsdfSlice(const float slice_height) const {
   if (tsdf_slice_pub_.getNumSubscribers() == 0u) {
     return;
   }
   pcl::PointCloud<pcl::PointXYZI> pointcloud;
 
   voxblox::createDistancePointcloudFromTsdfLayerSlice(
-      *tsdf_layer_, 2u, config_.slice_height, &pointcloud);
+      *tsdf_layer_, 2u, slice_height, &pointcloud);
 
   pointcloud.header.frame_id = config_.global_frame_name;
   pointcloud.header.stamp = getStamp().toNSec();
@@ -412,8 +417,12 @@ void MotionVisualizer::visualizeSlicePoints(const Cloud& cloud,
   result_comp.color = setColor(config_.static_point_color);
   result_comp.scale = setScale(config_.static_point_scale);
 
-  float slice_center =
-      (std::round(config_.slice_height * tsdf_layer_->voxel_size_inv()) + 0.5) *
+  const float slice_height =
+      config_.slice_relative_to_sensor
+          ? config_.slice_height + cloud_info.sensor_position.z
+          : config_.slice_height;
+  const float slice_center =
+      std::round((slice_height * tsdf_layer_->voxel_size_inv()) + 0.5) *
       tsdf_layer_->voxel_size();
   const float min_z = slice_center - tsdf_layer_->voxel_size() / 2.f;
   const float max_z = slice_center + tsdf_layer_->voxel_size() / 2.f;

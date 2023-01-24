@@ -4,7 +4,7 @@
   <!-- Dataset -->
   <arg name="bag_file" default="/media/lukas/T7/Datasets/LMO/hg_2.bag" />
   <!-- hg_1, hg_2, indoor_1, ramp_1, ramp_2, ramp_3, ramp_4, stairs_1 -->
-  <arg name="player_rate" default="0.5" /> <!-- 0.3 -->
+  <arg name="player_rate" default="0.3" /> <!-- 0.3 -->
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/lmo.yaml" />

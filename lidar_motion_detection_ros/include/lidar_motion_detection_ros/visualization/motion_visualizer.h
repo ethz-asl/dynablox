@@ -34,9 +34,9 @@ class MotionVisualizer {
     std::vector<float> false_positive_color = {1.f, 0.f, 0.f, 1.f};
     std::vector<float> true_negative_color = {0.f, 0.f, 0.f, 1.f};
     std::vector<float> false_negative_color = {0.f, 0.f, 1.f, 1.f};
-    std::vector<float> out_of_bounds_color = {.7f, .7f, .7f, 1.f};
-    std::vector<float> ever_free_color = {1.f, 0.f, 1.f, .1f};
-    std::vector<float> never_free_color = {0.f, 1.f, 1.f, .1f};
+    std::vector<float> out_of_bounds_color = {.7f, .7f, .7f 1.f};
+    std::vector<float> ever_free_color = {1.f, 0.f, 1.f, .5f};
+    std::vector<float> never_free_color = {0.f, 1.f, 1.f, .5f};
     std::vector<float> point_level_slice_color = {1.f, 0.f, 1.f, 1.f};
     std::vector<float> cluster_level_slice_color = {0.f, 1.f, 1.f, 1.f};
 
@@ -54,7 +54,10 @@ class MotionVisualizer {
     bool color_clusters = true;
 
     // Height in map frame of the slice being visualized [m].
-    float slice_height = 1;
+    float slice_height = 0;
+
+    // True: slice height is relative to the sensor, False: slice in world frame
+    bool slice_relative_to_sensor = true;
 
     // Crop all visualizations at this height for better visibility.
     float visualization_max_z = 10000.f;
@@ -90,8 +93,8 @@ class MotionVisualizer {
                             const std::string& ns = "") const;
   void visualizeMesh() const;
   void visualizeEverFree() const;
-  void visualizeEverFreeSlice() const;
-  void visualizeTsdfSlice() const;
+  void visualizeEverFreeSlice(const float slice_height) const;
+  void visualizeTsdfSlice(const float slice_height) const;
   void visualizeSlicePoints(const Cloud& cloud,
                             const CloudInfo& cloud_info) const;
   void visualizeClusters(const Clusters& clusters,

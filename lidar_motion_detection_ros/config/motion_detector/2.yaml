@@ -9,14 +9,14 @@ shutdown_after: 10  # num evaluations.
 # Preprocessing.
 preprocessing:
   min_range: &min_range 0.5  # m
-  max_range: &max_range 20  # m
+  max_range: &max_range 20000  # m
 
 # Ever-Free Integration.
 ever_free_integrator:
   counter_to_reset: 150 # Observations to un-free an ever-free voxel [frames]
   temporal_buffer: 2   # To compensate sparsity [frames].
   burn_in_period: 5   # Burn in before becoming ever-free [frames].
-  tsdf_occupancy_threshold: 0.4 # 1.5 voxel sizes.
+  tsdf_occupancy_threshold: 0.3 # 1.5 voxel sizes.
   neighbor_connectivity: 26
   
 # Clustering.
