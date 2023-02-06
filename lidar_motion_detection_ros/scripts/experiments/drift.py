@@ -4,7 +4,7 @@ import os
 import numpy as np
 from plotting_tools import read_plot_data_csv
 
-DATA_PATH = "/media/lukas/T7/data/doals_drift"
+DATA_PATH = "/media/lukas/T7/data/ours/doals_drift"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 PARAMS = [10000, 150, 50, 40, 15]
 DRIFT = ["none", "light", "moderate", "strong", "severe"]

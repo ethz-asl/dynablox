@@ -3,7 +3,7 @@
 #evaluate: true # Set by launch file
 #visualize: true
 #num_threads: 1  # uses hardware concurrency if left empty.
-queue_size: 10
+queue_size: 20
 shutdown_after: 10  # num evaluations.
   
 # Preprocessing.
@@ -41,7 +41,7 @@ evaluation:
   evaluate_point_level: true
   evaluate_cluster_level: true
   evaluate_object_level: true
-  save_clouds: true
+  save_clouds: false  # For detailed inspection of results.
   
 # Visualization.
 visualization:

@@ -59,15 +59,47 @@ using VoxelToPointMap = voxblox::HierarchicalIndexIntMap;
 // Map of block indices to voxel indices and point indices of the cloud.
 using BlockToPointMap = voxblox::AnyIndexHashMapType<VoxelToPointMap>::type;
 
+// Simple axis-aligned bounding box.
+struct BoundingBox {
+  Point min_corner;
+  Point max_corner;
+
+  bool intersects(const BoundingBox& other, const float margin = 0.f) const {
+    if (min_corner.x - margin > other.max_corner.x) {
+      return false;
+    }
+    if (min_corner.y - margin > other.max_corner.y) {
+      return false;
+    }
+    if (min_corner.z - margin > other.max_corner.x) {
+      return false;
+    }
+    if (max_corner.x + margin < other.min_corner.x) {
+      return false;
+    }
+    if (max_corner.y + margin < other.min_corner.y) {
+      return false;
+    }
+    if (max_corner.z + margin < other.min_corner.z) {
+      return false;
+    }
+    return true;
+  }
+
+  float extent() const {
+    return (max_corner.getVector3fMap() - min_corner.getVector3fMap()).norm();
+  }
+};
+
 // Indices of all points in the cloud belonging to this cluster.
 struct Cluster {
   int id = -1;           // ID of the cluster set during tracking.
   int track_length = 0;  // Frames this cluster has been tracked.
-  bool valid = false;
-  std::pair<Point, Point> aabb;  // Axis-aligned bounding box of the cluster
-                                 // (min corner, max corner).
+  bool valid = false;    // Whether the cluster has met all cluster checks.
+  BoundingBox aabb;      // Axis-aligned bounding box of the cluster.
   std::vector<int>
       points;  // Indices of points in cloud belonging to this cluster.
+  // std::unordered_set<voxblox::GlobalIndex> voxels;  // Voxels in this cluster.
 };
 
 using Clusters = std::vector<Cluster>;

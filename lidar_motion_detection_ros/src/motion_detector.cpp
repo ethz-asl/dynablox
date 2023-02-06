@@ -179,7 +179,7 @@ void MotionDetector::pointcloudCallback(
   Timer tsdf_timer("motion_detection/tsdf_integration");
   voxblox::Transformation T_G_C;
   tf::transformTFToKindr(T_M_S, &T_G_C);
-  tsdf_server_->processPointCloudMessageAndInsert(msg, T_G_C, false);
+  tsdf_server_->processPointCloudMessageAndInsert(msg, T_G_C, false);  
   tsdf_timer.Stop();
   detection_timer.Stop();
 

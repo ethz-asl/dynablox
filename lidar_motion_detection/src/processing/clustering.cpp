@@ -169,8 +169,8 @@ void Clustering::computeAABB(const Cloud& cloud, Cluster& cluster) {
   if (cluster.points.empty()) {
     return;
   }
-  Point& min = cluster.aabb.first;
-  Point& max = cluster.aabb.second;
+  Point& min = cluster.aabb.min_corner;
+  Point& max = cluster.aabb.max_corner;
   min = cloud[cluster.points[0]];
   max = cloud[cluster.points[0]];
   for (size_t i = 1; i < cluster.points.size(); ++i) {
@@ -190,26 +190,19 @@ void Clustering::mergeClusters(const Cloud& cloud, Clusters& clusters) const {
   }
   // Check all clusters versus all others.
   size_t first_id = 0u;
-  while (first_id < (clusters.size() - 1u)) {
+  while (true) {
     Cluster& first_cluster = clusters[first_id];
     size_t second_id = first_id + 1u;
-    while (second_id < clusters.size()) {
+    while (true) {
       Cluster& second_cluster = clusters[second_id];
 
       // Ignore clusters that are far apart.
-      if (first_cluster.aabb.first.x >
-              second_cluster.aabb.second.x + config_.min_cluster_separation ||
-          first_cluster.aabb.second.x <
-              second_cluster.aabb.first.x - config_.min_cluster_separation ||
-          first_cluster.aabb.first.y >
-              second_cluster.aabb.second.y + config_.min_cluster_separation ||
-          first_cluster.aabb.second.y <
-              second_cluster.aabb.first.y - config_.min_cluster_separation ||
-          first_cluster.aabb.first.z >
-              second_cluster.aabb.second.z + config_.min_cluster_separation ||
-          first_cluster.aabb.second.z <
-              second_cluster.aabb.first.z - config_.min_cluster_separation) {
-        ++second_id;
+      if (!first_cluster.aabb.intersects(second_cluster.aabb,
+                                         config_.min_cluster_separation)) {
+        second_id++;
+        if (second_id >= clusters.size()) {
+          break;
+        }
         continue;
       }
 
@@ -220,7 +213,7 @@ void Clustering::mergeClusters(const Cloud& cloud, Clusters& clusters) const {
           const float distance = (cloud[point_1].getVector3fMap() -
                                   cloud[point_2].getVector3fMap())
                                      .norm();
-          if (distance < config_.min_cluster_separation) {
+          if (distance <= config_.min_cluster_separation) {
             distance_met = true;
             break;
           }
@@ -240,8 +233,16 @@ void Clustering::mergeClusters(const Cloud& cloud, Clusters& clusters) const {
       } else {
         second_id++;
       }
+
+      // Terminate if we reach the end of clusters.
+      if (second_id == clusters.size()) {
+        break;
+      }
     }
     first_id++;
+    if (first_id >= clusters.size() - 1u) {
+      break;
+    }
   }
 }
 
@@ -262,9 +263,7 @@ bool Clustering::filterCluster(const Cluster& cluster) const {
   }
 
   // Check extent.
-  const float extent = (cluster.aabb.first.getVector3fMap() -
-                        cluster.aabb.second.getVector3fMap())
-                           .norm();
+  const float extent = cluster.aabb.extent();
   if (extent < config_.min_extent || extent > config_.max_extent) {
     return true;
   }

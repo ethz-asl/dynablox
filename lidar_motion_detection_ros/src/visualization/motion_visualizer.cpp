@@ -166,8 +166,8 @@ void MotionVisualizer::visualizeClusters(const Clusters& clusters,
       msg.color = setColor(color_map_.colorLookup(cluster.id));
       msg.scale.x = config_.cluster_line_width;
       msg.pose.orientation.w = 1.f;
-      const Eigen::Vector3f base = cluster.aabb.first.getVector3fMap();
-      const Eigen::Vector3f delta = cluster.aabb.second.getVector3fMap() - base;
+      const Eigen::Vector3f base = cluster.aabb.min_corner.getVector3fMap();
+      const Eigen::Vector3f delta = cluster.aabb.max_corner.getVector3fMap() - base;
       const Eigen::Vector3f dx = delta.cwiseProduct(Eigen::Vector3f::UnitX());
       const Eigen::Vector3f dy = delta.cwiseProduct(Eigen::Vector3f::UnitY());
       const Eigen::Vector3f dz = delta.cwiseProduct(Eigen::Vector3f::UnitZ());
@@ -210,11 +210,9 @@ void MotionVisualizer::visualizeClusters(const Clusters& clusters,
     msg.color = setColor(color_map_.colorLookup(cluster.id));
     msg.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
     msg.scale.z = 0.5;
-    msg.pose.position = setPoint(cluster.aabb.second);
+    msg.pose.position = setPoint(cluster.aabb.max_corner);
     msg.pose.orientation.w = 1.f;
-    const float extent = (cluster.aabb.first.getVector3fMap() -
-                          cluster.aabb.second.getVector3fMap())
-                             .norm();
+    const float extent = cluster.aabb.extent();
     std::stringstream stream;
     stream << cluster.points.size() << "pts - " << std::fixed
            << std::setprecision(1) << extent << "m";
