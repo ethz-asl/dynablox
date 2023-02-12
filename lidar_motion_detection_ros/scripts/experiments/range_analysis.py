@@ -2,10 +2,10 @@
 
 import os
 import numpy as np
-import csv
 from matplotlib import pyplot as plt
+from plotting_tools import read_cloud_data
 
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift_20m"    # doals_nodrift_inf
+DATA_PATH = "/media/lukas/T7/data/ours/standard_inf"    # doals_nodrift_inf
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
 OUTPUT_DIR = "/home/lukas/Documents/motion_detection/range_analysis"
@@ -14,21 +14,31 @@ OUTPUT_DIR = "/home/lukas/Documents/motion_detection/range_analysis"
 def main():
     # Plot config.
     metrics = ['iou', 'precision', 'recall']
-    max_range = 20  # m, Max Distance: 172.732, 82.48% within 20m, 93.30% in 30
+    max_range = 50  # m, Max Distance: 172.732, 82.48% within 20m, 93.30% in 30
+    normalize_by_global_points = True
+    perform_analysis = False
+    plot_ranges = False
+    plot_finals = True
 
     # Data
-    data, names = read_data()  # data [bag_id][TP/TN/FP/FN]
+    data, names, num_points = read_data()  # data [bag_id][TP/TN/FP/FN]
+
+    num_points = None if not normalize_by_global_points else num_points
 
     # Analysis if needed.
-    if False:
-        considered_range = 25  # m,
+    if perform_analysis:
+        considered_range = 20  # m,
         analyze_distances(data, considered_range)
         return
 
     # Plot
-    for m in metrics:
-        for summary in [True, False]:
-            plot_range(data, names, m, summary, max_range)
+    if plot_ranges:
+        for m in metrics:
+            for summary in [True, False]:
+                plot_range(data, names, m, summary, max_range, num_points)
+
+    if plot_finals:
+        plot_final(data, names, max_range, num_points)
 
 
 def analyze_distances(data, considered_range):
@@ -42,28 +52,94 @@ def analyze_distances(data, considered_range):
     )
 
 
-def read_range_data(csv_file):
-    data = {}
-    if not os.path.isfile(csv_file):
-        print(f"File '{csv_file}' does not exist!")
-        return data
-    with open(csv_file, newline='\n') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        for row in reader:
-            data[row[0]] = np.array([float(r) for r in row[1:]])
-    return data
-
-
 def read_data():
     data = []
     names = []
+    num_points = 0
     for s in SCENES:
         for seq in SEQUENCES:
             name = f"{s}_{seq}_none"
-            data.append(
-                read_range_data(os.path.join(DATA_PATH, name, "ranges.csv")))
+            processed_data = {'TP': [], 'FP': [], 'TN': [], 'FN': []}
+            cloud_data = read_cloud_data(os.path.join(DATA_PATH, name,
+                                                      "clouds.csv"))
+            distances = cloud_data['Distance']
+            dynamic = cloud_data['ClusterDynamic']
+            gt_dynamic = cloud_data['GTDynamic']
+            tp = np.logical_and(dynamic, gt_dynamic)
+            fp = np.logical_and(dynamic, np.logical_not(gt_dynamic))
+            tn = np.logical_and(np.logical_not(dynamic),
+                                np.logical_not(gt_dynamic))
+            fn = np.logical_and(np.logical_not(dynamic), gt_dynamic)
+            num_points += len(distances)
+            processed_data['TP'] = distances[tp]
+            processed_data['FP'] = distances[fp]
+            processed_data['TN'] = distances[tn]
+            processed_data['FN'] = distances[fn]
+            data.append(processed_data)
             names.append(name)
-    return data, names
+    return data, names, num_points
+
+
+def plot_final(data, names, max_range, num_points):
+    print("Plotting final.")
+    # For each range compute the metric and number of valid points.
+    distances = np.linspace(0, max_range, max_range)
+
+    # Get data.
+    iou_m = []
+    iou_std = []
+    pre_m = []
+    pre_std = []
+    rec_m = []
+    rec_std = []
+    points_m = []
+    points_std = []
+    for d in distances:
+        points, iou = compute_iou_and_points(data, d, 'iou')
+        _, rec = compute_iou_and_points(data, d, 'recall')
+        _, pre = compute_iou_and_points(data, d, 'precision')
+        iou_m.append(np.mean(iou))
+        iou_std.append(np.std(iou))
+        points_m.append(np.mean(points))
+        points_std.append(np.std(points))
+        rec_m.append(np.mean(rec))
+        rec_std.append(np.std(rec))
+        pre_m.append(np.mean(pre))
+        pre_std.append(np.std(pre))
+
+    # Plot.
+    plt.figure(figsize=(10, 5))
+
+    plt.plot(distances, iou_m, 'b-')
+    plt.plot(distances, pre_m, 'g--')
+    plt.plot(distances, rec_m, 'r-.')
+    plt.plot(distances, points_m, 'k:')
+    plt.fill_between(distances,
+                     np.array(iou_m) - np.array(iou_std),
+                     np.array(iou_m) + np.array(iou_std),
+                     facecolor='b',
+                     alpha=.2)
+    plt.fill_between(distances,
+                     np.array(pre_m) - np.array(pre_std),
+                     np.array(pre_m) + np.array(pre_std),
+                     facecolor='g',
+                     alpha=.2)
+    plt.fill_between(distances,
+                     np.array(rec_m) - np.array(rec_std),
+                     np.array(rec_m) + np.array(rec_std),
+                     facecolor='r',
+                     alpha=.2)
+    plt.fill_between(distances,
+                     np.array(points_m) - np.array(points_std),
+                     np.array(points_m) + np.array(points_std),
+                     facecolor='k',
+                     alpha=.2)
+
+    plt.ylim([0, 100])
+    plt.xlabel("Distance [m]")
+    plt.ylabel("Value [%]")
+    plt.legend(["IoU", "Precision", "Recall", "Points considered"])
+    plt.savefig(os.path.join(OUTPUT_DIR, "final.svg"))
 
 
 def plot_range(data, names, metric, summarize, max_range):

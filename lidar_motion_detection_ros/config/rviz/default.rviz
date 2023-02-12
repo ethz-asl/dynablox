@@ -7,8 +7,8 @@ Panels:
         - /Input Data1
         - /Visualization1
         - /Visualization1/Slice1
+        - /Visualization1/Volume1
         - /Detection1
-        - /Evaluation1
       Splitter Ratio: 0.9548872113227844
     Tree Height: 631
   - Class: rviz/Selection
@@ -78,7 +78,7 @@ Visualization Manager:
           Color: 0; 0; 0
           Color Transformer: FlatColor
           Decay Time: 0
-          Enabled: true
+          Enabled: false
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Min Color: 0; 0; 0
@@ -89,137 +89,33 @@ Visualization Manager:
           Size (Pixels): 1
           Size (m): 0.009999999776482582
           Style: Points
-          Topic: /pointcloud_drifted
+          Topic: /lidar_undistortion/pointcloud_corrected
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
-          Value: true
+          Value: false
         - Alpha: 1
           Class: rviz/Axes
-          Enabled: true
+          Enabled: false
           Length: 1
           Name: Map Origin
           Radius: 0.10000000149011612
           Reference Frame: <Fixed Frame>
           Show Trail: false
-          Value: true
+          Value: false
         - Alpha: 1
           Class: rviz/Axes
-          Enabled: true
+          Enabled: false
           Length: 0.6000000238418579
           Name: Sensor GT
           Radius: 0.05000000074505806
-          Reference Frame: os1_lidar
+          Reference Frame: os_lidar
           Show Trail: false
-          Value: true
-        - Alpha: 1
-          Class: rviz/Axes
-          Enabled: true
-          Length: 0.5
-          Name: Sensor Drifted
-          Radius: 0.20000000298023224
-          Reference Frame: os1_drifted
-          Show Trail: false
-          Value: true
-      Enabled: false
+          Value: false
+      Enabled: true
       Name: Input Data
     - Class: rviz/Group
       Displays:
-        - Class: rviz/Group
-          Displays:
-            - Alpha: 1
-              Autocompute Intensity Bounds: true
-              Autocompute Value Bounds:
-                Max Value: 10
-                Min Value: -10
-                Value: true
-              Axis: Z
-              Channel Name: intensity
-              Class: rviz/PointCloud2
-              Color: 255; 255; 255
-              Color Transformer: RGB8
-              Decay Time: 0
-              Enabled: true
-              Invert Rainbow: false
-              Max Color: 0; 0; 0
-              Min Color: 0; 0; 0
-              Name: Lidar Points
-              Position Transformer: XYZ
-              Queue Size: 10
-              Selectable: true
-              Size (Pixels): 1
-              Size (m): 0.009999999776482582
-              Style: Points
-              Topic: /lidar_motion_detection/lidar_points
-              Unreliable: false
-              Use Fixed Frame: true
-              Use rainbow: false
-              Value: true
-            - Alpha: 1
-              Autocompute Intensity Bounds: true
-              Autocompute Value Bounds:
-                Max Value: 10
-                Min Value: -10
-                Value: true
-              Axis: Z
-              Channel Name: intensity
-              Class: rviz/PointCloud2
-              Color: 255; 255; 255
-              Color Transformer: FlatColor
-              Decay Time: 0
-              Enabled: true
-              Invert Rainbow: false
-              Max Color: 255; 255; 255
-              Min Color: 0; 0; 0
-              Name: Ever Free
-              Position Transformer: XYZ
-              Queue Size: 10
-              Selectable: true
-              Size (Pixels): 3
-              Size (m): 0.20000000298023224
-              Style: Boxes
-              Topic: /lidar_motion_detection/ever_free_slice
-              Unreliable: false
-              Use Fixed Frame: true
-              Use rainbow: true
-              Value: true
-          Enabled: false
-          Name: Slice
-        - Alpha: 1
-          Autocompute Intensity Bounds: true
-          Autocompute Value Bounds:
-            Max Value: 10
-            Min Value: -10
-            Value: true
-          Axis: Z
-          Channel Name: intensity
-          Class: rviz/PointCloud2
-          Color: 255; 255; 255
-          Color Transformer: RGB8
-          Decay Time: 0
-          Enabled: false
-          Invert Rainbow: false
-          Max Color: 255; 255; 255
-          Min Color: 0; 0; 0
-          Name: Never Free Voxels
-          Position Transformer: XYZ
-          Queue Size: 10
-          Selectable: true
-          Size (Pixels): 3
-          Size (m): 0.20000000298023224
-          Style: Boxes
-          Topic: /lidar_motion_detection/never_free_voxels
-          Unreliable: false
-          Use Fixed Frame: true
-          Use rainbow: true
-          Value: false
-        - Class: voxblox_rviz_plugin/VoxbloxMesh
-          Enabled: false
-          Name: Voxblox Mesh
-          Queue Size: 10
-          Topic: /motion_detector/visualization/mesh
-          Unreliable: false
-          Value: false
         - Class: rviz/Group
           Displays:
             - Class: rviz/Marker
@@ -240,6 +136,89 @@ Visualization Manager:
               Value: false
           Enabled: true
           Name: Sensor
+        - Class: rviz/Group
+          Displays:
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /motion_detector/visualization/slice/ever_free
+              Name: Ever Free
+              Namespaces:
+                "": true
+              Queue Size: 100
+              Value: true
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /motion_detector/visualization/slice/never_free
+              Name: Never Free
+              Namespaces:
+                "": true
+              Queue Size: 100
+              Value: true
+            - Class: rviz/Marker
+              Enabled: false
+              Marker Topic: /motion_detector/visualization/slice/points
+              Name: Points
+              Namespaces:
+                {}
+              Queue Size: 100
+              Value: false
+            - Alpha: 0.5
+              Autocompute Intensity Bounds: true
+              Autocompute Value Bounds:
+                Max Value: 10
+                Min Value: -10
+                Value: true
+              Axis: Z
+              Channel Name: intensity
+              Class: rviz/PointCloud2
+              Color: 255; 255; 255
+              Color Transformer: Intensity
+              Decay Time: 0
+              Enabled: false
+              Invert Rainbow: false
+              Max Color: 255; 255; 255
+              Min Color: 0; 0; 0
+              Name: TSDF
+              Position Transformer: XYZ
+              Queue Size: 10
+              Selectable: true
+              Size (Pixels): 3
+              Size (m): 0.20000000298023224
+              Style: Boxes
+              Topic: /motion_detector/visualization/slice/tsdf
+              Unreliable: false
+              Use Fixed Frame: true
+              Use rainbow: true
+              Value: false
+          Enabled: true
+          Name: Slice
+        - Class: rviz/Group
+          Displays:
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /motion_detector/visualization/ever_free
+              Name: Ever Free
+              Namespaces:
+                {}
+              Queue Size: 100
+              Value: true
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /motion_detector/visualization/never_free
+              Name: Never Free
+              Namespaces:
+                {}
+              Queue Size: 100
+              Value: true
+          Enabled: false
+          Name: Volume
+        - Class: voxblox_rviz_plugin/VoxbloxMesh
+          Enabled: false
+          Name: Voxblox Mesh
+          Queue Size: 10
+          Topic: /motion_detector/visualization/mesh
+          Unreliable: false
+          Value: false
       Enabled: true
       Name: Visualization
     - Class: rviz/Group
@@ -291,7 +270,7 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/object/dynamic
               Name: Dynamic
               Namespaces:
-                "": true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -299,41 +278,13 @@ Visualization Manager:
               Marker Topic: /motion_detector/visualization/detections/object/static
               Name: Static
               Namespaces:
-                "": true
+                {}
               Queue Size: 100
               Value: true
-          Enabled: true
+          Enabled: false
           Name: Objects
       Enabled: true
       Name: Detection
-    - Class: rviz/Group
-      Displays:
-        - Class: rviz/Marker
-          Enabled: false
-          Marker Topic: /motion_detector/visualization/ground_truth/point
-          Name: Point
-          Namespaces:
-            {}
-          Queue Size: 100
-          Value: false
-        - Class: rviz/Marker
-          Enabled: false
-          Marker Topic: /motion_detector/visualization/ground_truth/cluster
-          Name: Cluster
-          Namespaces:
-            {}
-          Queue Size: 100
-          Value: false
-        - Class: rviz/Marker
-          Enabled: true
-          Marker Topic: /motion_detector/visualization/ground_truth/object
-          Name: Object
-          Namespaces:
-            {}
-          Queue Size: 100
-          Value: true
-      Enabled: false
-      Name: Evaluation
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -362,7 +313,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 36.4589729309082
+      Distance: 49.86338806152344
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -370,17 +321,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -1.5262489318847656
-        Y: 3.221604824066162
-        Z: -3.836296796798706
+        X: -12.671941757202148
+        Y: -4.246119499206543
+        Z: -16.665760040283203
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.804797351360321
+      Pitch: 1.1747971773147583
       Target Frame: map
-      Yaw: 3.881791114807129
+      Yaw: 0.7568373680114746
     Saved: ~
 Window Geometry:
   Displays:

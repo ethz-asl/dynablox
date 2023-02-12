@@ -47,3 +47,23 @@ def get_grid(data, field):
         print(f"Warning: Did not fiend field '{field}' to create grid from.")
         return np.array([np.nan])
     return np.array(data[field])
+
+
+def read_cloud_data(csv_file):
+    """ Returns data[field_name][point_index] = value. """
+    data = {}
+    if not os.path.isfile(csv_file):
+        print(f"File '{csv_file}' does not exist!")
+        return data
+    with open(csv_file, newline='\n') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        header = None
+        for row in reader:
+            if header is None:
+                header = row
+                for key in header:
+                    data[key] = []
+            else:
+                for i, r in enumerate(row):
+                    data[header[i]].append(float(r))
+    return data
