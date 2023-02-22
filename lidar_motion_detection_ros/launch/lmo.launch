@@ -2,9 +2,12 @@
 
 <launch>
   <!-- Dataset -->
-  <arg name="bag_file" default="/media/lukas/T7/Datasets/LMO/hg_1.bag" />
-  <!-- hg_1, hg_2, indoor_1, ramp_1, ramp_2, ramp_3, ramp_4, stairs_1 -->
-  <arg name="player_rate" default="0.3" /> <!-- 0.3 -->
+  <arg name="data_path" default="/media/lukas/T7/Datasets/LMO" />
+  <arg name="bag_id" default="stairs_1" />
+  <!-- hg_1, hg_2, indoor_1, ramp_1, ramp_2, corr_1, corr_2, stairs_1 -->
+  <!-- Note: corr_1 is HG indoor with bouncing ball -->
+  <arg name="player_rate" default="0.2" /> <!-- 0.3 -->
+  <arg name="record_video" default="true" />
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/lmo.yaml" />
@@ -14,7 +17,7 @@
   <param name="use_sim_time" value="true" />
 
   <!-- Play the bag -->
-  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg bag_file) -d 1 -s 2" /> 
+  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg data_path)/$(arg bag_id).bag -d 1 -s 2" required="$(arg record_video)" /> 
    
   <!-- Lidar Undistortion -->
   <node name="lidar_undistortion" pkg="lidar_undistortion" type="lidar_undistortion_node">
@@ -30,6 +33,11 @@
   </node>
   
   <!-- Visualize -->
-  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find lidar_motion_detection_ros)/config/rviz/lmo.rviz"/>
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find lidar_motion_detection_ros)/config/rviz/lmo.rviz" unless="$(arg record_video)"/>
+  
+  <!-- Record the visualization -->
+  <node name="vis_record" pkg="lidar_motion_detection_ros" type="record_video.py" if="$(arg record_video)"> 
+      <param name="bag_file" value="/media/lukas/T7/data/video/$(arg bag_id)_video.bag" />
+  </node>
 
 </launch>

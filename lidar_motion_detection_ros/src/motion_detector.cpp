@@ -225,11 +225,7 @@ bool MotionDetector::lookupTransform(const std::string& target_frame,
 }
 
 void MotionDetector::postprocessPointcloud(CloudInfo& cloud_info) {
-  // for (auto& point : cloud_info.points) {
-  //   if (point.cluster_level_dynamic) {
-  //     point.filtered_out = true;
-  //   }
-  // }
+  // NOTE(schmluk): This used to label points that are dynamic as 'filtered_out', not clear for what though.
 }
 
 void MotionDetector::setUpPointMap(

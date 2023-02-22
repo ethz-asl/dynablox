@@ -40,7 +40,6 @@ bool Preprocessing::processPointcloud(const sensor_msgs::PointCloud2::Ptr& msg,
         std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
     PointInfo& info = cloud_info.points.at(i);
     info.distance_to_sensor = norm;
-    info.filtered_out = norm > config_.max_range || norm < config_.min_range;
     i++;
   }
 

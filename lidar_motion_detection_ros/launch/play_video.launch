@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <!-- Dataset -->
+  <arg name="data_path" default="/media/lukas/T7/data/video" />
+  <arg name="bag_id" default="corr_1" /> 
+  <!-- hg_1, hg_2, indoor_1, ramp_1, ramp_2, corr_1, corr_2, stairs_1 -->
+  <arg name="play_rate" default="1" />
+  
+  
+  
+
+  <!-- Play the bag -->
+  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg play_rate) $(arg data_path)/$(arg bag_id)_video.bag -s 15" /> 
+  
+  <!-- Visualize -->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find lidar_motion_detection_ros)/config/rviz/lmo.rviz"/>
+  
+
+</launch>

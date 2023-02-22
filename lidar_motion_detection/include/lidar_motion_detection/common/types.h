@@ -23,9 +23,6 @@ using TsdfLayer = voxblox::Layer<TsdfVoxel>;
 
 // Additional information stored for every point in the cloud.
 struct PointInfo {
-  //
-  bool filtered_out = false;
-
   // Include this point when computing performance metrics.
   bool ready_for_evaluation = false;
 

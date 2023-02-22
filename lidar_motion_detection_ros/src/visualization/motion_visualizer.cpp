@@ -432,9 +432,6 @@ void MotionVisualizer::visualizeSlicePoints(const Cloud& cloud,
     if (point.z < min_z || point.z > max_z) {
       continue;
     }
-    if (cloud_info.points[i].filtered_out) {
-      continue;
-    }
     if (cloud_info.points[i].ever_free_level_dynamic) {
       result.points.push_back(setPoint(point));
       result.colors.push_back(setColor(config_.point_level_slice_color));
@@ -614,9 +611,6 @@ void MotionVisualizer::visualizePointDetections(
     if (point.z > config_.visualization_max_z) {
       continue;
     }
-    if (cloud_info.points[i].filtered_out) {
-      continue;
-    }
     if (cloud_info.points[i].ever_free_level_dynamic) {
       if (!dynamic) {
         continue;
@@ -683,8 +677,7 @@ void MotionVisualizer::visualizeClusterDetections(
       color = setColor(config_.dynamic_point_color);
     }
     for (int index : cluster.points) {
-      if (cloud_info.points[index].filtered_out ||
-          cloud[index].z > config_.visualization_max_z) {
+      if (          cloud[index].z > config_.visualization_max_z) {
         continue;
       }
       result.points.push_back(setPoint(cloud[index]));
@@ -700,8 +693,7 @@ void MotionVisualizer::visualizeClusterDetections(
         ++i;
         continue;
       }
-      if (!cloud_info.points[i].cluster_level_dynamic ||
-          cloud_info.points[i].filtered_out) {
+      if (!cloud_info.points[i].cluster_level_dynamic) {
         result_comp.points.push_back(setPoint(point));
       }
       ++i;
@@ -761,8 +753,7 @@ void MotionVisualizer::visualizeObjectDetections(
     }
 
     for (int index : cluster.points) {
-      if (cloud_info.points[index].filtered_out ||
-          cloud[index].z > config_.visualization_max_z) {
+      if (          cloud[index].z > config_.visualization_max_z) {
         continue;
       }
       result.points.push_back(setPoint(cloud[index]));
@@ -778,8 +769,7 @@ void MotionVisualizer::visualizeObjectDetections(
         ++i;
         continue;
       }
-      if (!cloud_info.points[i].object_level_dynamic ||
-          cloud_info.points[i].filtered_out) {
+      if (!cloud_info.points[i].object_level_dynamic) {
         result_comp.points.push_back(setPoint(point));
       }
       ++i;
