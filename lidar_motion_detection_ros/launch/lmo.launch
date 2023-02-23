@@ -3,14 +3,14 @@
 <launch>
   <!-- Dataset -->
   <arg name="data_path" default="/media/lukas/T7/Datasets/LMO" />
-  <arg name="bag_id" default="stairs_1" />
+  <arg name="bag_id" default="hg_1" />
   <!-- hg_1, hg_2, indoor_1, ramp_1, ramp_2, corr_1, corr_2, stairs_1 -->
   <!-- Note: corr_1 is HG indoor with bouncing ball -->
-  <arg name="player_rate" default="0.2" /> <!-- 0.3 -->
+  <arg name="player_rate" default="0.5" /> <!-- 0.3 -->
   <arg name="record_video" default="true" />
   
   <!-- Motion Detector -->
-  <arg name="config_file" default="motion_detector/lmo.yaml" />
+  <arg name="config_file" default="motion_detector/doals.yaml" />
   
   
   <!-- Run Nodes -->

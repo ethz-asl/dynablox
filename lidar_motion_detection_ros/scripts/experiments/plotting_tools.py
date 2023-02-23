@@ -67,3 +67,27 @@ def read_cloud_data(csv_file):
                 for i, r in enumerate(row):
                     data[header[i]].append(float(r))
     return data
+
+
+def read_time_data(file_name):
+    data = {}
+    file = open(file_name, 'r')
+    lines = file.readlines()
+    for l in lines[2:-1]:
+        entries = l.split("\t")
+        key = entries[0].strip(" ")
+        calls = int(entries[1])
+        total = float(entries[2])
+        mean = float(entries[3].partition(" +- ")[0][1:])
+        std = float(entries[3].partition(" +- ")[2][:-1])
+        min = float(entries[4].partition(",")[0][1:])
+        max = float(entries[4].partition(",")[2][:-2])
+        data[key] = {
+            'calls': calls,
+            'total': total,
+            'mean': mean,
+            'std': std,
+            'min': min,
+            'max': max
+        }
+    return data

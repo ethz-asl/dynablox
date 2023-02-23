@@ -3,12 +3,13 @@
 import os
 import numpy as np
 from matplotlib import pyplot as plt
+from plotting_tools import read_time_data
 
-# doals_nodrift_inf, doals_nodrift_20m
-DATA_PATH = "/media/lukas/T7/data/doals_nodrift_inf"
+
+DATA_PATH = "/media/lukas/T7/data/old/prev"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
-OUTPUT_DIR = "/home/lukas/Documents/motion_detection/doals_cluster_twice"
+OUTPUT_DIR = "/home/lukas/Documents/motion_detection/runtime"
 
 
 def main():
@@ -25,12 +26,63 @@ def main():
 
     # Run.
     print_overall = print_by == 'sequence'
-    data, names = read_data()  # data[bag_id][timer][metric]
+
     if plot:
+        plot_final()
+        return
         plot_timings(data)
     else:
+        data, names = read_data("somedataname")  # data[bag_id][timer][metric]
         table(data, names, metrics, key, print_by, print_names, print_std,
               print_latex, print_overall)
+
+
+def plot_final():
+    plt.figure(figsize=(10, 6))
+    plt.rcParams.update({'font.size': 18})    
+    runs = ["doals_nodrift_inf", "doals_nodrift_20m"]
+    data = [read_data(run)[0] for run in runs]
+
+    # Setup.
+    key_names = [
+        'Pre-Processing', 'Ever-Free Detection', 'Clustering',
+        'TSDF Integration'
+    ]
+    keys = [[
+        'motion_detection/indexing_setup', 'motion_detection/preprocessing',
+        'motion_detection/tf_lookup'
+    ], ['motion_detection/update_ever_free'], ['motion_detection/clustering'],
+        ['motion_detection/tsdf_integration']]
+    colors = ['tab:blue', 'tab:green', 'tab:orange', 'dimgray']
+
+    # Plot.
+    y_sum = np.zeros((10, ))
+    handles = []
+    x = [i + 0.08 if i % 2 == 0 else i - 0.08 for i in range(10)]
+    for i, key in reversed(list(enumerate(keys))):
+        y_val1 = []
+        for d in data[0]:
+            y_val1.append(np.sum([d[k]['mean'] for k in key]))
+        y_val2 = []
+        for d in data[1]:
+            y_val2.append(np.sum([d[k]['mean'] for k in key]))
+        y_val = np.zeros((10,))
+        for j in range(4):
+            y_val[j*2] = (y_val1[j*2] + y_val1[j*2+1]) / 2 * 1000
+            y_val[j*2 + 1] = (y_val2[j*2] + y_val2[j*2+1]) / 2 * 1000
+        y_val[8] = np.mean(y_val1) * 1000
+        y_val[9] = np.mean(y_val2) * 1000
+        print(",".join([y_val[i].astype(str) for i in range(10)]))
+        handles.append(plt.bar(x, y_val, color=colors[i], bottom=y_sum))
+        y_sum = y_sum + y_val
+    plt.legend(handles[::-1], key_names, loc='upper left')
+    plt.xticks([0.5 + 2 * i for i in range(5)],
+               ['HG', 'Niederdorf', 'Shopville', 'Station', 'Overall'])
+    plt.ylabel("Mean Execution Time [ms]")
+    # plt.xlabel("Dataset (left: full range, right: 20m)")
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(OUTPUT_DIR, "final.png"), ppi=600)
 
 
 def plot_timings(data):
@@ -44,7 +96,7 @@ def plot_timings(data):
         'motion_detection/indexing_setup', 'motion_detection/preprocessing',
         'motion_detection/tf_lookup'
     ], ['motion_detection/update_ever_free'], ['motion_detection/clustering'],
-            ['motion_detection/tsdf_integration']]
+        ['motion_detection/tsdf_integration']]
     colors = ['tab:blue', 'tab:green', 'tab:orange', 'dimgray']
 
     # Plot.
@@ -56,7 +108,7 @@ def plot_timings(data):
     for i, key in reversed(list(enumerate(keys))):
         y_val = []
         for d in data:
-            y_val.append(np.sum([d[j]['mean'] for j in key]))
+            y_val.append(np.sum([d[k]['mean'] for k in key]))
         y_val = np.array(y_val) * 1000
         y_val = np.append(y_val, np.mean(y_val))
         handles.append(plt.bar(x, y_val, color=colors[i], bottom=y_sum))
@@ -67,38 +119,14 @@ def plot_timings(data):
         os.path.join(OUTPUT_DIR, f"timings_{DATA_PATH.split('/')[-1]}.svg"))
 
 
-def read_time_data(file_name):
-    data = {}
-    file = open(file_name, 'r')
-    lines = file.readlines()
-    for l in lines[2:-1]:
-        entries = l.split("\t")
-        key = entries[0].strip(" ")
-        calls = int(entries[1])
-        total = float(entries[2])
-        mean = float(entries[3].partition(" +- ")[0][1:])
-        std = float(entries[3].partition(" +- ")[2][:-1])
-        min = float(entries[4].partition(",")[0][1:])
-        max = float(entries[4].partition(",")[2][:-2])
-        data[key] = {
-            'calls': calls,
-            'total': total,
-            'mean': mean,
-            'std': std,
-            'min': min,
-            'max': max
-        }
-    return data
-
-
-def read_data():
+def read_data(folder_name):
     data = []
     names = []
     for s in SCENES:
         for seq in SEQUENCES:
             name = f"{s}_{seq}_none"
             data.append(
-                read_time_data(os.path.join(DATA_PATH, name, "timings.txt")))
+                read_time_data(os.path.join(DATA_PATH, folder_name, name, "timings.txt")))
             names.append(name)
     return data, names
 
