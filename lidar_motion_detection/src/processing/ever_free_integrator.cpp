@@ -38,8 +38,7 @@ EverFreeIntegrator::EverFreeIntegrator(const EverFreeIntegrator::Config& config,
       voxel_size_(tsdf_layer_->voxel_size()),
       voxels_per_side_(tsdf_layer_->voxels_per_side()),
       voxels_per_block_(voxels_per_side_ * voxels_per_side_ *
-                        voxels_per_side_) {
-}
+                        voxels_per_side_) {}
 
 void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
   // Get all updated blocks. NOTE: we highjack the kESDF flag here for ever-free
@@ -105,7 +104,7 @@ void EverFreeIntegrator::updateEverFreeVoxels(const int frame_counter) const {
     threads.emplace_back(std::async(std::launch::async, [&]() {
       BlockIndex index;
       while (index_getter.getNextIndex(&index)) {
-        makeEverFree(index, frame_counter);
+        blockWiseMakeEverFree(index, frame_counter);
       }
     }));
   }
@@ -150,8 +149,8 @@ bool EverFreeIntegrator::blockWiseUpdateEverFree(
   return !voxels_to_remove.empty();
 }
 
-void EverFreeIntegrator::makeEverFree(const BlockIndex& block_index,
-                                      const int frame_counter) const {
+void EverFreeIntegrator::blockWiseMakeEverFree(const BlockIndex& block_index,
+                                               const int frame_counter) const {
   TsdfBlock::Ptr tsdf_block = tsdf_layer_->getBlockPtrByIndex(block_index);
   if (!tsdf_block) {
     return;
@@ -173,8 +172,10 @@ void EverFreeIntegrator::makeEverFree(const BlockIndex& block_index,
     // Check the neighbourhood for unobserved or occupied voxels.
     const VoxelIndex voxel_index =
         tsdf_block->computeVoxelIndexFromLinearIndex(index);
+
     voxblox::AlignedVector<voxblox::VoxelKey> neighbors =
         neighborhood_search_.search(block_index, voxel_index, voxels_per_side_);
+
     bool neighbor_occupied_or_unobserved = false;
 
     for (const voxblox::VoxelKey& neighbor_key : neighbors) {

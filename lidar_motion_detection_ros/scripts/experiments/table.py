@@ -5,8 +5,8 @@ import numpy as np
 from plotting_tools import read_plot_data_csv, verify_data, get_grid
 
 # doals_nodrift_20m,  
-DATA_PATH = "/media/lukas/T7/data/ours/standard"
-SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
+DATA_PATH = "/media/lukas/T7/data/ours/ablation/no_margin"
+SCENES = ["hauptgebaeude", "niederdorf", "station", "shopville"]
 SEQUENCES = [1, 2]
 
 

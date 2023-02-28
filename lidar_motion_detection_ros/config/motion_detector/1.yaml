@@ -3,18 +3,18 @@
 #evaluate: true # Set by launch file
 #visualize: true
 #num_threads: 1  # uses hardware concurrency if left empty.
-queue_size: 10
+queue_size: 20
 shutdown_after: 10  # num evaluations.
   
 # Preprocessing.
 preprocessing:
   min_range: &min_range 0.5  # m
-  max_range: &max_range 20000  # m
+  max_range: &max_range 20  # m
 
 # Ever-Free Integration.
 ever_free_integrator:
   counter_to_reset: 150 # Observations to un-free an ever-free voxel [frames]
-  temporal_buffer: 2   # To compensate sparsity [frames].
+  temporal_buffer: 0   # To compensate sparsity [frames].
   burn_in_period: 5   # Burn in before becoming ever-free [frames].
   tsdf_occupancy_threshold: 0.3 # 1.5 voxel sizes.
   neighbor_connectivity: 26
@@ -41,19 +41,21 @@ evaluation:
   evaluate_point_level: true
   evaluate_cluster_level: true
   evaluate_object_level: true
-  save_clouds: true
+  save_clouds: false  # For detailed inspection of results.
   
 # Visualization.
 visualization:
   static_point_color: [0,0,0,1]
   dynamic_point_color: [1,0,0.5,1]
   out_of_bounds_color: [0,0,0,0.1]
+  ever_free_color: [1, 0, 1, 0.5]
+  never_free_color: [0, 1, 1, 0.5]
   static_point_scale: 0.03
   dynamic_point_scale: 0.08
   sensor_scale: 0.5
   color_clusters: true
   color_wheel_num_colors: 20
-  slice_height: 1
+  slice_height: -1
   visualization_max_z: 100
   
 # Voxblox parameters.

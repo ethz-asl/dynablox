@@ -26,6 +26,7 @@ void Clustering::Config::setupParamsAndPrinting() {
   setupParam("max_extent", &max_extent, "m");
   setupParam("grow_clusters_twice", &grow_clusters_twice);
   setupParam("min_cluster_separation", &min_cluster_separation, "m");
+  setupParam("check_cluster_separation_exact", &check_cluster_separation_exact);
   setupParam("neighbor_connectivity", &neighbor_connectivity);
 }
 
@@ -138,6 +139,8 @@ Clusters Clustering::inducePointClusters(
     const BlockToPointMap& point_map,
     const std::vector<ClusterIndices>& voxel_cluster_indices) const {
   Clusters candidates;
+  const int voxels_per_side = tsdf_layer_->voxels_per_side();
+  const float voxel_size = tsdf_layer_->voxel_size();
 
   for (const auto& voxel_cluster : voxel_cluster_indices) {
     Cluster candidate_cluster;
@@ -155,6 +158,14 @@ Clusters Clustering::inducePointClusters(
         continue;
       }
 
+      // Add the voxel.
+      const voxblox::Point center = voxblox::getCenterPointFromGridIndex(
+          voxblox::getGlobalVoxelIndexFromBlockAndVoxelIndex(
+              voxel_key.first, voxel_key.second, voxels_per_side),
+          voxel_size);
+      candidate_cluster.voxels.push_back(
+          Point(center.x(), center.y(), center.z()));
+
       // Add all points.
       for (const auto& point_index : voxel_it->second) {
         candidate_cluster.points.push_back(point_index);
@@ -165,22 +176,48 @@ Clusters Clustering::inducePointClusters(
   return candidates;
 }
 
-void Clustering::computeAABB(const Cloud& cloud, Cluster& cluster) {
+void Clustering::computeAABB(const Cloud& cloud, Cluster& cluster) const {
   if (cluster.points.empty()) {
     return;
   }
   Point& min = cluster.aabb.min_corner;
   Point& max = cluster.aabb.max_corner;
-  min = cloud[cluster.points[0]];
-  max = cloud[cluster.points[0]];
-  for (size_t i = 1; i < cluster.points.size(); ++i) {
-    const Point& point = cloud[cluster.points[i]];
-    min.x = std::min(min.x, point.x);
-    min.y = std::min(min.y, point.y);
-    min.z = std::min(min.z, point.z);
-    max.x = std::max(max.x, point.x);
-    max.y = std::max(max.y, point.y);
-    max.z = std::max(max.z, point.z);
+  if (config_.check_cluster_separation_exact) {
+    // Compute the exact AABB from points.
+    min = cloud[cluster.points[0]];
+    max = cloud[cluster.points[0]];
+    for (size_t i = 1; i < cluster.points.size(); ++i) {
+      const Point& point = cloud[cluster.points[i]];
+      min.x = std::min(min.x, point.x);
+      min.y = std::min(min.y, point.y);
+      min.z = std::min(min.z, point.z);
+      max.x = std::max(max.x, point.x);
+      max.y = std::max(max.y, point.y);
+      max.z = std::max(max.z, point.z);
+    }
+  } else {
+    // Approximate the AABB from voxels.
+    const float voxel_size = tsdf_layer_->voxel_size();
+    min = Point(std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max());
+    max = Point(std::numeric_limits<float>::lowest(),
+                std::numeric_limits<float>::lowest(),
+                std::numeric_limits<float>::lowest());
+    for (const Point& point : cluster.voxels) {
+      min.x = std::min(min.x, point.x);
+      min.y = std::min(min.y, point.y);
+      min.z = std::min(min.z, point.z);
+      max.x = std::max(max.x, point.x);
+      max.y = std::max(max.y, point.y);
+      max.z = std::max(max.z, point.z);
+    }
+    min.x -= 0.5f * voxel_size;
+    min.y -= 0.5f * voxel_size;
+    min.z -= 0.5f * voxel_size;
+    max.x += 0.5f * voxel_size;
+    max.y += 0.5f * voxel_size;
+    max.z += 0.5f * voxel_size;
   }
 }
 
@@ -208,18 +245,36 @@ void Clustering::mergeClusters(const Cloud& cloud, Clusters& clusters) const {
 
       // Compute minimum distance between all points in both clusters.
       bool distance_met = false;
-      for (const int point_1 : first_cluster.points) {
-        for (const int point_2 : second_cluster.points) {
-          const float distance = (cloud[point_1].getVector3fMap() -
-                                  cloud[point_2].getVector3fMap())
-                                     .norm();
-          if (distance <= config_.min_cluster_separation) {
-            distance_met = true;
+      if (config_.check_cluster_separation_exact) {
+        // Compute distances for all points in both clusters.
+        for (const int point_1 : first_cluster.points) {
+          for (const int point_2 : second_cluster.points) {
+            const float distance = (cloud[point_1].getVector3fMap() -
+                                    cloud[point_2].getVector3fMap())
+                                       .norm();
+            if (distance <= config_.min_cluster_separation) {
+              distance_met = true;
+              break;
+            }
+          }
+          if (distance_met) {
             break;
           }
         }
-        if (distance_met) {
-          break;
+      } else {
+        // Check approximate overlap of voxels.
+        for (const Point& point_1 : first_cluster.voxels) {
+          for (const Point& point_2 : second_cluster.voxels) {
+            const float distance =
+                (point_1.getVector3fMap() - point_2.getVector3fMap()).norm();
+            if (distance <= config_.min_cluster_separation) {
+              distance_met = true;
+              break;
+            }
+          }
+          if (distance_met) {
+            break;
+          }
         }
       }
 

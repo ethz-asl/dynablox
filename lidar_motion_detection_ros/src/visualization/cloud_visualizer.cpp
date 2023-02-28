@@ -42,7 +42,19 @@ CloudVisualizer::CloudVisualizer(ros::NodeHandle nh)
   for (size_t i = 0; i < clusters_.size(); ++i) {
     const Cloud& cloud = clouds_[i];
     for (Cluster& cluster : clusters_[i]) {
-      Clustering::computeAABB(cloud, cluster);
+      Point& min = cluster.aabb.min_corner;
+      Point& max = cluster.aabb.max_corner;
+      min = cloud[cluster.points[0]];
+      max = cloud[cluster.points[0]];
+      for (size_t i = 1; i < cluster.points.size(); ++i) {
+        const Point& point = cloud[cluster.points[i]];
+        min.x = std::min(min.x, point.x);
+        min.y = std::min(min.y, point.y);
+        min.z = std::min(min.z, point.z);
+        max.x = std::max(max.x, point.x);
+        max.y = std::max(max.y, point.y);
+        max.z = std::max(max.z, point.z);
+      }
     }
   }
 

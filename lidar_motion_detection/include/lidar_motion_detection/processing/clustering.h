@@ -43,6 +43,9 @@ class Clustering {
     // merge clusters whose points are closer than the minimum separation [m].
     float min_cluster_separation = 0.2;
 
+    // If true check separation per point, if false per voxel.
+    bool check_cluster_separation_exact = false;
+
     Config() { setConfigName("Clustering"); }
 
    protected:
@@ -150,7 +153,7 @@ class Clustering {
    * @param cloud Pointcloud to look up the positions.
    * @param cluster Clsuter to evaluate.
    */
-  static void computeAABB(const Cloud& cloud, Cluster& cluster);
+  void computeAABB(const Cloud& cloud, Cluster& cluster) const;
 
  private:
   const Config config_;

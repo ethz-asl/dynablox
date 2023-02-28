@@ -97,7 +97,7 @@ class EverFreeIntegrator {
    * @param block_index Index of block to check.
    * @param frame_counter Current frame to compute occupied time.
    */
-  void makeEverFree(const BlockIndex& block_index,
+  void blockWiseMakeEverFree(const BlockIndex& block_index,
                     const int frame_counter) const;
 
  private:

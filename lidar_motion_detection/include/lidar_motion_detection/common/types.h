@@ -90,13 +90,12 @@ struct BoundingBox {
 
 // Indices of all points in the cloud belonging to this cluster.
 struct Cluster {
-  int id = -1;           // ID of the cluster set during tracking.
-  int track_length = 0;  // Frames this cluster has been tracked.
-  bool valid = false;    // Whether the cluster has met all cluster checks.
-  BoundingBox aabb;      // Axis-aligned bounding box of the cluster.
-  std::vector<int>
-      points;  // Indices of points in cloud belonging to this cluster.
-  // std::unordered_set<voxblox::GlobalIndex> voxels;  // Voxels in this cluster.
+  int id = -1;                // ID of the cluster set during tracking.
+  int track_length = 0;       // Frames this cluster has been tracked.
+  bool valid = false;         // Whether the cluster has met all cluster checks.
+  BoundingBox aabb;           // Axis-aligned bounding box of the cluster.
+  std::vector<int> points;    // Indices of points in cloud.
+  std::vector<Point> voxels;  // Center points of voxels in this cluster.
 };
 
 using Clusters = std::vector<Cluster>;
