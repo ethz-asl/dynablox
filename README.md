@@ -62,10 +62,11 @@ If you find this package useful for your research, please consider citing our pa
 
 5. Install ROS dependencies:
     ```bash
-    # if wstool is not yet initialized:
+    # If wstool is not yet initialized:
     wstool init . ./lidar_motion_detection/ssh.rosinstall 
-    # if wstool is already initialized:
+    # If wstool is already initialized:
     wstool merge -t . ./lidar_motion_detection/ssh.rosinstall
+    # After either case:
     wstool update
     ```
 
@@ -79,6 +80,7 @@ To run the demos we use the [Urban Dynamic Objects LiDAR  (DOALS) Dataset](https
 To download the data and pre-process it for our demos, use the provided script:
 ```bash
 roscd lidar_motion_detection_ros/scripts
+chmod +x download_doals.sh
 ./download_doals.sh <target_path>
 ```
 
