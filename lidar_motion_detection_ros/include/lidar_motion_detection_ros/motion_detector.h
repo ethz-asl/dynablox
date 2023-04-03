@@ -123,13 +123,6 @@ class MotionDetector {
       std::vector<voxblox::VoxelKey>& occupied_ever_free_voxel_indices,
       CloudInfo& cloud_info) const;
 
-  /**
-   * @brief Currently simply marks dynamic points as filtered_out. TODO: why?
-   *
-   * @param cloud_info Cloud info to be processed.
-   */
-  void postprocessPointcloud(CloudInfo& cloud_info);
-
  private:
   const Config config_;
 

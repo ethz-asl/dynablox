@@ -172,14 +172,11 @@ void MotionDetector::pointcloudCallback(
   ever_free_integrator_->updateEverFreeVoxels(frame_counter_);
   update_ever_free_timer.Stop();
 
-  // Post-processing.
-  postprocessPointcloud(cloud_info);
-
   // Integrate the pointcloud into the voxblox TSDF map.
   Timer tsdf_timer("motion_detection/tsdf_integration");
   voxblox::Transformation T_G_C;
   tf::transformTFToKindr(T_M_S, &T_G_C);
-  tsdf_server_->processPointCloudMessageAndInsert(msg, T_G_C, false);  
+  tsdf_server_->processPointCloudMessageAndInsert(msg, T_G_C, false);
   tsdf_timer.Stop();
   detection_timer.Stop();
 
@@ -222,10 +219,6 @@ bool MotionDetector::lookupTransform(const std::string& target_frame,
     return false;
   }
   return true;
-}
-
-void MotionDetector::postprocessPointcloud(CloudInfo& cloud_info) {
-  // NOTE(schmluk): This used to label points that are dynamic as 'filtered_out', not clear for what though.
 }
 
 void MotionDetector::setUpPointMap(

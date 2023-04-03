@@ -6,10 +6,10 @@ from matplotlib import pyplot as plt
 from plotting_tools import read_time_data
 
 
-DATA_PATH = "/media/lukas/T7/data/old/prev"
+DATA_PATH = "/mnt/c/Users/DerFu/Documents/motion_detection/data/prev"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 SEQUENCES = [1, 2]
-OUTPUT_DIR = "/home/lukas/Documents/motion_detection/runtime"
+OUTPUT_DIR = "/mnt/c/Users/DerFu/Documents/motion_detection/runtime"
 
 
 def main():
@@ -39,21 +39,21 @@ def main():
 
 def plot_final():
     plt.figure(figsize=(10, 6))
-    plt.rcParams.update({'font.size': 18})    
+    plt.rcParams.update({'font.size': 18})
     runs = ["doals_nodrift_inf", "doals_nodrift_20m"]
     data = [read_data(run)[0] for run in runs]
 
     # Setup.
     key_names = [
-        'Pre-Processing', 'Ever-Free Detection', 'Clustering',
+        'Pre-Processing', 'Clustering', 'Ever-Free Integration',
         'TSDF Integration'
     ]
     keys = [[
         'motion_detection/indexing_setup', 'motion_detection/preprocessing',
         'motion_detection/tf_lookup'
-    ], ['motion_detection/update_ever_free'], ['motion_detection/clustering'],
+    ], ['motion_detection/clustering'], ['motion_detection/update_ever_free'],
         ['motion_detection/tsdf_integration']]
-    colors = ['tab:blue', 'tab:green', 'tab:orange', 'dimgray']
+    colors = ['tab:blue', 'tab:orange', 'tab:green',  'dimgray']
 
     # Plot.
     y_sum = np.zeros((10, ))

@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits import mplot3d
 
-DATA_PATH = "/media/lukas/T7/data/ours/doals_drift"
-OUTPUT_PATH = "/home/lukas/Documents/motion_detection/drift"
+DATA_PATH = "/mnt/c/Users/DerFu/Documents/motion_detection/data/doals_drift"
+OUTPUT_PATH = "/mnt/c/Users/DerFu/Documents/motion_detection/drift"
 SCENES = ["hauptgebaeude", "niederdorf", "shopville", "station"]
 PARAMS = [10000, 150, 50, 40, 15]  # 10000, 40
 DRIFT = ["none",   "light", "moderate",
@@ -71,6 +71,7 @@ def read_data():
 
 
 def plot_surface(data, sequences, metric):
+    plt.rcParams['text.usetex'] = True
     plt.rcParams.update({'font.size': 12})    
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})#, figsize=(15,10))
 
@@ -100,6 +101,9 @@ def plot_surface(data, sequences, metric):
 
     surf = ax.plot_surface(X, Y, Z, cmap=cm.winter,
                            linewidth=0, antialiased=False, rstride=1, cstride=1)  # winter, plasma, viridis, bone
+    
+    print(metric)
+    print(Z)
 
     # Test fitting stuff.
     # x_fit = X.flatten()
@@ -117,23 +121,24 @@ def plot_surface(data, sequences, metric):
     ax.set_xticklabels((list(reversed(DRIFT)) if reverse_x else DRIFT ) if x_is_params else x_it)
     ax.set_yticks(range(len(y_it)))
     ax.set_yticklabels((list(reversed(DRIFT)) if reverse_y else DRIFT ) if not x_is_params else y_it)
-    ax.set_xlabel("Drift Parameter" if x_is_params else "Drift Intensity")
-    ax.set_ylabel("Drift Intensity" if x_is_params else "Drift Parameter")
+    ax.set_xlabel("Drift Parameter $\\tau_r$" if x_is_params else "Drift Intensity $D$")
+    ax.set_ylabel("Drift Intensity $D$" if x_is_params else "Drift Parameter $\tau_r$")
     z_ticks = range(int(np.floor(np.min(Z)/10)*10),int(np.ceil(np.max(Z)/10)*10),10)
     ax.set_zticks(z_ticks)
     ax.set_zticklabels(z_ticks)
     if metric ==  "cluster_IoU": 
-        ax.set_zlabel("IoU [%]")
+        ax.set_zlabel("IoU [\%]")
     elif metric == "cluster_Precision":
-        ax.set_zlabel("Precision [%]")
+        ax.set_zlabel("Precision [\%]")
     else:
-        ax.set_zlabel("Recall [%]")
+        ax.set_zlabel("Recall [\%]")
     ax.xaxis.labelpad=15
     ax.yaxis.labelpad=15
     ax.zaxis.labelpad=5
     ax.view_init(elev=40, azim=50)
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_PATH, f"{metric}.png"), dpi=1000)
+    print(os.path.join(OUTPUT_PATH, f"{metric}.png"))
 
 
 def table(data, sequences, metric, print_std=True, print_nan=True, print_mode='read'):

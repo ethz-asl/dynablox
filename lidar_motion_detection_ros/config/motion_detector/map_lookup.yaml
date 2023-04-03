@@ -1,0 +1,77 @@
+# ----------- Motion detector parameters --------
+# General.
+#evaluate: true # Set by launch file
+#visualize: true
+#num_threads: 1  # uses hardware concurrency if left empty.
+queue_size: 20
+shutdown_after: 10  # num evaluations.
+  
+# Preprocessing.
+preprocessing:
+  min_range: &min_range 0.5  # m
+  max_range: &max_range 20  # m
+
+# Ever-Free Integration.
+ever_free_integrator:
+  counter_to_reset: 0 # Observations to un-free an ever-free voxel [frames]
+  temporal_buffer: 0   # To compensate sparsity [frames].
+  burn_in_period: 0   # Burn in before becoming ever-free [frames].
+  tsdf_occupancy_threshold: 0.2 # 1.5 voxel sizes.
+  neighbor_connectivity: 26
+  
+# Clustering.
+clustering:
+  min_cluster_size: 0
+  max_cluster_size: 200000
+  min_extent: 0   # m
+  max_extent: 20000   # m
+  neighbor_connectivity: 6
+  grow_clusters_twice: false
+  min_cluster_separation: 0.2
+  
+# Tracking.
+tracking:
+  min_track_duration: 0 # frames
+  max_tracking_distance: 1  # m
+  
+# Evaluation.
+evaluation:
+  min_range: *min_range  # m
+  max_range: *max_range  # m
+  evaluate_point_level: true
+  evaluate_cluster_level: true
+  evaluate_object_level: true
+  save_clouds: false  # For detailed inspection of results.
+  
+# Visualization.
+visualization:
+  static_point_color: [0,0,0,1]
+  dynamic_point_color: [1,0,0.5,1]
+  out_of_bounds_color: [0,0,0,0.1]
+  ever_free_color: [1, 0, 1, 0.5]
+  never_free_color: [0, 1, 1, 0.5]
+  static_point_scale: 0.03
+  dynamic_point_scale: 0.08
+  sensor_scale: 0.5
+  color_clusters: true
+  color_wheel_num_colors: 20
+  slice_height: -1
+  visualization_max_z: 100
+  
+# Voxblox parameters.
+voxblox:
+  # SDF.
+  tsdf_voxel_size: 0.2
+  truncation_distance: 0.4
+  tsdf_voxels_per_side: 16
+  max_weight: 1000
+  
+  # Integration.
+  method: projective
+  sensor_horizontal_resolution: 2048
+  sensor_vertical_resolution: 64
+  sensor_vertical_field_of_view_degrees: 33.22222
+  min_ray_length_m: *min_range
+  max_ray_length_m: *max_range
+  use_const_weight: true
+  verbose: false

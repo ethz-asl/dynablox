@@ -5,7 +5,7 @@ import numpy as np
 from plotting_tools import read_plot_data_csv, verify_data, get_grid
 
 # doals_nodrift_20m,  
-DATA_PATH = "/media/lukas/T7/data/ours/ablation/no_margin"
+DATA_PATH = "/mnt/c/Users/DerFu/OneDrive/Dokumente/motion_detection/data/ablation/no_cluster_filter"
 SCENES = ["hauptgebaeude", "niederdorf", "station", "shopville"]
 SEQUENCES = [1, 2]
 
