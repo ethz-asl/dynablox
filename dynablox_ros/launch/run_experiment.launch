@@ -3,18 +3,17 @@
 <launch>
   <!-- ========== Arguments ========== -->
   <!-- Dataset -->
-  <arg name="use_doals" default="true" />  <!-- Which dataset to play. [doals, dynablox] -->
-  <arg name="bag_file" default="/home/lukas/data/DOALS/hauptgebaeude/sequence_1/bag.bag" />  <!-- Full path to the bag file to play -->
-  <!-- /home/lukas/data/Dynablox/processed/stairs.bag, /home/lukas/data/DOALS/hauptgebaeude/sequence_1/bag.bag" -->
+  <arg name="use_doals" default="true" />  <!-- Which dataset to play. -->
+  <arg name="bag_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/bag.bag" />  <!-- Full path to the bag file to play -->
   <arg name="player_rate" default="1" /> <!-- 0.3 -->
   
   <!-- Drift Simulation -->
-  <arg name="drift_simulation_rollout" default="" /> <!-- Leave empty to ignore drift--> <!-- doals/niederdorf/sequence_1/light_3.csv -->
+  <arg name="drift_simulation_rollout" default="" /> <!-- Leave empty to ignore drift or specify a rollout that matches the dataset bein played --> 
   
   <!-- Evaluation -->
-  <arg name="evaluate" default="false" />
-  <arg name="eval_output_path" default="/home/lukas/tmp" />
-  <arg name="ground_truth_file" default="/home/lukas/data/DOALS/hauptgebaeude/sequence_1/indices.csv" />
+  <arg name="evaluate" default="true" />
+  <arg name="eval_output_path" default="/home/$(env USER)/dynablox_output" />
+  <arg name="ground_truth_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/indices.csv" />
   
   <!-- Motion Detector -->
   <arg name="config_file" default="motion_detector/default.yaml" />

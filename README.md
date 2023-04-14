@@ -1,5 +1,5 @@
 # Dynablox
-An online mapping-based approach for real-time dynamic object detection that is agnostic to the object type an environment structure!
+Real-time detection of diverse dynamic objects in complx environments.
 
 
 # Table of Contents
@@ -13,7 +13,7 @@ An online mapping-based approach for real-time dynamic object detection that is 
 **Examples**
 - [Running a DOALS sequence](#Running-a-DOALS-sequence)
 - [Running a Dynablox sequence](#Running-a-Dynablox-sequence)
-- [Evaluating an Experiment](#Evaluating-an-Experiment)
+- [Running and Evaluating an Experiment](#Evaluating-an-Experiment)
 
 # Paper
 If you find this package useful for your research, please consider citing our paper:
@@ -81,47 +81,112 @@ To run the demos we use the [Urban Dynamic Objects LiDAR  (DOALS) Dataset](https
 To download the data and pre-process it for our demos, use the provided script:
 ```bash
 roscd dynablox_ros/scripts
-./download_doals_data.sh <target_path>
+# Or your preferred data destination.
+./download_doals_data.sh /home/$USER/data/DOALS
 ```
 
 TODO: We further collect a [new dataset](todo) featuring diverse dynamic objects in complex scenes.
-To download the data and pre-process it for our demos, use the provided script:
+To download the processed ready-to-run data for our demos, use the provided script:
 ```bash
 roscd dynablox_ros/scripts
-./download_dynablox_data.sh <target_path>
+# Or your preferred data destination.
+./download_dynablox_data.sh /home/$USER/data/Dynablox
 ```
 
 # Examples
 ## Running a DOALS Sequence
 1. If not done so, download the DOALS dataset as explained [here](#datasets).
 
-2. TODO(schmluk): Adjust some path settings and configs.
-
+2. Adjust the dataset path in `dynablox_ros/launch/run_experiment.launch`:
+    ```xml
+    <arg name="bag_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/bag.bag" />  
+    ```
 3. Run
     ```bash
-    roslaunch dynablox_ros run.launch 
+    roslaunch dynablox_ros run_experiment.launch 
     ```
+4. You should now see dynamic objects being detected as the sensor moves through the scene:
 
+![Run DOALS Example](https://user-images.githubusercontent.com/36043993/232138501-84250c43-236e-46f6-9b50-af54312215a7.png)
 
 ## Running a Dynablox Sequence
-1. If not done so, download the dataset as explained [here](#datasets).
+> __note__ The dataset will be released shortly!
 
-2. TODO(schmluk): Adjust some path settings and configs.
+1. If not done so, download the Dynablox dataset as explained [here](#datasets).
 
+2. Adjust the dataset path in `dynablox_ros/launch/run_experiment.launch` and set `use_doals` to false:
+    ```xml
+    <arg name="use_doals" default="false" /> 
+    <arg name="bag_file" default="/home/$(env USER)/data/Dynablox/processed/ramp_1.bag" />  
+    ```
 3. Run
     ```bash
-    roslaunch dynablox_ros run.launch 
+    roslaunch dynablox_ros run_experiment.launch 
+    ```
+4. You should now see dynamic objects being detected as the sensor moves through the scene:
+![Run Dynablox Example](https://user-images.githubusercontent.com/36043993/232140093-ee99a919-d2ad-4dc8-95ac-fa047b901f94.png)
+
+
+## Running and Evaluating an Experiment
+
+### Running an Experiment
+
+1. If not done so, download the DOALS dataset as explained [here](#datasets).
+
+2. Adjust the dataset path in `dynablox_ros/launch/run_experiment.launch`:
+    ```xml
+    <arg name="bag_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/bag.bag" />  
     ```
 
-
-## Evaluating an Experiment
-
-1. If not done so, download the dataset as explained [here](#datasets).
-
-2. TODO(schmluk): Adjust some path settings and configs.
-
+3. In `dynablox_ros/launch/run_experiment.launch`, set the `evaluate` flag, adjust the ground truth data path, and specify where to store the generated outpuit data:
+    ```xml
+    <arg name="evaluate" default="true" />
+    <arg name="eval_output_path" default="/home/$(env USER)/dynablox_output/" />
+    <arg name="ground_truth_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/indices.csv" />
+      ```
 3. Run
     ```bash
-    bash scripts/run_experiments.sh
+    roslaunch dynablox_ros run_experiment.launch 
     ```
+
+4. Wait till the dataset finished processing. Dynablox should shutdown automatically afterwards.
+
+### Analyzing the Data
+- **Printing the Detection Performance Metrics:** 
+    1. Run:
+    ```bash
+    roscd dynablox_ros/src/evaluation
+    python3 evaluate_data.py /home/$USER/dynablox_output
+    ```
+    2. You should now see the performance statistics for all experiments in that folder:
+    ```
+    1/1 data entries are complete.
+    Data                               object_IoU                        object_Precision                  object_Recall
+    hauptgebaeude_1                    89.8 +- 5.6                        99.3 +- 0.4                        90.3 +- 5.6
+    All                                89.8 +- 5.6                        99.3 +- 0.4                        90.3 +- 5.6
+    ```
+
+- **Inspecting the Segmentation:**
+    1. Run:
+    ```bash
+    roslaunch dynablox_ros cloud_visualizer.launch file_path:=/home/$USER/dynablox_output/clouds.csv
+    ```
+    2. You should now see the segmentation for the annotated ground truth clouds, showing True Positives (green), True Negatives (black), False Positives (blue), False Negatives (red), and out-of-range (gray) points:
+    ![Evaluation](https://user-images.githubusercontent.com/36043993/232151598-750a6860-e6e6-44bc-89c6-fbc866109019.png)
+
+- **Inspecting the Run-time and Configuration:**
+    Additional information is automatically stored in `timings.txt` and `config.txt` for each experiment.
+
+### Advanced Options
+* **Adding Drift to an Experiment:**
+    To run an experiment with drift specify one of the pre-computed drift rollouts in `dynablox_ros/launch/run_experiment.launch`:
+    ```xml
+    <arg name="drift_simulation_rollout" default="doals/niederdorf/hauptgebaeude/light_3.csv" />
+    ```
+    All pre-computed rollouts can be found in `drift_simulation/config/rollouts`. Note that the specified sequence needs to match the data being played. For each sequence, there exist 3 rollouts for each intensity.
+
+    Alternatively, use the `drift_simulation/launch/generate_drift_rollout.launch` to create new rollouts for other datasets.
+
+* **Changing th Configuration of Dynablox:**
+    All parameters that exist in dynablox are listed in `dynablox_ros/config/motion_detector/default.yaml`, feel free to tune the method for your use case!
 

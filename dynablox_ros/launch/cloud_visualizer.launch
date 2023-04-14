@@ -2,7 +2,7 @@
 
 <launch>
   <!-- Arguments -->
-  <arg name="file_path" default="/mnt/c/Users/DerFu/Dokumente/motion_detection/data/standard/hauptgebaeude_1_none/clouds.csv" /> 
+  <arg name="file_path" default="/home/$(env USER)/dynablox_output/clouds.csv" /> 
 
   <!-- Cloud Visualizer -->
   <node name="cloud_visualizer" pkg="dynablox_ros" type="cloud_visualizer" output="screen" args="--alsologtostderr" required="true">

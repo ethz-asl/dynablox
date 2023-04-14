@@ -3,13 +3,13 @@
 <launch>
   <!-- Arguments -->
   <!-- Dataset to play -->
-  <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_2/bag.bag"/>
+  <arg name="bag_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/bag.bag"/>
   <arg name="player_rate" default="1" />
   
   <!-- Drift simulation -->
   <arg name="drift_intensity" default="none" /> <!-- none, light, moderate, strong, severe -->
-  <arg name="output_drifted_file_name" default="/home/lukas/motion_ws/src/dynablox/drift_simulation/config/rollouts/doals/hauptgebaeude/sequence_2/none.csv" />
-   <arg name="output_gt_file_name" default="" /> <!-- Optional, leave empty if not needed -->
+  <arg name="output_drifted_file_name" default="/home/$(env USER)/catkinw_ws/src/dynablox/drift_simulation/config/rollouts/doals/hauptgebaeude/sequence_1/none.csv" />
+  <arg name="output_gt_file_name" default="" /> <!-- Optional, leave empty if not needed -->
 
   
   

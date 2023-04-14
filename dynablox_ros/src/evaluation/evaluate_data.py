@@ -2,52 +2,71 @@
 
 import os
 import numpy as np
+import argparse
 from data_tools import read_score_data, verify_data, get_grid
 
-# doals_nodrift_20m,  
-DATA_PATH = "/mnt/c/Users/DerFu/OneDrive/Dokumente/motion_detection/data/ablation/no_cluster_filter"
+
 SCENES = ["hauptgebaeude", "niederdorf", "station", "shopville"]
 SEQUENCES = [1, 2]
 
 
-def main():
-    # timestamp	point_IoU	point_Precision	point_Recall	point_TP	point_TN	point_FP	point_FN	cluster_IoU	cluster_Precision	cluster_Recall	cluster_TP	cluster_TN	cluster_FP	cluster_FN	object_IoU	object_Precision	object_Recall	object_TP	object_TN	object_FP	object_FN	EvaluatedPoints	TotalPoints
-
+def main(args):
     # Metrics
-    metrics = ['cluster_IoU', 'cluster_Precision', 'cluster_Recall']
+    # timestamp	point_IoU	point_Precision	point_Recall	point_TP	point_TN	point_FP	point_FN	cluster_IoU	cluster_Precision	cluster_Recall	cluster_TP	cluster_TN	cluster_FP	cluster_FN	object_IoU	object_Precision	object_Recall	object_TP	object_TN	object_FP	object_FN	EvaluatedPoints	TotalPoints
+    metrics = ['object_IoU', 'object_Precision', 'object_Recall']
 
     # Print configuration
     print_names = True
     print_std = True
     print_nan = True
-    print_mode = 'csv'  # 'csv', 'latex', 'read'
+    print_mode = 'read'  # 'read', 'csv', 'latex'
     print_overall = True
 
     # Run.
-    table(metrics, print_names, print_std, print_nan, print_mode,
+    table(args.data_path, metrics, print_names, print_std, print_nan, print_mode,
           print_overall)
 
 
-def read_data():
+def read_data(data_path):
     data = []
     names = []
-    for s in SCENES:
-        for seq in SEQUENCES:
-            name = f"{s}_{seq}_none"
-            data.append(
-                read_score_data(os.path.join(DATA_PATH, name,
-                                                "scores.csv")))
+    success, name, datum = read_single_dir(data_path)
+    if success:
+        data.append(datum)
+        names.append(name)
+    for d in os.listdir(data_path):
+        if not os.path.isdir(os.path.join(data_path, d)) or d == '..':
+            continue
+        success, name, datum = read_single_dir(os.path.join(data_path, d))
+        if success:
+            data.append(datum)
             names.append(name)
     return data, names
 
 
-def table(metrics,
+def read_single_dir(path):
+    print(path)
+    config_file = os.path.join(path, "config.txt")
+    scores_file = os.path.join(path, "scores.csv")
+    if not os.path.isfile(config_file) or not os.path.isfile(scores_file):
+        return False, None, None
+    with open(config_file, 'r') as file:
+        lines = file.readlines()
+        string = "".join(lines).replace('\n', '').replace(' ', '')
+        for s in SCENES:
+            for seq in SEQUENCES:
+                if string.find(f"{s}/sequence_{seq}/indices.csv") != -1:
+                    return True, f"{s}_{seq}", read_score_data(scores_file)
+    return False, None, None
+
+
+def table(data_path, metrics,
           print_names=True,
           print_std=True,
           print_nan=True,
           print_mode=False,
           print_overall=True):
-    data, names = read_data()
+    data, names = read_data(data_path)
     verify_data(data, names)
 
     def print_row(entries):
@@ -94,4 +113,8 @@ def table(metrics,
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        prog='evaluate_data',
+        description='Present raw data as a human readable table.')
+    parser.add_argument('data_path')
+    main(parser.parse_args())
