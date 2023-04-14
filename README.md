@@ -161,9 +161,9 @@ roscd dynablox_ros/scripts
     2. You should now see the performance statistics for all experiments in that folder:
     ```
     1/1 data entries are complete.
-    Data                               object_IoU                        object_Precision                  object_Recall
-    hauptgebaeude_1                    89.8 +- 5.6                        99.3 +- 0.4                        90.3 +- 5.6
-    All                                89.8 +- 5.6                        99.3 +- 0.4                        90.3 +- 5.6
+    Data                     object_IoU               object_Precision              object_Recall
+    hauptgebaeude_1          89.8 +- 5.6              99.3 +- 0.4                   90.3 +- 5.6
+    All                      89.8 +- 5.6              99.3 +- 0.4                   90.3 +- 5.6
     ```
 
 - **Inspecting the Segmentation:**
@@ -181,7 +181,7 @@ roscd dynablox_ros/scripts
 * **Adding Drift to an Experiment:**
     To run an experiment with drift specify one of the pre-computed drift rollouts in `dynablox_ros/launch/run_experiment.launch`:
     ```xml
-    <arg name="drift_simulation_rollout" default="doals/niederdorf/hauptgebaeude/light_3.csv" />
+    <arg name="drift_simulation_rollout" default="doals/hauptgebaeude/sequence_1/light_3.csv" />
     ```
     All pre-computed rollouts can be found in `drift_simulation/config/rollouts`. Note that the specified sequence needs to match the data being played. For each sequence, there exist 3 rollouts for each intensity.
 
