@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <!-- Arguments -->
+  <arg name="bag_file" default="" />  <!-- Path to rosbag to be played -->
+  <arg name="player_rate" default="1" /> <!-- 0.3 -->
+
+  <!-- Play the data -->
+  <node name="player" pkg="rosbag" type="play" args="--quiet --rate $(arg player_rate) $(arg bag_file) -d 1" /> 
+   
+</launch>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <!-- Arguments -->
+  <arg name="bag_file" default="" />  <!-- Path to rosbag to be played -->
+  <arg name="player_rate" default="1" /> <!-- 0.3 -->
+
+  <!-- Play the data -->
+  <node name="player" pkg="rosbag" type="play" args="--quiet --rate $(arg player_rate) $(arg bag_file) -d 1" /> 
+   
+  <!-- Lidar Undistortion -->
+  <node name="lidar_undistortion" pkg="lidar_undistortion" type="lidar_undistortion_node">
+    <remap from="pointcloud" to="/os1_cloud_node/points" />
+    <remap from="~pointcloud_corrected" to="/pointcloud" />
+    <param name="odom_frame_id" value="map" />
+    <param name="lidar_frame_id" value="os1_lidar" />
+  </node>
+
+</launch>

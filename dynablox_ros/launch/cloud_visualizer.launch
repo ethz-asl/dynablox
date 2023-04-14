@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <launch>
-  <!-- Dataset -->
-  <arg name="data_path" default="/media/lukas/T7/data/new2/standard_no_filter" /> 
-  <arg name="scene" default="niederdorf" />  <!-- hauptgebaeude niederdorf station shopville -->
-  <arg name="sequence" default="1" />  <!-- 1, 2 -->
-
+  <!-- Arguments -->
+  <arg name="file_path" default="/mnt/c/Users/DerFu/Dokumente/motion_detection/data/standard/hauptgebaeude_1_none/clouds.csv" /> 
 
   <!-- Cloud Visualizer -->
   <node name="cloud_visualizer" pkg="dynablox_ros" type="cloud_visualizer" output="screen" args="--alsologtostderr" required="true">
-    <param name="file_path" value="$(arg data_path)/$(arg scene)_$(arg sequence)_none/clouds.csv" />
+    <param name="file_path" value="$(arg file_path)" />
     <param name="static_point_scale" value="0.05" />
     <param name="dynamic_point_scale" value="0.1" />
     <rosparam param="out_of_bounds_color">[0.8,0.8,0.8,1]</rosparam>
