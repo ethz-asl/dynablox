@@ -51,7 +51,7 @@ scenes=(niederdorf shopville station hauptgebaeude)
 sequences=(1 2)
 drift_intensities=(moderate) # none light moderate strong severe
 drift_rollouts=(1 2 3)
-output_path="/home/lukas/motion_ws/src/lidar_motion_detection/drift_simulation/config/rollouts"
+output_path="/home/lukas/motion_ws/src/dynablox/drift_simulation/config/rollouts"
 
 # ====== Run Experiments ======
 run_experiments

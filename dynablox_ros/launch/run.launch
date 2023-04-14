@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <!-- Dataset -->
+  <arg name="bag_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/bag.bag" />  <!-- hauptgebaeude niederdorf station shopville -->
+  <arg name="player_rate" default="1" /> <!-- 0.3 -->
+  <arg name="lidar_name" default="os1" /> <!-- doals: os1, lmo: os -->
+  
+  <!-- Drift Simulation -->
+  <arg name="drift_simulation_rollout" default="" /> <!-- Leave empty to ignore drift--> <!-- doals/niederdorf/sequence_1/light_3.csv -->
+  
+  <!-- Evaluation -->
+  <arg name="evaluate" default="false" />
+  <arg name="eval_output_path" default="/media/lukas/T7/data/tmp" />
+  <arg name="ground_truth_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/indices.csv" />
+  
+  <!-- Motion Detector -->
+  <arg name="config_file" default="motion_detector/doals.yaml" />
+  <arg name="counter_to_reset" default="150" /> <!-- Drift dependent param -->
+  <arg name="visualize" default="true" />
+  
+  
+  
+  
+  
+  <!-- Run Nodes -->
+  <param name="use_sim_time" value="true" />
+  <arg name="use_drift" value="$(eval arg('drift_simulation_rollout')!='')" />
+
+  <!-- Play the bag -->
+  <node name="player" pkg="rosbag" type="play" args="--quiet --clock --rate $(arg player_rate) $(arg bag_file) -d 1" /> 
+   
+  <!-- Lidar Undistortion -->
+  <node name="lidar_undistortion" pkg="lidar_undistortion" type="lidar_undistortion_node">
+    <remap from="pointcloud" to="/$(arg lidar_name)_cloud_node/points" />
+    <param name="odom_frame_id" value="map" />
+    <param name="lidar_frame_id" value="$(arg lidar_name)_lidar" />
+  </node>
+
+  <!-- Drift Simulation -->
+  <node name="drift_reader" pkg="drift_simulation" type="drift_reader" output="screen" args="--alsologtostderr" if="$(arg use_drift)">
+    <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected" />
+    <param name="drift_data_file_name" value="$(find drift_simulation)/config/rollouts/$(arg drift_simulation_rollout)" />
+  </node>
+
+  <!-- Motion Detection -->
+  <node name="motion_detector" pkg="dynablox_ros" type="motion_detector" output="screen" args="--alsologtostderr" required="true">
+    <remap from="pointcloud" to="/pointcloud_drifted" if="$(arg use_drift)" />
+    <remap from="pointcloud" to="/lidar_undistortion/pointcloud_corrected" unless="$(arg use_drift)" />
+
+    <!-- config -->
+    <rosparam command="load" file="$(find dynablox_ros)/config/$(arg config_file)" />
+    <param name="ever_free_integrator/counter_to_reset" value="$(arg counter_to_reset)" />
+    
+    <!-- evaluation -->
+    <param name="evaluation/ground_truth/file_path" value="$(arg ground_truth_file)" />
+    <param name="evaluation/output_directory" value="$(arg eval_output_path)" />
+    <param name="evaluate" value="$(arg evaluate)" />    
+  </node>
+  
+  <!-- Visualize -->
+  <include file="$(find dynablox_ros)/launch/visualizer.launch" if="$(arg visualize)"/> 
+
+</launch>

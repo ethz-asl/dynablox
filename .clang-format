@@ -25,10 +25,10 @@ IncludeCategories:
   - Regex:    '^<'
     Priority: 30
   # Your project's h files (with angles)
-  - Regex: '^<lidar_motion_detection'
+  - Regex: '^<dynablox'
     Priority: 40
   # Your project's h files
-  - Regex:    '^"lidar_motion_detection'
+  - Regex:    '^"dynablox'
     Priority: 50
 ---
 Language: Proto

@@ -8,7 +8,7 @@
   
   <!-- Drift simulation -->
   <arg name="drift_intensity" default="none" /> <!-- none, light, moderate, strong, severe -->
-  <arg name="output_drifted_file_name" default="/home/lukas/motion_ws/src/lidar_motion_detection/drift_simulation/config/rollouts/doals/hauptgebaeude/sequence_2/none.csv" />
+  <arg name="output_drifted_file_name" default="/home/lukas/motion_ws/src/dynablox/drift_simulation/config/rollouts/doals/hauptgebaeude/sequence_2/none.csv" />
    <arg name="output_gt_file_name" default="" /> <!-- Optional, leave empty if not needed -->
 
   

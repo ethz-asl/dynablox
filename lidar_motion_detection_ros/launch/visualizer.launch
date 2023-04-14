@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<launch>
-  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find lidar_motion_detection_ros)/config/rviz/default.rviz"/>
-</launch>

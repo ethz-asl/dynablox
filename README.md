@@ -57,29 +57,29 @@ If you find this package useful for your research, please consider citing our pa
 4. Clone the repo using [SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
     ```bash
     cd ~/catkin_ws/src
-    git clone git@github.com:ethz-asl/lidar_motion_detection.git
+    git clone git@github.com:ethz-asl/dynablox.git
     ```
 
 5. Install ROS dependencies:
     ```bash
     # If wstool is not yet initialized:
-    wstool init . ./lidar_motion_detection/ssh.rosinstall 
+    wstool init . ./dynablox/ssh.rosinstall 
     # If wstool is already initialized:
-    wstool merge -t . ./lidar_motion_detection/ssh.rosinstall
+    wstool merge -t . ./dynablox/ssh.rosinstall
     # After either case:
     wstool update
     ```
 
 6. Build:
     ```bash
-    catkin build lidar_motion_detection_ros
+    catkin build dynablox_ros
     ```
 
 ## Datasets
 To run the demos we use the [Urban Dynamic Objects LiDAR  (DOALS) Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=doals).
 To download the data and pre-process it for our demos, use the provided script:
 ```bash
-roscd lidar_motion_detection_ros/scripts
+roscd dynablox_ros/scripts
 chmod +x download_doals.sh
 ./download_doals.sh <target_path>
 ```
@@ -92,7 +92,7 @@ chmod +x download_doals.sh
 
 3. Run
     ```bash
-    roslaunch lidar_motion_detection_ros run.launch 
+    roslaunch dynablox_ros run.launch 
     ```
 
 ## Processing the DOALS dataset
