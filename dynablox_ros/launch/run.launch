@@ -15,7 +15,7 @@
   <arg name="ground_truth_file" default="/media/lukas/T7/Datasets/DOALS/hauptgebaeude/sequence_1/indices.csv" />
   
   <!-- Motion Detector -->
-  <arg name="config_file" default="motion_detector/doals.yaml" />
+  <arg name="config_file" default="motion_detector/default.yaml" />
   <arg name="counter_to_reset" default="150" /> <!-- Drift dependent param -->
   <arg name="visualize" default="true" />
   

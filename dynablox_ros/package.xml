@@ -2,7 +2,7 @@
 <package format="2">
   <name>dynablox_ros</name>
   <version>0.0.0</version>
-  <description>Detecting arbitrary moving objects in compelx environments</description>
+  <description>Detecting diverse dynamic objects in compelx environments</description>
 
   <author email="schmluk@ethz.ch">Lukas Schmid</author>
   <author email="asulser@ethz.ch">Aurelio Sulser</author>

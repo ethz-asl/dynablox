@@ -2,7 +2,7 @@
 if [ -z $1 ]; 
 then 
   echo "No target directory specified.";
-  echo "Usage: ./download_doals.sh <target_dir>";
+  echo "Usage: ./download_doals_data.sh <target_dir>";
   exit 1
 else 
   echo "Download the DOALS dataset to '$1'?"; 

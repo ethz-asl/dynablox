@@ -1,10 +1,10 @@
-# ----------- Motion detector parameters --------
+# ----------- Motion Detector Parameters --------
 # General.
 #evaluate: true # Set by launch file
-#visualize: true
+#visualize: true # Set by launch file
 #num_threads: 1  # uses hardware concurrency if left empty.
 queue_size: 20
-shutdown_after: 10  # num evaluations.
+shutdown_after: 10  # number evaluations.
   
 # Preprocessing.
 preprocessing:
@@ -21,10 +21,10 @@ ever_free_integrator:
   
 # Clustering.
 clustering:
-  min_cluster_size: 0
+  min_cluster_size: 20
   max_cluster_size: 200000
   min_extent: 0   # m
-  max_extent: 20000   # m
+  max_extent: 200000   # m
   neighbor_connectivity: 6
   grow_clusters_twice: false
   min_cluster_separation: 0.2
