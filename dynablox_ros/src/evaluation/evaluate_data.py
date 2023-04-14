@@ -2,7 +2,7 @@
 
 import os
 import numpy as np
-from plotting_tools import read_plot_data_csv, verify_data, get_grid
+from data_tools import read_score_data, verify_data, get_grid
 
 # doals_nodrift_20m,  
 DATA_PATH = "/mnt/c/Users/DerFu/OneDrive/Dokumente/motion_detection/data/ablation/no_cluster_filter"
@@ -36,7 +36,7 @@ def read_data():
         for seq in SEQUENCES:
             name = f"{s}_{seq}_none"
             data.append(
-                read_plot_data_csv(os.path.join(DATA_PATH, name,
+                read_score_data(os.path.join(DATA_PATH, name,
                                                 "scores.csv")))
             names.append(name)
     return data, names

@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 
-def read_plot_data_csv(csv_file):
+def read_score_data(csv_file):
     """
     Read a single CSV file of a run (tsdf or ssc) and turn it into a dictionary.
     """
