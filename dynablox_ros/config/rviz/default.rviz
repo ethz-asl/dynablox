@@ -10,6 +10,7 @@ Panels:
         - /Visualization1/Slice1
         - /Visualization1/Volume1
         - /Detection1
+        - /Ground Truth1
       Splitter Ratio: 0.9548872113227844
     Tree Height: 980
   - Class: rviz/Selection
@@ -286,6 +287,18 @@ Visualization Manager:
           Name: Objects
       Enabled: true
       Name: Detection
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /motion_detector/visualization/lidar_points
+          Name: Ground Truth
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+      Enabled: false
+      Name: Ground Truth
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -350,5 +363,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 2548
-  X: 0
-  Y: 0
+  X: -32
+  Y: -32

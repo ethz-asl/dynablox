@@ -18,7 +18,7 @@ A map-based Approach for Real-time detection of diverse dynamic objects in compl
 # Paper
 If you find this package useful for your research, please consider citing our paper:
 
-* TODO: Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *ArXiv Preprint*, 2023.
+* Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *ArXiv Preprint*, 2023.
   ```bibtex
   @inproceedings{schmid2022panoptic,
     title={Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments},
