@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {name: 'Ubuntu 20.04 + ROS Noetic', rosdistro: 'noetic', container: 'ros:noetic-ros-base-bionic'}
+          - {name: 'Ubuntu 20.04 + ROS Noetic', rosdistro: 'noetic', container: 'ros:noetic-ros-base-focal'}
     container: ${{ matrix.config.container }}
     steps:
     - uses: actions/checkout@v1
@@ -46,7 +46,7 @@ jobs:
           ${{ matrix.config.name }}-ccache-
 
     - name: Install System Deps on Noetic
-      if: ${{ matrix.config.container == 'ros:noetic-ros-base-bionic' }}
+      if: ${{ matrix.config.container == 'ros:noetic-ros-base-focal' }}
       run: |
         sudo apt-get install python3-vcstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf -y   
 
@@ -66,6 +66,8 @@ jobs:
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
         vcs import . < ./dynablox/https.rosinstall
+        git config --global --add safe.directory /__w/dynablox/dynablox
+        vcs pull .
         rosdep update
         rosdep install --from-paths . --ignore-src -y --rosdistro ${{matrix.config.rosdistro}}
         catkin build -j$(nproc) -l$(nproc) dynablox_ros
