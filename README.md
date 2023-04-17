@@ -51,7 +51,7 @@ If you find this package useful for your research, please consider citing our pa
 
 3. Install system dependencies:
     ```bash
-    sudo apt-get install python3-wstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf libjsoncpp-dev libspdlog-dev
+    sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf libjsoncpp-dev libspdlog-dev
     ```
 
 4. Clone the repo using [SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
@@ -60,19 +60,15 @@ If you find this package useful for your research, please consider citing our pa
     git clone git@github.com:ethz-asl/dynablox.git
     ```
 
-5. Install System dependencies:
-    ```bash
-    sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf    
-    ```
-
-6. Install ROS dependencies:
+5. Install ROS dependencies:
     ```bash
     cd ~/catkin_ws/src
     vcs import . < ./dynablox/ssh.rosinstall 
-    vcs pull .  
+    cd ouster_ros
+    git submodule update --init
     ```
 
-7. Build:
+6. Build:
     ```bash
     catkin build dynablox_ros
     ```

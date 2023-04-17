@@ -66,8 +66,8 @@ jobs:
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
         vcs import . < ./dynablox/https.rosinstall
-        git config --global --add safe.directory /__w/dynablox/dynablox
-        vcs pull .
+        cd ouster_ros
+        git submodule update --init
         rosdep update
         rosdep install --from-paths . --ignore-src -y --rosdistro ${{matrix.config.rosdistro}}
         catkin build -j$(nproc) -l$(nproc) dynablox_ros
