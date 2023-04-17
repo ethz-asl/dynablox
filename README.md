@@ -1,6 +1,5 @@
 # Dynablox
 A map-based Approach for Real-time detection of diverse dynamic objects in complex environments.
-![Dynablox](teaser.gif)
 
 
 # Table of Contents
