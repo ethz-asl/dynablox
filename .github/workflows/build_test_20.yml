@@ -1,0 +1,72 @@
+name: 'Ubuntu 20.04 + ROS Noetic'
+on:
+  push:
+    branches:
+    - 'main'
+  pull_request:
+    branches:
+    - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {name: 'Ubuntu 20.04 + ROS Noetic', rosdistro: 'noetic', container: 'ros:noetic-ros-base-bionic'}
+    container: ${{ matrix.config.container }}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        token: ${{ secrets.ACCESS_TOKEN }}
+
+    - name: Setup ccache
+      shell: bash
+      run: |
+        apt update && apt install -y ccache
+        export PATH="/usr/lib/ccache:$PATH"
+        export CCACHE_DIR=$HOME/catkin_ws/ccache
+        export CCACHE_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
+        echo "Updated PATH=$PATH"
+        echo "Set CCACHE_DIR=$CCACHE_DIR"
+        echo "Set CCACHE_STAMP=$CCACHE_STAMP"
+        echo "CCACHE_DIR=$CCACHE_DIR" >> $GITHUB_ENV
+        echo "CCACHE_STAMP=$CCACHE_STAMP" >> $GITHUB_ENV
+        echo "PATH=$PATH" >> $GITHUB_ENV
+        mkdir -p $CCACHE_DIR
+        ccache --max-size=1G
+
+    - name: Cache ccache files
+      uses: actions/cache@v1.1.0
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ${{ matrix.config.name }}-ccache-${{ env.CCACHE_STAMP }}
+        restore-keys: |
+          ${{ matrix.config.name }}-ccache-
+
+    - name: Install System Deps on Noetic
+      if: ${{ matrix.config.container == 'ros:noetic-ros-base-bionic' }}
+      run: |
+        sudo apt-get install python3-vcstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf -y   
+
+    - name: Release Build Test
+      working-directory: 
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      shell: bash
+      run: |
+        apt update
+        mkdir -p $HOME/catkin_ws/src;
+        cd $HOME/catkin_ws
+        catkin init
+        catkin config --extend "/opt/ros/${{matrix.config.rosdistro}}"
+        catkin config --merge-devel
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo 
+        cd $HOME/catkin_ws/src
+        ln -s $GITHUB_WORKSPACE
+        vcs import . < ./dynablox/https.rosinstall
+        rosdep update
+        rosdep install --from-paths . --ignore-src -y --rosdistro ${{matrix.config.rosdistro}}
+        catkin build -j$(nproc) -l$(nproc) dynablox_ros
+
