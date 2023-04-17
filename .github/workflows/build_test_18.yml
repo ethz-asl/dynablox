@@ -53,7 +53,7 @@ jobs:
     - name: Release Build Test
       working-directory: 
       env:
-        DEBIAN_FRONTEND: noninteractiv
+        DEBIAN_FRONTEND: noninteractive
       shell: bash
       run: |
         apt update
