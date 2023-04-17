@@ -54,8 +54,6 @@ jobs:
       working-directory: 
       env:
         DEBIAN_FRONTEND: noninteractiv
-      with:
-        token: ${{ secrets.ACCESS_TOKEN }}
       shell: bash
       run: |
         apt update
