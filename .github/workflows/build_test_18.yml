@@ -1,4 +1,4 @@
-name: 'Ubuntu 18 + ROS Melodic: Build '
+name: 'Ubuntu 18 + ROS Melodic'
 on:
   push:
     branches:
@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {name: 'Ubuntu 18 + ROS Melodic: Build ', rosdistro: 'melodic', container: 'ros:melodic-ros-base-bionic'}
+          - {name: 'Ubuntu 18 + ROS Melodic', rosdistro: 'melodic', container: 'ros:melodic-ros-base-bionic'}
     container: ${{ matrix.config.container }}
     steps:
     - uses: actions/checkout@v1
@@ -65,7 +65,8 @@ jobs:
         catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo 
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
-        vcs import . < ./dynablox/ssh.rosinstall 
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        vcs import . < ./dynablox/ssh.rosinstall
         vcs pull .  
         rosdep update
         rosdep install --from-paths . --ignore-src -y --rosdistro ${{matrix.config.rosdistro}}
