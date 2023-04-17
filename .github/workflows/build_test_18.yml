@@ -65,7 +65,6 @@ jobs:
         catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo 
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
-        cd src
         vcs import . < ./dynablox/ssh.rosinstall 
         vcs pull .  
         rosdep update
