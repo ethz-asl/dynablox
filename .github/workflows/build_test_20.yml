@@ -48,7 +48,7 @@ jobs:
     - name: Install System Deps on Noetic
       if: ${{ matrix.config.container == 'ros:noetic-ros-base-focal' }}
       run: |
-        sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf -y   
+        sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf git -y   
 
     - name: Release Build Test
       working-directory: 
