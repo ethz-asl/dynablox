@@ -64,7 +64,7 @@ voxblox:
   tsdf_voxel_size: 0.2
   truncation_distance: 0.4
   tsdf_voxels_per_side: 16
-  max_weight: 1000
+  max_weight: 50  
   
   # Integration.
   method: projective
