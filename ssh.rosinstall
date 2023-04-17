@@ -41,7 +41,7 @@
 - git:
     local-name: lidar_undistortion
     uri: git@github.com:ethz-asl/lidar_undistortion.git
-    version: 'release/dynablox'
+    version: 'dynablox/release'
 - git:
     local-name: ouster-ros
     uri: git@github.com:ouster-lidar/ouster-ros.git
