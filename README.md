@@ -67,8 +67,9 @@ If you find this package useful for your research, please consider citing our pa
 
 6. Install ROS dependencies:
     ```bash
-    vcs import src < ./dynablox/ssh.rosinstall 
-    vcs pull src  
+    cd ~/catkin_ws/src
+    vcs import . < ./dynablox/ssh.rosinstall 
+    vcs pull .  
     ```
 
 7. Build:
