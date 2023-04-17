@@ -51,7 +51,7 @@ If you find this package useful for your research, please consider citing our pa
 
 3. Install system dependencies:
     ```bash
-    sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf libjsoncpp-dev libspdlog-dev
+    sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf git rsync -y   
     ```
 
 4. Clone the repo using [SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
