@@ -60,17 +60,18 @@ If you find this package useful for your research, please consider citing our pa
     git clone git@github.com:ethz-asl/dynablox.git
     ```
 
-5. Install ROS dependencies:
+5. Install System dependencies:
     ```bash
-    # If wstool is not yet initialized:
-    wstool init . ./dynablox/ssh.rosinstall 
-    # If wstool is already initialized:
-    wstool merge -t . ./dynablox/ssh.rosinstall
-    # After either case:
-    wstool update
+    sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf    
     ```
 
-6. Build:
+6. Install ROS dependencies:
+    ```bash
+    vcs import src < ./dynablox/ssh.rosinstall 
+    vcs pull src  
+    ```
+
+7. Build:
     ```bash
     catkin build dynablox_ros
     ```

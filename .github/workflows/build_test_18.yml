@@ -49,7 +49,6 @@ jobs:
       if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
       run: |
         sudo apt-get install python3-vcstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf -y   
-        pip install 
 
     - name: Release Build Test
       working-directory: 
