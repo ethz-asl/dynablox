@@ -48,7 +48,7 @@ jobs:
     - name: Install System Deps on Melodic
       if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
       run: |
-        sudo apt-get install python3-vcstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf openssh-server -y   
+        sudo apt-get install python3-vcstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf -y   
 
     - name: Release Build Test
       working-directory: 
@@ -65,8 +65,7 @@ jobs:
         catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo 
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
-        ssh -T github.com -y
-        vcs import . < ./dynablox/ssh.rosinstall
+        vcs import . < ./dynablox/https.rosinstall
         vcs pull .  
         rosdep update
         rosdep install --from-paths . --ignore-src -y --rosdistro ${{matrix.config.rosdistro}}
