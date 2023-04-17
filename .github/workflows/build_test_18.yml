@@ -48,7 +48,7 @@ jobs:
     - name: Install System Deps on Melodic
       if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
       run: |
-        sudo apt-get install python3-vcstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf -y   
+        sudo apt-get install python3-vcstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf openssh-server -y   
 
     - name: Release Build Test
       working-directory: 
