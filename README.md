@@ -1,9 +1,12 @@
-![Ubuntu 18.04 + ROS Melodic](https://github.com/ethz-asl/dynablox/actions/workflows/build_test_18.yml/badge.svg) ![Ubuntu 20.04 + ROS Noetic](https://github.com/ethz-asl/dynablox/actions/workflows/build_test_20.yml/badge.svg)
+![Ubuntu 20.04 + ROS Noetic: Build](https://github.com/ethz-asl/dynablox/actions/workflows/build_test_20.yml/badge.svg)
 
 # Dynablox
-A map-based Approach for Real-time detection of diverse dynamic objects in complex environments.
-<img src="https://drive.google.com/uc?export=view&id=1QWr7MQSIFyIImPLIH_JkhY2kOPymo-bu">
+A volumetric mapping-based approach for Real-time detection of diverse dynamic objects in complex environments.
 
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/36043993/232650770-a042cbb9-c251-42f9-8a96-d7d9273fec96.gif">
+</p>
 
 # Table of Contents
 **Credits**
@@ -52,31 +55,24 @@ If you find this package useful for your research, please consider citing our pa
     catkin config --merge-devel
     ```
 
-2. If installing on `Ubuntu 18.04` make sure to install GCC>9:
-    ```
-    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-    sudo apt update
-    sudo apt install gcc-9 g++-9
-    ```
-
-3. Install system dependencies:
+2. Install system dependencies:
     ```bash
     sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf git rsync -y   
     ```
 
-4. Clone the repo using [SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
+3. Clone the repo using [SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh):
     ```bash
     cd ~/catkin_ws/src
     git clone git@github.com:ethz-asl/dynablox.git
     ```
 
-5. Install ROS dependencies:
+4. Install ROS dependencies:
     ```bash
     cd ~/catkin_ws/src
     vcs import . < ./dynablox/ssh.rosinstall --recursive 
     ```
 
-6. Build:
+5. Build:
     ```bash
     catkin build dynablox_ros
     ```
