@@ -1,7 +1,7 @@
 ![Ubuntu 20.04 + ROS Noetic: Build](https://github.com/ethz-asl/dynablox/actions/workflows/build_test_20.yml/badge.svg)
 
 # Dynablox
-A volumetric mapping-based approach for Real-time detection of diverse dynamic objects in complex environments.
+A volumetric mapping-based approach for real-time detection of diverse dynamic objects in complex environments.
 
 
 <p align="center">
