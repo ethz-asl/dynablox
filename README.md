@@ -1,3 +1,5 @@
+![Ubuntu 18.04 + ROS Melodic](https://github.com/ethz-asl/dynablox/actions/workflows/build_test_18.yml/badge.svg) ![Ubuntu 20.04 + ROS Noetic](https://github.com/ethz-asl/dynablox/actions/workflows/build_test_20.yml/badge.svg)
+
 # Dynablox
 A map-based Approach for Real-time detection of diverse dynamic objects in complex environments.
 
@@ -49,6 +51,13 @@ If you find this package useful for your research, please consider citing our pa
     catkin config --merge-devel
     ```
 
+2. If installing on `Ubuntu 18.04` make sure to install GCC>9:
+    ```
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo apt update
+    sudo apt install gcc-9 g++-9
+    ```
+
 3. Install system dependencies:
     ```bash
     sudo apt-get install python3-vcstool python3-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf git rsync -y   
@@ -80,7 +89,9 @@ roscd dynablox_ros/scripts
 ./download_doals_data.sh /home/$USER/data/DOALS
 ```
 
-TODO: We further collect a [new dataset](todo) featuring diverse dynamic objects in complex scenes.
+> __note__ The dataset will be released shortly!
+
+We further collect a new dataset featuring diverse dynamic objects in complex scenes.
 To download the processed ready-to-run data for our demos, use the provided script:
 ```bash
 roscd dynablox_ros/scripts
