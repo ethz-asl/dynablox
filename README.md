@@ -26,7 +26,7 @@ If you find this package useful for your research, please consider citing our pa
 
 * Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *ArXiv Preprint*, 2023.
   ```bibtex
-  @inproceedings{schmid2022panoptic,
+  @inproceedings{schmid2023dynablox,
     title={Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments},
     author={Schmid, Lukas, and Andersson, Olov, and Sulser, Aurelio, and Pfreundschuh, Patrick, and Siegwart, Roland},
     booktitle={ArXiv Preprint},
