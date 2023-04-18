@@ -48,6 +48,8 @@ jobs:
     - name: Install System Deps on Melodic
       if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
       run: |
+        sudo apt-get install software-properties-common -y
+        sudo apt-get update
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
         sudo apt update
         sudo apt install python3-vcstool python-catkin-tools ros-$ROS_DISTRO-cmake-modules protobuf-compiler autoconf git rsync gcc-9 g++-9 -y   
