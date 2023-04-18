@@ -2,7 +2,7 @@
 - git:
     local-name: voxblox
     uri: git@github.com:ethz-asl/voxblox.git
-    version: release/lidar_motion_detection
+    version: dynablox/release
 - git:
     local-name: catkin_simple
     uri: git@github.com:catkin/catkin_simple.git
