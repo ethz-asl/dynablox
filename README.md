@@ -5,7 +5,7 @@ A volumetric mapping-based approach for Real-time detection of diverse dynamic o
 
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/36043993/232650770-a042cbb9-c251-42f9-8a96-d7d9273fec96.gif">
+  <img width='100%' src="https://user-images.githubusercontent.com/36043993/232650770-a042cbb9-c251-42f9-8a96-d7d9273fec96.gif">
 </p>
 
 # Table of Contents
