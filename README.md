@@ -1,7 +1,7 @@
 ![Ubuntu 20.04 + ROS Noetic: Build](https://github.com/ethz-asl/dynablox/actions/workflows/build_test_20.yml/badge.svg)
 
 # Dynablox
-A volumetric mapping-based approach for real-time detection of diverse dynamic objects in complex environments.
+An online volumetric mapping-based approach for real-time detection of diverse dynamic objects in complex environments.
 
 
 <p align="center">
@@ -24,12 +24,12 @@ A volumetric mapping-based approach for real-time detection of diverse dynamic o
 # Paper
 If you find this package useful for your research, please consider citing our paper:
 
-* Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *ArXiv Preprint*, 2023.
+* Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *ArXiv Preprint*, 2023. \[ [ArXiv](https://arxiv.org/abs/2304.10049) \]
   ```bibtex
   @inproceedings{schmid2023dynablox,
     title={Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments},
     author={Schmid, Lukas, and Andersson, Olov, and Sulser, Aurelio, and Pfreundschuh, Patrick, and Siegwart, Roland},
-    booktitle={ArXiv Preprint},
+    booktitle={ArXiv Preprint 2304.10049},
     year={2023},
     volume={},
     number={},
