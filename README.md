@@ -11,6 +11,7 @@ An online volumetric mapping-based approach for real-time detection of diverse d
 # Table of Contents
 **Credits**
 * [Paper](#Paper)
+* [Video](#Video)
 
 **Setup**
 * [Installation](#Installation)
@@ -24,7 +25,7 @@ An online volumetric mapping-based approach for real-time detection of diverse d
 # Paper
 If you find this package useful for your research, please consider citing our paper:
 
-* Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *ArXiv Preprint*, 2023. \[ [ArXiv](https://arxiv.org/abs/2304.10049) \]
+* Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *ArXiv Preprint*, 2023. \[ [ArXiv](https://arxiv.org/abs/2304.10049) | [Video](https://www.youtube.com/watch?v=NA13fRWlqRQ) \]
   ```bibtex
   @inproceedings{schmid2023dynablox,
     title={Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments},
@@ -37,6 +38,11 @@ If you find this package useful for your research, please consider citing our pa
     doi={}}
   }
   ```
+  
+## Video
+A brief overview of the problem, approach, and results is available on youtube:
+[<img src=https://user-images.githubusercontent.com/36043993/233706937-1ccd0c03-d86b-4e4f-ad47-48c38e8a7f8d.png alt="Dynablox Youtube Video">](https://www.youtube.com/watch?v=NA13fRWlqRQ)
+
 
 # Setup
 ## Installation
