@@ -3,22 +3,21 @@
 <launch>
   <!-- ========== Arguments ========== -->
   <!-- Dataset -->
-  <arg name="use_doals" default="true" />  <!-- Which dataset to play. -->
+  <arg name="use_doals" default="true" />  <!-- Which dataset to play -->
   <arg name="bag_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/bag.bag" />  <!-- Full path to the bag file to play -->
-  <arg name="player_rate" default="1" /> <!-- 0.3 -->
+  <arg name="player_rate" default="1" />  <!-- Real time rate of bag being played -->
   
   <!-- Drift Simulation -->
-  <arg name="drift_simulation_rollout" default="" /> <!-- Leave empty to ignore drift or specify a rollout that matches the dataset bein played --> 
+  <arg name="drift_simulation_rollout" default="" />  <!-- Leave empty to ignore drift or specify a rollout that matches the dataset bein played --> 
   
   <!-- Evaluation -->
-  <arg name="evaluate" default="true" />
-  <arg name="eval_output_path" default="/home/$(env USER)/dynablox_output" />
-  <arg name="ground_truth_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/indices.csv" />
+  <arg name="evaluate" default="false" />  <!-- Whether to save evaluation data -->  
+  <arg name="eval_output_path" default="/home/$(env USER)/dynablox_output" />  <!-- Where to save evaluation data  -->
+  <arg name="ground_truth_file" default="/home/$(env USER)/data/DOALS/hauptgebaeude/sequence_1/indices.csv" />  <!-- GT data file. Currently supports DOALS -->
   
   <!-- Motion Detector -->
-  <arg name="config_file" default="motion_detector/default.yaml" />
-  <arg name="visualize" default="true" />
-
+  <arg name="config_file" default="motion_detector/default.yaml" />  <!-- Configuration of Dynablox -->
+  <arg name="visualize" default="true" />  <!-- Whether to display RVIZ visualizations -->
   
   
   
