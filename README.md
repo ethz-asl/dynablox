@@ -88,18 +88,16 @@ To run the demos we use the [Urban Dynamic Objects LiDAR  (DOALS) Dataset](https
 To download the data and pre-process it for our demos, use the provided script:
 ```bash
 roscd dynablox_ros/scripts
-# Or your preferred data destination.
-./download_doals_data.sh /home/$USER/data/DOALS
+./download_doals_data.sh /home/$USER/data/DOALS # Or your preferred data destination.
 ```
-
-> __note__ The dataset will be released shortly!
 
 We further collect a new dataset featuring diverse dynamic objects in complex scenes.
 To download the processed ready-to-run data for our demos, use the provided script:
 ```bash
+pip install gdown # The script currently uses gdown.
 roscd dynablox_ros/scripts
-# Or your preferred data destination.
-./download_dynablox_data.sh /home/$USER/data/Dynablox
+./download_dynablox_data.sh /home/$USER/data/Dynablox # Or your preferred data destination.
+
 ```
 
 # Examples
@@ -119,7 +117,6 @@ roscd dynablox_ros/scripts
 ![Run DOALS Example](https://user-images.githubusercontent.com/36043993/232138501-84250c43-236e-46f6-9b50-af54312215a7.png)
 
 ## Running a Dynablox Sequence
-> __note__ The dataset will be released shortly!
 
 1. If not done so, download the Dynablox dataset as explained [here](#datasets).
 
