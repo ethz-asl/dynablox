@@ -20,7 +20,7 @@ echo "";
 echo "Downloading and processing scenes. This may take a few minutes ...";
 
 # Get data.
-gdown 1RDmv3YabIRfx6i0qsr5aFWozVnwJyFun -O $1
+wget http://robotics.ethz.ch/~asl-datasets/2023_RAL_Dynablox/processed.zip -P $1
 unzip $1/processed.zip -d $1
 rm $1/processed.zip
 

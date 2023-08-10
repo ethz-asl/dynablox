@@ -1,3 +1,4 @@
+#include <gflags/gflags.h>
 #include <ros/ros.h>
 
 #include "dynablox_ros/visualization/cloud_visualizer.h"

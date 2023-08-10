@@ -45,6 +45,9 @@ A brief overview of the problem, approach, and results is available on youtube:
 
 
 # Setup
+
+There is a [docker image](https://hub.docker.com/repository/docker/zhangkin/dynablox/general) available for this package. Check the usage in the dockerhub page.
+
 ## Installation
 
 * **Note on Versioning:** This package was developed using Ubuntu 20.04 using ROS Noetic. Other versions should also work but support can not be guaranteed.
