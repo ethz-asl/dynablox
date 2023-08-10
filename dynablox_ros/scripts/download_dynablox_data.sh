@@ -15,17 +15,15 @@ else
 fi
 
 # Download.
-# mkdir -p $1
-echo ""
-echo "The Dynablox Dataset can not yet be downloaded, it will be released shortly."
+mkdir -p $1
+echo "";
+echo "Downloading and processing scenes. This may take a few minutes ...";
 
-# echo "Downloading and processing scenes. This may take a few minutes ...";
-
-# Hauptgebaeude.
-# wget http://robotics.ethz.ch/~asl-datasets/2021_ICRA_dynamic_object_lidar_dataset/scenes/hauptgebaeude.zip -P $1
-# unzip $1/hauptgebaeude.zip -d $1
-
+# Get data.
+wget http://robotics.ethz.ch/~asl-datasets/2023_RAL_Dynablox/processed.zip -P $1
+unzip $1/processed.zip -d $1
+rm $1/processed.zip
 
 # Finished.
-# echo "Successfully downloaded and processed the DOALS dataset to '$1'.";
+echo "Successfully downloaded and processed the Dynablox dataset to '$1'.";
 exit 0

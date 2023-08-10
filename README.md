@@ -27,10 +27,10 @@ If you find this package useful for your research, please consider citing our pa
 
 * Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *IEEE Robotics and Automation Letters (RA-L)*, 2023. \[ [ArXiv](https://arxiv.org/abs/2304.10049) | [Video](https://www.youtube.com/watch?v=NA13fRWlqRQ) \]
   ```bibtex
-  @inproceedings{schmid2023dynablox,
+  @article{schmid2023dynablox,
     title={Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments},
     author={Schmid, Lukas, and Andersson, Olov, and Sulser, Aurelio, and Pfreundschuh, Patrick, and Siegwart, Roland},
-    booktitle={IEEE Robotics and Automation Letters},
+    booktitle={IEEE Robotics and Automation Letters (RA-L)},
     year={2023},
     volume={},
     number={},
@@ -91,18 +91,16 @@ To run the demos we use the [Urban Dynamic Objects LiDAR  (DOALS) Dataset](https
 To download the data and pre-process it for our demos, use the provided script:
 ```bash
 roscd dynablox_ros/scripts
-# Or your preferred data destination.
-./download_doals_data.sh /home/$USER/data/DOALS
+./download_doals_data.sh /home/$USER/data/DOALS # Or your preferred data destination.
 ```
 
-> __note__ The dataset will be released shortly!
-
 We further collect a new dataset featuring diverse dynamic objects in complex scenes.
+The full dataset and description ca nbe found [here](https://projects.asl.ethz.ch/datasets/doku.php?id=dynablox).
 To download the processed ready-to-run data for our demos, use the provided script:
 ```bash
 roscd dynablox_ros/scripts
-# Or your preferred data destination.
-./download_dynablox_data.sh /home/$USER/data/Dynablox
+./download_dynablox_data.sh /home/$USER/data/Dynablox # Or your preferred data destination.
+
 ```
 
 # Examples
@@ -122,7 +120,6 @@ roscd dynablox_ros/scripts
 ![Run DOALS Example](https://user-images.githubusercontent.com/36043993/232138501-84250c43-236e-46f6-9b50-af54312215a7.png)
 
 ## Running a Dynablox Sequence
-> __note__ The dataset will be released shortly!
 
 1. If not done so, download the Dynablox dataset as explained [here](#datasets).
 
@@ -137,7 +134,6 @@ roscd dynablox_ros/scripts
     ```
 4. You should now see dynamic objects being detected as the sensor moves through the scene:
 ![Run Dynablox Example](https://user-images.githubusercontent.com/36043993/232140093-ee99a919-d2ad-4dc8-95ac-fa047b901f94.png)
-
 
 ## Running and Evaluating an Experiment
 

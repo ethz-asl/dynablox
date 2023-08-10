@@ -15,19 +15,20 @@ class IndexGetter {
       : indices_(std::move(indices)), current_index_(0) {}
   bool getNextIndex(IndexT* index) {
     CHECK_NOTNULL(index);
-    mutex_.lock();
+    std::lock_guard<std::mutex> lock(mutex_);
     if (current_index_ >= indices_.size()) {
-      mutex_.unlock();
       return false;
     }
     *index = indices_[current_index_];
     current_index_++;
-    mutex_.unlock();
     return true;
   }
 
-  // Not thread safe, use for setup only!
-  void reset() { current_index_ = 0u; }
+  // Resets the index getter to iterate over the same indices again.
+  void reset() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    current_index_ = 0u;
+  }
 
  private:
   std::mutex mutex_;
