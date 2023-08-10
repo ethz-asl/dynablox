@@ -25,12 +25,12 @@ An online volumetric mapping-based approach for real-time detection of diverse d
 # Paper
 If you find this package useful for your research, please consider citing our paper:
 
-* Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *ArXiv Preprint*, 2023. \[ [ArXiv](https://arxiv.org/abs/2304.10049) | [Video](https://www.youtube.com/watch?v=NA13fRWlqRQ) \]
+* Lukas Schmid, Olov Andersson, Aurelio Sulser, Patrick Pfreundschuh, and Roland Siegwart. "**Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments**" in *IEEE Robotics and Automation Letters (RA-L)*, 2023. \[ [ArXiv](https://arxiv.org/abs/2304.10049) | [Video](https://www.youtube.com/watch?v=NA13fRWlqRQ) \]
   ```bibtex
-  @inproceedings{schmid2023dynablox,
+  @article{schmid2023dynablox,
     title={Dynablox: Real-time Detection of Diverse Dynamic Objects in Complex Environments},
     author={Schmid, Lukas, and Andersson, Olov, and Sulser, Aurelio, and Pfreundschuh, Patrick, and Siegwart, Roland},
-    booktitle={ArXiv Preprint 2304.10049},
+    booktitle={IEEE Robotics and Automation Letters (RA-L)},
     year={2023},
     volume={},
     number={},
@@ -92,9 +92,9 @@ roscd dynablox_ros/scripts
 ```
 
 We further collect a new dataset featuring diverse dynamic objects in complex scenes.
+The full dataset and description ca nbe found [here](https://projects.asl.ethz.ch/datasets/doku.php?id=dynablox).
 To download the processed ready-to-run data for our demos, use the provided script:
 ```bash
-pip install gdown # The script currently uses gdown.
 roscd dynablox_ros/scripts
 ./download_dynablox_data.sh /home/$USER/data/Dynablox # Or your preferred data destination.
 
@@ -131,7 +131,6 @@ roscd dynablox_ros/scripts
     ```
 4. You should now see dynamic objects being detected as the sensor moves through the scene:
 ![Run Dynablox Example](https://user-images.githubusercontent.com/36043993/232140093-ee99a919-d2ad-4dc8-95ac-fa047b901f94.png)
-
 
 ## Running and Evaluating an Experiment
 
