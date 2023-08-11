@@ -35,7 +35,7 @@ If you find this package useful for your research, please consider citing our pa
     volume={},
     number={},
     pages={},
-    doi={}}
+    doi={10.1109/LRA.2023.3305239}}
   }
   ```
   
