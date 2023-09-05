@@ -32,9 +32,9 @@ If you find this package useful for your research, please consider citing our pa
     author={Schmid, Lukas, and Andersson, Olov, and Sulser, Aurelio, and Pfreundschuh, Patrick, and Siegwart, Roland},
     booktitle={IEEE Robotics and Automation Letters (RA-L)},
     year={2023},
-    volume={},
-    number={},
-    pages={},
+    volume={8},
+    number={10},
+    pages={6259 - 6266},
     doi={10.1109/LRA.2023.3305239}}
   }
   ```
