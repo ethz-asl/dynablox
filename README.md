@@ -12,6 +12,7 @@ An online volumetric mapping-based approach for real-time detection of diverse d
 **Credits**
 * [Paper](#Paper)
 * [Video](#Video)
+* [News](#News)
 
 **Setup**
 * [Installation](#Installation)
@@ -43,6 +44,8 @@ If you find this package useful for your research, please consider citing our pa
 A brief overview of the problem, approach, and results is available on youtube:
 [<img src=https://user-images.githubusercontent.com/36043993/233706937-1ccd0c03-d86b-4e4f-ad47-48c38e8a7f8d.png alt="Dynablox Youtube Video">](https://www.youtube.com/watch?v=NA13fRWlqRQ)
 
+## News
+We were excited to learn that Dynablox has been integrated into NVIDIA's [nvblox](https://github.com/nvidia-isaac/nvblox), where the algorithm's parallelism can make fantastic use of the GPU and detect moving objects fast and at high resolutions! 
 
 # Setup
 
