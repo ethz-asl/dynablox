@@ -98,7 +98,7 @@ roscd dynablox_ros/scripts
 ```
 
 We further collect a new dataset featuring diverse dynamic objects in complex scenes.
-The full dataset and description ca nbe found [here](https://projects.asl.ethz.ch/datasets/doku.php?id=dynablox).
+The full dataset and description can be found [here](https://projects.asl.ethz.ch/datasets/doku.php?id=dynablox).
 To download the processed ready-to-run data for our demos, use the provided script:
 ```bash
 roscd dynablox_ros/scripts
