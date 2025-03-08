@@ -38,7 +38,7 @@ jobs:
         ccache --max-size=1G
 
     - name: Cache ccache files
-      uses: actions/cache@v1.1.0
+      uses: actions/cache@v4
       with:
         path: ${{ env.CCACHE_DIR }}
         key: ${{ matrix.config.name }}-ccache-${{ env.CCACHE_STAMP }}
